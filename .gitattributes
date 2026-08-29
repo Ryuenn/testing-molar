@@ -1,0 +1,23 @@
+# Normalize text to LF in the repository and in the working tree. The build runs
+# on Linux; CRLF in the checkout only causes churn.
+* text=auto eol=lf
+
+# The placeholder PDFs are pure ASCII, so Git will happily classify them as text
+# and rewrite their line endings on a Windows checkout — which shifts every byte
+# offset and invalidates the xref table. They are binary. So is everything else
+# in this list.
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.mp4   binary
+*.webm  binary
+*.mov   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
