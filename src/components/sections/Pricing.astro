@@ -1,0 +1,236 @@
+---
+import Section from '~/components/ui/Section.astro';
+import Tick from '~/components/ui/Tick.astro';
+import { PLANS, PRICING_FOOTNOTE } from '~/data/pricing';
+import { PROMO } from '~/data/site';
+---
+
+<Section
+	id="pricing"
+	eyebrow="Plans and pricing"
+	heading="Three plans. One outcome."
+	lede="Own the feed in your city for less than a fifth of an agency retainer."
+	align="center"
+>
+	<div class="plans" data-reveal-stagger>
+		{
+			PLANS.map((plan) => (
+				<article
+					class:list={['plan', 'panel', 'panel-hover', plan.featured && 'plan--featured']}
+					data-reveal
+					data-reveal-group
+					aria-labelledby={`plan-${plan.id}`}
+				>
+					{plan.featured && <p class="plan__badge">Most popular</p>}
+
+					<header class="plan__head">
+						<h3 class="plan__name" id={`plan-${plan.id}`}>
+							{plan.name}
+						</h3>
+						<p class="plan__price">
+							<span class="plan__amount">{plan.price}</span>
+							{plan.cadence && <span class="plan__cadence">{plan.cadence}</span>}
+						</p>
+						<p class="plan__summary">{plan.summary}</p>
+						<p class="plan__blurb">{plan.blurb}</p>
+
+						{/* Promo is a content variable — blank PROMO.code out and this disappears. */}
+						{plan.id === PROMO.tier && PROMO.code && (
+							<p class="plan__promo">
+								{PROMO.discount} {PROMO.appliesTo} with code{' '}
+								<code class="plan__code">{PROMO.code}</code>
+							</p>
+						)}
+					</header>
+
+					<a
+						href={plan.cta.href}
+						class:list={['btn', plan.featured ? 'btn-primary' : 'btn-ghost', 'plan__cta']}
+					>
+						{plan.cta.label}
+					</a>
+
+					<ul class="plan__features">
+						{plan.features.map((feature) => (
+							<li class="plan__feature">
+								<Tick class="tick plan__tick" />
+								<span>{feature}</span>
+							</li>
+						))}
+					</ul>
+				</article>
+			))
+		}
+	</div>
+
+	<p class="plans__note" data-reveal>{PRICING_FOOTNOTE}</p>
+</Section>
+
+<style>
+	.plans {
+		display: grid;
+		gap: 1.25rem;
+		align-items: start;
+	}
+
+	.plan {
+		position: relative;
+		display: grid;
+		gap: 1.5rem;
+		padding: clamp(1.5rem, 3vw, 2.25rem);
+		text-align: left;
+	}
+
+	.plan--featured {
+		border-color: color-mix(in oklab, var(--color-arc-500) 45%, transparent);
+		background:
+			radial-gradient(
+				120% 70% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-600) 16%, transparent),
+				transparent 62%
+			),
+			linear-gradient(180deg, var(--color-ink-800), var(--color-ink-900));
+	}
+
+	.plan__badge {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: clamp(1.5rem, 3vw, 2.25rem);
+		transform: translateY(-50%);
+		margin: 0;
+		padding: 0.3rem 0.7rem;
+		border-radius: var(--radius-xs);
+		background: var(--color-arc-500);
+		color: #00121f;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+
+	.plan__head {
+		display: grid;
+		gap: 0.6rem;
+	}
+
+	.plan__name {
+		margin: 0;
+		font-size: var(--text-lg);
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		color: var(--color-bone-300);
+	}
+
+	.plan__price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		margin: 0;
+	}
+
+	.plan__amount {
+		font-family: var(--font-display);
+		font-size: var(--text-4xl);
+		font-weight: 600;
+		letter-spacing: -0.04em;
+		color: var(--color-bone-50);
+	}
+
+	.plan__cadence {
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		color: var(--color-bone-500);
+	}
+
+	.plan__summary {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 500;
+		color: var(--color-bone-100);
+	}
+
+	.plan__blurb {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	.plan__promo {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0.25rem 0 0;
+		padding: 0.6rem 0.75rem;
+		border: 1px dashed color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-sm);
+		color: var(--color-arc-200);
+	}
+
+	.plan__code {
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		font-weight: 500;
+		letter-spacing: 0.12em;
+		padding: 0.15rem 0.4rem;
+		border-radius: var(--radius-xs);
+		background: color-mix(in oklab, var(--color-arc-500) 22%, transparent);
+		color: var(--color-bone-50);
+	}
+
+	.plan__cta {
+		width: 100%;
+	}
+
+	.plan__features {
+		display: grid;
+		gap: 0.7rem;
+		margin: 0;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--color-line);
+		list-style: none;
+	}
+
+	.plan__feature {
+		display: grid;
+		grid-template-columns: 1rem 1fr;
+		gap: 0.65rem;
+		align-items: start;
+		font-size: var(--text-sm);
+		color: var(--color-bone-300);
+	}
+
+	.plan__tick {
+		margin-top: 0.28rem;
+	}
+
+	.plans__note {
+		margin: 2rem 0 0;
+		text-align: center;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		letter-spacing: 0.06em;
+		color: var(--color-bone-500);
+	}
+
+	@media (min-width: 640px) {
+		.plans {
+			gap: 1.5rem;
+		}
+	}
+
+	@media (min-width: 1000px) {
+		.plans {
+			grid-template-columns: repeat(3, 1fr);
+		}
+
+		/* The featured card sits slightly proud of the other two. */
+		.plan--featured {
+			margin-block: -0.75rem;
+			padding-block: calc(clamp(1.5rem, 3vw, 2.25rem) + 0.75rem);
+		}
+	}
+</style>

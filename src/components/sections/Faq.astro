@@ -1,0 +1,140 @@
+---
+import Section from '~/components/ui/Section.astro';
+import { FAQ } from '~/data/faq';
+
+/**
+ * Native <details>/<summary>. Keyboard support, screen-reader semantics and
+ * find-in-page all work without a line of JavaScript — the `name` attribute
+ * gives the exclusive-accordion behaviour that would otherwise need a script,
+ * and browsers without it simply allow more than one open at a time.
+ *
+ * The FAQPage structured data on this page is generated from the same array,
+ * so the markup and the schema cannot drift apart.
+ */
+---
+
+<Section
+	id="faq"
+	eyebrow="FAQ"
+	heading="Questions practices actually ask."
+	lede="If something is not here, email team@molarai.studio and a person will answer."
+>
+	<div class="faq" data-reveal-stagger>
+		{
+			FAQ.map((item, i) => (
+				<details class="faq__item" name="molar-faq" open={i === 0} data-reveal data-reveal-group>
+					<summary class="faq__q">
+						<span class="faq__q-text">{item.q}</span>
+						<span class="faq__icon" aria-hidden="true">
+							<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4">
+								<path d="M7 1.5v11M1.5 7h11" class="faq__icon-cross" />
+							</svg>
+						</span>
+					</summary>
+					<div class="faq__a">
+						<p>{item.a}</p>
+					</div>
+				</details>
+			))
+		}
+	</div>
+</Section>
+
+<style>
+	.faq {
+		border-top: 1px solid var(--color-line);
+	}
+
+	.faq__item {
+		border-bottom: 1px solid var(--color-line);
+	}
+
+	.faq__q {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		padding-block: clamp(1.1rem, 2vw, 1.5rem);
+		cursor: pointer;
+		list-style: none;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 500;
+		color: var(--color-bone-100);
+		transition: color 0.25s var(--ease-out-quint);
+	}
+
+	.faq__q::-webkit-details-marker {
+		display: none;
+	}
+
+	.faq__q:hover {
+		color: var(--color-bone-50);
+	}
+
+	.faq__q:focus-visible {
+		outline-offset: -2px;
+	}
+
+	.faq__q-text {
+		max-width: 52ch;
+	}
+
+	.faq__icon {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-xs);
+		color: var(--color-arc-400);
+		transition:
+			border-color 0.3s var(--ease-out-quint),
+			rotate 0.3s var(--ease-out-quint);
+	}
+
+	.faq__icon svg {
+		width: 0.7rem;
+		height: 0.7rem;
+	}
+
+	.faq__item[open] .faq__icon {
+		rotate: 45deg;
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+	}
+
+	.faq__a {
+		padding-bottom: clamp(1.1rem, 2vw, 1.5rem);
+		padding-inline-end: 3rem;
+	}
+
+	.faq__a p {
+		margin: 0;
+		max-width: 66ch;
+		color: var(--color-bone-400);
+	}
+
+	/* Only animates where the browser can interpolate to auto height; elsewhere it
+	   simply opens. No JS height measuring. `interpolate-size` itself is set on
+	   :root in global.css — scoped styles cannot reach :root. */
+	@supports (interpolate-size: allow-keywords) {
+		.faq__item::details-content {
+			block-size: 0;
+			overflow: hidden;
+			transition:
+				block-size 0.35s var(--ease-out-quint),
+				content-visibility 0.35s allow-discrete;
+		}
+
+		.faq__item[open]::details-content {
+			block-size: auto;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.faq__item::details-content {
+			transition: none;
+		}
+	}
+</style>

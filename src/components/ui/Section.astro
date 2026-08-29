@@ -1,0 +1,91 @@
+---
+export interface Props {
+	id?: string;
+	/** Eyebrow above the heading. Small, mono, rationed blue. */
+	eyebrow?: string;
+	heading?: string;
+	/** Renders the heading at this level. Only the hero uses h1. */
+	as?: 'h2' | 'h3';
+	lede?: string;
+	/** Hairline above the section. Off for the first band under the hero. */
+	rule?: boolean;
+	align?: 'start' | 'center';
+	class?: string;
+	labelledby?: string;
+}
+
+const {
+	id,
+	eyebrow,
+	heading,
+	as: Heading = 'h2',
+	lede,
+	rule = true,
+	align = 'start',
+	class: className = '',
+	labelledby,
+} = Astro.props;
+
+const headingId = id ? `${id}-heading` : undefined;
+---
+
+<section
+	id={id}
+	class:list={['section', rule && 'section-rule', className]}
+	aria-labelledby={labelledby ?? (heading ? headingId : undefined)}
+>
+	<div class="container-content">
+		{
+			(eyebrow || heading || lede) && (
+				<header class:list={['head', align === 'center' && 'head--center']}>
+					{eyebrow && (
+						<p class="eyebrow" data-reveal="fade">
+							{eyebrow}
+						</p>
+					)}
+					{heading && (
+						<Heading id={headingId} class="head__title" data-reveal>
+							{heading}
+						</Heading>
+					)}
+					{lede && (
+						<p class="head__lede measure-wide" data-reveal>
+							{lede}
+						</p>
+					)}
+				</header>
+			)
+		}
+
+		<slot />
+	</div>
+</section>
+
+<style>
+	.head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.head--center {
+		align-items: center;
+		text-align: center;
+	}
+
+	.head--center .head__lede {
+		margin-inline: auto;
+	}
+
+	.head__title {
+		font-size: var(--text-3xl);
+		margin: 0;
+	}
+
+	.head__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+</style>

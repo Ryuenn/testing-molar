@@ -1,0 +1,130 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+export interface Props {
+	entry: CollectionEntry<'resources'>;
+	headingLevel?: 'h3' | 'h4';
+}
+
+const { entry, headingLevel: Heading = 'h3' } = Astro.props;
+const { data } = entry;
+const href = `/resources/${entry.id}/`;
+---
+
+<article
+	class="rcard panel panel-hover"
+	data-resource
+	data-category={data.category}
+	data-title={data.title.toLowerCase()}
+>
+	<p class="rcard__cat">{data.category}</p>
+
+	<Heading class="rcard__title">
+		{/* Whole card is the target; the link stays the accessible name. */}
+		<a href={href} class="rcard__link">
+			{data.title}
+			<span class="rcard__cover" aria-hidden="true"></span>
+		</a>
+	</Heading>
+
+	<p class="rcard__blurb">{data.blurb}</p>
+
+	<p class="rcard__meta">
+		<span>{data.format}</span>
+		<span class="rcard__dot" aria-hidden="true">&middot;</span>
+		<span>{data.pages} pages</span>
+	</p>
+
+	<p class="rcard__cta" aria-hidden="true">
+		Download
+		<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+			<path d="M8 2v9M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"></path>
+		</svg>
+	</p>
+</article>
+
+<style>
+	.rcard {
+		position: relative;
+		display: grid;
+		grid-template-rows: auto auto 1fr auto auto;
+		gap: 0.75rem;
+		padding: clamp(1.25rem, 2.5vw, 1.75rem);
+	}
+
+	.rcard__cat {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-arc-400);
+	}
+
+	.rcard__title {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: 1.32;
+	}
+
+	.rcard__link {
+		text-decoration: none;
+		color: inherit;
+	}
+
+	.rcard__link:hover {
+		color: var(--color-arc-200);
+	}
+
+	/* Expands the hit area to the whole card without nesting interactive elements. */
+	.rcard__cover {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+	}
+
+	.rcard__blurb {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	.rcard__meta {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.rcard__dot {
+		color: var(--color-ink-600);
+	}
+
+	.rcard__cta {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin: 0;
+		padding-top: 0.85rem;
+		border-top: 1px solid var(--color-line);
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-arc-300);
+	}
+
+	.rcard__cta svg {
+		width: 0.9rem;
+		height: 0.9rem;
+		transition: transform 0.3s var(--ease-out-quint);
+	}
+
+	.rcard:hover .rcard__cta svg {
+		transform: translateY(2px);
+	}
+</style>

@@ -1,0 +1,330 @@
+---
+import { SITE, CTA } from '~/data/site';
+
+/**
+ * Media contract — files live in `public/videos/` and `public/images/`.
+ * Renaming any of these means updating `public/videos/README.md` too.
+ */
+const VIDEO = {
+	poster: '/images/hero-poster.jpg',
+	webm: '/videos/hero.webm',
+	mp4: '/videos/hero.mp4',
+	mobile: '/videos/hero-mobile.mp4',
+};
+
+const FLOW = [
+	{ step: 'Subscribe', detail: 'Pick a plan' },
+	{ step: 'Connect your accounts', detail: 'Securely, in minutes' },
+	{ step: 'Stay top of mind with patients', detail: 'Automatically, every week' },
+];
+---
+
+<section class="hero" data-hero aria-labelledby="hero-heading">
+	<div class="hero__media">
+		{/*
+			`playsinline` + `muted` are what let iOS autoplay at all.
+			The poster is required: without it there is a black flash before the
+			first decoded frame, and it is also the whole picture for anyone on a
+			data saver, a reduced-motion setting, or a failed video request.
+		*/}
+		<video
+			class="hero__video"
+			autoplay
+			muted
+			loop
+			playsinline
+			preload="metadata"
+			poster={VIDEO.poster}
+			aria-hidden="true"
+			tabindex="-1"
+			disablepictureinpicture
+			disableremoteplayback
+		>
+			{/* Lighter cut first — the browser takes the first source it can play
+			    and the media query keeps the heavy file off small screens. */}
+			<source src={VIDEO.mobile} type="video/mp4" media="(max-width: 767px)" />
+			<source src={VIDEO.webm} type="video/webm" />
+			<source src={VIDEO.mp4} type="video/mp4" />
+		</video>
+
+		{/* Scrim. The tooth's glow must never sit directly behind the headline. */}
+		<div class="hero__scrim" data-hero-scrim></div>
+		<div class="hero__vignette" aria-hidden="true"></div>
+		<div class="grain" aria-hidden="true"></div>
+	</div>
+
+	<div class="container-content hero__inner">
+		<p class="eyebrow hero__eyebrow" data-hero-in>{SITE.positioning}</p>
+
+		<h1 id="hero-heading" class="hero__title" data-hero-in>
+			The easiest way to <span class="hero__title-accent">educate patients</span> online.
+		</h1>
+
+		<p class="hero__lede" data-hero-in>
+			MOLAR AI creates, customizes, schedules and publishes patient education content for your
+			practice. No filming. No contracts. No agencies.
+		</p>
+
+		<ol class="hero__flow" data-hero-in>
+			{
+				FLOW.map((item, i) => (
+					<li class="hero__flow-item">
+						{i > 0 && (
+							<span class="hero__flow-arrow" aria-hidden="true">
+								<svg viewBox="0 0 16 10" fill="none" stroke="currentColor" stroke-width="1.4">
+									<path d="M0 5h14M10 1l4 4-4 4" />
+								</svg>
+							</span>
+						)}
+						<span class="hero__flow-body">
+							<span class="hero__flow-step">{item.step}</span>
+							<span class="hero__flow-detail">{item.detail}</span>
+						</span>
+					</li>
+				))
+			}
+		</ol>
+
+		<div class="hero__actions" data-hero-in>
+			<a href={CTA.primary.href} class="btn btn-primary hero__cta">Start now</a>
+			<a href={CTA.secondary.href} class="btn btn-ghost">See plans and pricing</a>
+		</div>
+
+		<p class="hero__note" data-hero-in>
+			<span class="hero__pulse" aria-hidden="true"></span>
+			Go live in 24 hours &middot; Cancel anytime
+		</p>
+	</div>
+</section>
+
+<style>
+	.hero {
+		position: relative;
+		display: flex;
+		align-items: flex-end;
+		/* dvh, not vh — vh is wrong the moment mobile Safari's chrome moves. */
+		min-height: 100dvh;
+		padding-block: calc(var(--nav-h, 4.5rem) + clamp(4rem, 12vh, 8rem)) clamp(3.5rem, 9vh, 6rem);
+		overflow: clip;
+		isolation: isolate;
+	}
+
+	/* Fallback for the handful of engines without dvh. */
+	@supports not (height: 100dvh) {
+		.hero {
+			min-height: 100vh;
+		}
+	}
+
+	.hero__media {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background-color: var(--color-ink-950);
+		/* Shows through if the video 404s or is still downloading. */
+		background-image: url('/images/hero-poster.jpg');
+		background-size: cover;
+		background-position: 50% 42%;
+	}
+
+	.hero__video {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		/*
+			The tooth sits centred and small in the footage. Biasing the crop
+			slightly above centre keeps it clear of the copy stack at 375px, where
+			cover-cropping to portrait is at its most aggressive.
+		*/
+		object-position: 50% 42%;
+	}
+
+	.hero__scrim {
+		position: absolute;
+		inset: 0;
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in oklab, var(--color-ink-950) 62%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 30%, transparent) 34%,
+				color-mix(in oklab, var(--color-ink-950) 82%, transparent) 78%,
+				var(--color-ink-950) 100%
+			),
+			linear-gradient(
+				92deg,
+				color-mix(in oklab, var(--color-ink-950) 78%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 42%, transparent) 46%,
+				transparent 76%
+			);
+	}
+
+	.hero__vignette {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			120% 80% at 50% 40%,
+			transparent 40%,
+			color-mix(in oklab, var(--color-ink-950) 70%, transparent) 100%
+		);
+	}
+
+	.hero__inner {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.5rem;
+	}
+
+	.hero__eyebrow {
+		margin: 0;
+		max-width: 34ch;
+	}
+
+	.hero__title {
+		margin: 0;
+		font-size: var(--text-5xl);
+		font-weight: 600;
+		letter-spacing: -0.035em;
+		max-width: 17ch;
+	}
+
+	.hero__title-accent {
+		color: var(--color-arc-300);
+	}
+
+	.hero__lede {
+		margin: 0;
+		max-width: 48ch;
+		font-size: var(--text-lg);
+		color: var(--color-bone-100);
+	}
+
+	/* ── Subscribe → Connect → Stay top of mind ───────────────────────────── */
+	.hero__flow {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: stretch;
+		gap: 0.75rem 1rem;
+		margin: 0.25rem 0 0;
+		padding: 0;
+		list-style: none;
+		counter-reset: none;
+	}
+
+	.hero__flow-item {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.hero__flow-arrow {
+		flex: none;
+		width: 1rem;
+		color: var(--color-arc-500);
+	}
+
+	.hero__flow-arrow svg {
+		width: 100%;
+		height: auto;
+	}
+
+	.hero__flow-body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+		padding: 0.6rem 0.95rem;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-md);
+		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
+		backdrop-filter: blur(10px);
+	}
+
+	.hero__flow-step {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+
+	.hero__flow-detail {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-bone-400);
+	}
+
+	.hero__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+	}
+
+	.hero__cta {
+		padding-inline: 2rem;
+	}
+
+	.hero__note {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		letter-spacing: 0.05em;
+		color: var(--color-bone-400);
+	}
+
+	.hero__pulse {
+		width: 0.4rem;
+		height: 0.4rem;
+		border-radius: 50%;
+		background: var(--color-arc-400);
+		box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-arc-400) 70%, transparent);
+		animation: hero-pulse 2.6s var(--ease-out-quint) infinite;
+	}
+
+	@keyframes hero-pulse {
+		0% {
+			box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-arc-400) 65%, transparent);
+		}
+		70% {
+			box-shadow: 0 0 0 0.5rem transparent;
+		}
+		100% {
+			box-shadow: 0 0 0 0 transparent;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero__pulse {
+			animation: none;
+		}
+	}
+
+	/* Below 768 the flow reads better as a stacked list than a wrapped row. */
+	@media (max-width: 640px) {
+		.hero__flow {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.5rem;
+		}
+
+		.hero__flow-arrow {
+			rotate: 90deg;
+			margin-inline-start: 0.5rem;
+		}
+
+		.hero__flow-body {
+			flex: 1;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.hero {
+			align-items: center;
+		}
+	}
+</style>

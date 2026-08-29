@@ -1,0 +1,67 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+	title="Page not found"
+	description="That page has moved or never existed. Head back to molarai.studio."
+	ogImage={{
+		src: '/images/og/404.png',
+		alt: 'MOLAR AI — page not found',
+		width: 1200,
+		height: 630,
+	}}
+	noindex
+>
+	<section class="nf" aria-labelledby="nf-heading">
+		<div class="container-content nf__inner">
+			<p class="eyebrow">404</p>
+			<h1 id="nf-heading" class="nf__title">That page has moved.</h1>
+			<p class="nf__lede">
+				The link is broken or the page is gone. Everything worth reading is one of these.
+			</p>
+
+			<p class="nf__actions">
+				<a href="/" class="btn btn-primary">Back to the home page</a>
+				<a href="/resources/" class="btn btn-ghost">Resource library</a>
+			</p>
+		</div>
+	</section>
+</BaseLayout>
+
+<style>
+	.nf {
+		display: grid;
+		place-items: center;
+		min-height: 78dvh;
+		padding-block: calc(var(--nav-h, 4.5rem) + 4rem) 6rem;
+		text-align: center;
+		background:
+			radial-gradient(
+				60% 50% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-700) 18%, transparent),
+				transparent 62%
+			),
+			var(--color-ink-950);
+	}
+
+	.nf__title {
+		margin: 0.75rem 0 0;
+		font-size: var(--text-4xl);
+	}
+
+	.nf__lede {
+		margin: 1rem auto 0;
+		max-width: 42ch;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.nf__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.75rem;
+		margin: 2rem 0 0;
+	}
+</style>

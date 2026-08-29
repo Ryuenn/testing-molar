@@ -1,0 +1,108 @@
+---
+/*
+	Self-hosted variable fonts. Bundled by Vite and served same-origin, so there
+	is no third-party font request to allow through the CSP and no render-blocking
+	round trip to fonts.googleapis.com.
+*/
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/inter';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+
+import '~/styles/global.css';
+
+import Seo from '~/components/Seo.astro';
+import Nav from '~/components/Nav.astro';
+import Footer from '~/components/Footer.astro';
+import type { OgImage, PageType } from '~/data/seo';
+import { SITE } from '~/data/site';
+import { organizationSchema, websiteSchema } from '~/data/schema';
+
+export interface Props {
+	title: string;
+	description: string;
+	/** Per-page social card. No sitewide default — see Seo.astro. */
+	ogImage: OgImage;
+	type?: PageType;
+	noindex?: boolean;
+	/** Page-specific JSON-LD. Organization + WebSite are added here for every page. */
+	schema?: Record<string, unknown>[];
+	/** Hero pages let the nav start transparent. */
+	transparentNav?: boolean;
+	class?: string;
+}
+
+const {
+	title,
+	description,
+	ogImage,
+	type = 'website',
+	noindex = false,
+	schema = [],
+	transparentNav = false,
+	class: className,
+} = Astro.props;
+
+const graph = [organizationSchema(), websiteSchema(), ...schema];
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#04070e" />
+		<meta name="format-detection" content="telephone=no" />
+
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		<Seo
+			title={title}
+			description={description}
+			ogImage={ogImage}
+			type={type}
+			noindex={noindex}
+			schema={graph}
+		/>
+
+		{/*
+			Runs before first paint so reveal targets are only hidden when there is
+			both JS to reveal them and a motion preference that allows it. Any other
+			ordering risks a page of invisible content.
+		*/}
+		<script is:inline>
+			(function () {
+				var root = document.documentElement;
+				root.classList.add('js');
+				try {
+					if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+						root.classList.add('motion-ok');
+					}
+				} catch (e) {
+					/* no matchMedia — leave content visible */
+				}
+			})();
+		</script>
+
+		<slot name="head" />
+	</head>
+
+	<body class={className}>
+		<a class="skip-link" href="#main">Skip to content</a>
+
+		<Nav transparent={transparentNav} />
+
+		<main id="main">
+			<slot />
+		</main>
+
+		<Footer />
+
+		<script>
+			import '~/scripts/motion';
+		</script>
+	</body>
+</html>

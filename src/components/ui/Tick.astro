@@ -1,0 +1,21 @@
+---
+/** Affirmative mark. Used anywhere a checkmark emoji would otherwise appear. */
+export interface Props {
+	class?: string;
+}
+
+const { class: className = 'tick' } = Astro.props;
+---
+
+<svg
+	class={className}
+	viewBox="0 0 16 16"
+	fill="none"
+	stroke="currentColor"
+	stroke-width="1.75"
+	stroke-linecap="square"
+	aria-hidden="true"
+	focusable="false"
+>
+	<path d="M3 8.4 6.3 11.7 13 5" />
+</svg>

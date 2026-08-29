@@ -1,0 +1,59 @@
+---
+import { getCollection } from 'astro:content';
+import Section from '~/components/ui/Section.astro';
+import ResourceCard from '~/components/ResourceCard.astro';
+
+export interface Props {
+	/** How many to show on the home page before linking through to the full hub. */
+	limit?: number;
+}
+
+const { limit = 6 } = Astro.props;
+
+const all = (await getCollection('resources', ({ data }) => !data.draft)).sort((a, b) => {
+	if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+	return a.data.order - b.data.order;
+});
+
+const shown = all.slice(0, limit);
+const remaining = all.length - shown.length;
+---
+
+<Section
+	id="resources"
+	eyebrow="Free resources"
+	heading="Take something useful with you."
+	lede="Branded guides, scripts and checklists for practices running their own content. No subscription required."
+>
+	<div class="hub" data-reveal-stagger>
+		{
+			shown.map((entry) => (
+				<div data-reveal data-reveal-group>
+					<ResourceCard entry={entry} />
+				</div>
+			))
+		}
+	</div>
+
+	<p class="hub__more" data-reveal>
+		<a href="/resources/" class="btn btn-ghost">
+			{remaining > 0 ? `Browse all ${all.length} resources` : 'Browse the resource library'}
+		</a>
+	</p>
+</Section>
+
+<style>
+	.hub {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+	}
+
+	.hub > * {
+		display: grid;
+	}
+
+	.hub__more {
+		margin: 2.5rem 0 0;
+	}
+</style>

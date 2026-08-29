@@ -1,0 +1,46 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+import Hero from '~/components/sections/Hero.astro';
+import SocialProof from '~/components/sections/SocialProof.astro';
+import GlobalReach from '~/components/sections/GlobalReach.astro';
+import AssetArgument from '~/components/sections/AssetArgument.astro';
+import HowItWorks from '~/components/sections/HowItWorks.astro';
+import CustomizedAtScale from '~/components/sections/CustomizedAtScale.astro';
+import CaseStudies from '~/components/sections/CaseStudies.astro';
+import Comparison from '~/components/sections/Comparison.astro';
+import Pricing from '~/components/sections/Pricing.astro';
+import ResourceHub from '~/components/sections/ResourceHub.astro';
+import Faq from '~/components/sections/Faq.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+
+import { SITE } from '~/data/site';
+import { productSchema, faqSchema } from '~/data/schema';
+---
+
+<BaseLayout
+	title="The easiest way to educate patients online"
+	description={SITE.description}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR AI — the easiest way to educate patients online',
+		width: 1200,
+		height: 630,
+	}}
+	type="website"
+	schema={[productSchema(), faqSchema()]}
+	transparentNav
+>
+	<Hero />
+	<SocialProof />
+	<GlobalReach />
+	<AssetArgument />
+	<HowItWorks />
+	<CustomizedAtScale />
+	<CaseStudies />
+	<Comparison />
+	<Pricing />
+	<ResourceHub limit={6} />
+	<Faq />
+	<ClosingCta />
+</BaseLayout>

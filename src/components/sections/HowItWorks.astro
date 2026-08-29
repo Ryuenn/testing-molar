@@ -1,0 +1,130 @@
+---
+import Section from '~/components/ui/Section.astro';
+
+/**
+ * The one place on the page where visible numbering is warranted: these steps
+ * happen in order and the order is the point.
+ */
+const STEPS = [
+	{
+		title: 'Subscribe',
+		body: 'Choose the plan that fits the practice. No sales call required, no onboarding fee, no minimum term.',
+	},
+	{
+		title: 'Connect your accounts',
+		body: 'Securely link Instagram, Facebook and YouTube through the official APIs. Two minutes, once.',
+	},
+	{
+		title: 'Customize your brand',
+		body: 'Logo, colors, treatments, tone, the cases worth leading with. Everything MOLAR produces inherits it.',
+	},
+	{
+		title: 'Go live',
+		body: 'Branded patient education starts posting automatically, on schedule, without another meeting.',
+	},
+];
+---
+
+<Section
+	id="how-it-works"
+	eyebrow="How it works"
+	heading="One setup. Fully automated. Live the same day."
+	lede="Four steps between subscribing and the first post going out."
+>
+	<ol class="steps" data-reveal-stagger>
+		{
+			STEPS.map((step, i) => (
+				<li class="step" data-reveal data-reveal-group>
+					<span class="step__index" aria-hidden="true">
+						{String(i + 1).padStart(2, '0')}
+					</span>
+					<div class="step__body">
+						<h3 class="step__title">{step.title}</h3>
+						<p class="step__text">{step.body}</p>
+					</div>
+				</li>
+			))
+		}
+	</ol>
+
+	<p class="steps__note" data-reveal>
+		Most practices are live within 24 hours of subscribing.
+	</p>
+</Section>
+
+<style>
+	.steps {
+		display: grid;
+		gap: 0;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid var(--color-line);
+	}
+
+	.step {
+		display: grid;
+		grid-template-columns: 3.25rem 1fr;
+		gap: 0 1.25rem;
+		align-items: start;
+		padding-block: clamp(1.75rem, 3vw, 2.5rem);
+		border-bottom: 1px solid var(--color-line);
+		transition: background-color 0.4s var(--ease-out-quint);
+	}
+
+	.step:hover {
+		background: color-mix(in oklab, var(--color-arc-700) 7%, transparent);
+	}
+
+	.step__index {
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		line-height: 1.5;
+		letter-spacing: 0.1em;
+		color: var(--color-arc-500);
+		font-variant-numeric: tabular-nums;
+		padding-top: 0.15rem;
+	}
+
+	.step__body {
+		display: grid;
+		gap: 0.45rem;
+	}
+
+	.step__title {
+		margin: 0;
+		font-size: var(--text-xl);
+	}
+
+	.step__text {
+		margin: 0;
+		max-width: 58ch;
+		color: var(--color-bone-400);
+	}
+
+	.steps__note {
+		margin: 2rem 0 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	@media (min-width: 860px) {
+		.step {
+			grid-template-columns: 4rem minmax(0, 22ch) 1fr;
+			gap: 0 clamp(1.5rem, 4vw, 3.5rem);
+			align-items: baseline;
+		}
+
+		.step__body {
+			display: contents;
+		}
+
+		.step__text {
+			max-width: 52ch;
+		}
+	}
+</style>

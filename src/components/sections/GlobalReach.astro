@@ -1,0 +1,85 @@
+---
+import Section from '~/components/ui/Section.astro';
+import WorldMap from '~/components/WorldMap.astro';
+import { REGIONS, REACH_HEADLINE, REACH_SUB } from '~/data/reach';
+---
+
+<Section id="reach" eyebrow="Global reach" heading={REACH_HEADLINE} lede={REACH_SUB}>
+	<div class="reach">
+		<div class="reach__map" data-reveal="fade">
+			<WorldMap />
+		</div>
+
+		<ul class="reach__list" data-reveal-stagger>
+			{
+				REGIONS.map((region) => (
+					<li class="reach__item" data-reveal data-reveal-group>
+						<span class="reach__dot" aria-hidden="true" />
+						{region.name}
+					</li>
+				))
+			}
+			<li class="reach__item reach__item--more" data-reveal data-reveal-group>
+				<span class="reach__dot reach__dot--empty" aria-hidden="true"></span>
+				And growing
+			</li>
+		</ul>
+	</div>
+</Section>
+
+<style>
+	.reach {
+		display: grid;
+		gap: clamp(2rem, 4vw, 3rem);
+	}
+
+	.reach__map {
+		padding: clamp(1rem, 3vw, 2rem);
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-lg);
+		background: radial-gradient(
+			120% 140% at 50% 0%,
+			color-mix(in oklab, var(--color-arc-700) 10%, transparent),
+			transparent 60%
+		);
+	}
+
+	.reach__list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+		gap: 0.75rem 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.reach__item {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding-block: 0.6rem;
+		border-top: 1px solid var(--color-line);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-300);
+	}
+
+	.reach__item--more {
+		color: var(--color-bone-500);
+	}
+
+	.reach__dot {
+		flex: none;
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 50%;
+		background: var(--color-arc-400);
+	}
+
+	.reach__dot--empty {
+		background: none;
+		border: 1px solid var(--color-ink-600);
+	}
+</style>

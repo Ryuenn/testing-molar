@@ -1,0 +1,201 @@
+---
+/**
+ * Email gate. One field. No phone, no practice size, no "how did you hear about
+ * us" — every extra field is a reason not to finish, and this is top-of-funnel.
+ *
+ * Spam protection, in layers:
+ *   1. Netlify honeypot (`netlify-honeypot`) — a field only a bot fills in.
+ *   2. A time trap — a form completed in under two seconds was not typed.
+ *   3. Netlify's built-in submission filtering on the `resource-download` form.
+ *
+ * All three are server-side or degrade safely; none of them make a real visitor
+ * solve a puzzle.
+ */
+export interface Props {
+	/** Where Netlify redirects on success. */
+	action: string;
+	/** Recorded against the submission so we know which PDF was requested. */
+	resource: string;
+	submitLabel?: string;
+}
+
+const { action, resource, submitLabel = 'Send me the PDF' } = Astro.props;
+
+const FORM_NAME = 'resource-download';
+const HONEYPOT = 'practice-website';
+const MIN_FILL_MS = 2000;
+---
+
+<form
+	class="gate"
+	name={FORM_NAME}
+	method="POST"
+	action={action}
+	data-netlify="true"
+	netlify-honeypot={HONEYPOT}
+	data-gate
+	data-min-fill={MIN_FILL_MS}
+>
+	{/* Netlify needs the form name echoed in the body of the POST. */}
+	<input type="hidden" name="form-name" value={FORM_NAME} />
+	<input type="hidden" name="resource" value={resource} />
+	<input type="hidden" name="submitted-at" value="" data-gate-timestamp />
+
+	{/* Honeypot. Hidden from sight and from assistive tech, but not `display:none`
+	    — some bots skip fields that are display:none. */}
+	<p class="gate__trap" aria-hidden="true">
+		<label>
+			Leave this field empty
+			<input type="text" name={HONEYPOT} tabindex="-1" autocomplete="off" />
+		</label>
+	</p>
+
+	<div class="gate__row">
+		<div class="gate__field">
+			<label class="gate__label" for={`email-${resource}`}>Work email</label>
+			<input
+				class="gate__input"
+				id={`email-${resource}`}
+				type="email"
+				name="email"
+				required
+				autocomplete="email"
+				inputmode="email"
+				spellcheck="false"
+				placeholder="you@yourpractice.com"
+				aria-describedby={`gate-note-${resource}`}
+			/>
+		</div>
+
+		<button type="submit" class="btn btn-primary gate__submit">{submitLabel}</button>
+	</div>
+
+	<p class="gate__note" id={`gate-note-${resource}`}>
+		One email, one PDF. Unsubscribe in a click — we do not sell lists.
+	</p>
+
+	<p class="gate__error" data-gate-error hidden role="alert"></p>
+</form>
+
+<script>
+	/**
+	 * Time trap. Stamps the form when it becomes interactive and refuses a submit
+	 * that lands faster than a person could type an address. Without JS the
+	 * honeypot and Netlify's own filtering still apply, so nothing is lost.
+	 */
+	document.querySelectorAll<HTMLFormElement>('[data-gate]').forEach((form) => {
+		const loadedAt = Date.now();
+		const stamp = form.querySelector<HTMLInputElement>('[data-gate-timestamp]');
+		const error = form.querySelector<HTMLElement>('[data-gate-error]');
+		const min = Number(form.dataset.minFill ?? 2000);
+
+		form.addEventListener('submit', (event) => {
+			const elapsed = Date.now() - loadedAt;
+			if (stamp) stamp.value = String(elapsed);
+
+			if (elapsed < min) {
+				event.preventDefault();
+				if (error) {
+					error.textContent = 'That was quick — give it a moment and try again.';
+					error.hidden = false;
+				}
+				window.setTimeout(() => {
+					if (error) error.hidden = true;
+				}, min);
+			}
+		});
+	});
+</script>
+
+<style>
+	.gate {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.gate__trap {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
+	.gate__row {
+		display: grid;
+		gap: 0.65rem;
+	}
+
+	.gate__field {
+		display: grid;
+		gap: 0.4rem;
+	}
+
+	.gate__label {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-400);
+	}
+
+	.gate__input {
+		width: 100%;
+		padding: 0.85rem 1rem;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-md);
+		background: var(--color-ink-950);
+		color: var(--color-bone-50);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		transition:
+			border-color 0.25s var(--ease-out-quint),
+			background-color 0.25s var(--ease-out-quint);
+	}
+
+	.gate__input::placeholder {
+		color: var(--color-bone-500);
+	}
+
+	.gate__input:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 40%, transparent);
+	}
+
+	.gate__input:focus-visible {
+		border-color: var(--color-arc-400);
+		outline-offset: 1px;
+	}
+
+	.gate__input:user-invalid {
+		border-color: #ff6b6b;
+	}
+
+	.gate__submit {
+		justify-self: start;
+		padding-block: 0.9rem;
+	}
+
+	.gate__note {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--color-bone-500);
+	}
+
+	.gate__error {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: #ff9b9b;
+	}
+
+	@media (min-width: 560px) {
+		.gate__row {
+			grid-template-columns: 1fr auto;
+			align-items: end;
+			gap: 0.75rem;
+		}
+
+		.gate__submit {
+			justify-self: stretch;
+		}
+	}
+</style>

@@ -1,0 +1,180 @@
+---
+/**
+ * PLACEHOLDER — design supplied separately.
+ *
+ * The props, slots and DOM contract below are the finished interface: drop the
+ * real markup into the marked region and nothing else on the site has to change.
+ *
+ *   <Nav links={NAV_LINKS} cta={CTA.primary} transparent />
+ *
+ * Slots
+ *   brand    logo lockup (defaults to the wordmark below)
+ *   links    full replacement for the generated link list
+ *   actions  right-hand cluster (defaults to the CTA button)
+ *
+ * Contract the rest of the site relies on:
+ *   - renders a landmark <header> containing <nav aria-label="Primary">
+ *   - `--nav-h` is published on :root; `scroll-padding-top` in global.css and
+ *     the hero's `min-height` both read from it
+ *   - `data-nav-transparent` is toggled off once the page scrolls past the hero,
+ *     driven by the ScrollTrigger in `src/scripts/motion.ts`
+ */
+import { NAV_LINKS, SITE, CTA } from '~/data/site';
+
+export interface NavLink {
+	label: string;
+	href: string;
+}
+
+export interface Props {
+	links?: readonly NavLink[];
+	cta?: { label: string; href: string };
+	/** Hero pages start transparent and solidify on scroll. */
+	transparent?: boolean;
+	class?: string;
+}
+
+const {
+	links = NAV_LINKS,
+	cta = CTA.primary,
+	transparent = false,
+	class: className = '',
+} = Astro.props;
+---
+
+<header
+	class:list={['nav', className]}
+	data-nav
+	data-nav-transparent={transparent ? '' : undefined}
+>
+	<div class="container-content nav__inner">
+		<slot name="brand">
+			<a href="/" class="nav__brand" aria-label={`${SITE.name} — home`}>
+				<span class="nav__mark" aria-hidden="true"></span>
+				<span class="nav__wordmark">MOLAR<span class="nav__wordmark-ai">AI</span></span>
+			</a>
+		</slot>
+
+		<nav aria-label="Primary" class="nav__nav">
+			<slot name="links">
+				<ul class="nav__links">
+					{
+						links.map((link) => (
+							<li>
+								<a href={link.href} class="nav__link">
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</slot>
+		</nav>
+
+		<div class="nav__actions">
+			<slot name="actions">
+				<a href={cta.href} class="btn btn-primary nav__cta">{cta.label}</a>
+			</slot>
+		</div>
+	</div>
+</header>
+
+<style>
+	/* `--nav-h` is declared on :root in global.css — a :root rule inside a scoped
+	   <style> block would be scoped along with everything else and never match. */
+	.nav {
+		position: fixed;
+		inset-block-start: 0;
+		inset-inline: 0;
+		z-index: 50;
+		height: var(--nav-h);
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-950) 88%, transparent);
+		backdrop-filter: blur(14px) saturate(150%);
+		transition:
+			background-color 0.4s var(--ease-out-quint),
+			border-color 0.4s var(--ease-out-quint);
+	}
+
+	.nav[data-nav-transparent] {
+		background: transparent;
+		border-bottom-color: transparent;
+		backdrop-filter: none;
+	}
+
+	.nav__inner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 2rem;
+	}
+
+	.nav__brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		text-decoration: none;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 1.0625rem;
+		letter-spacing: 0.02em;
+		color: var(--color-bone-50);
+	}
+
+	.nav__mark {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 1px;
+		background: var(--color-arc-500);
+		box-shadow: 0 0 12px 0 color-mix(in oklab, var(--color-arc-400) 80%, transparent);
+		rotate: 45deg;
+	}
+
+	.nav__wordmark-ai {
+		color: var(--color-arc-400);
+		margin-inline-start: 0.15em;
+	}
+
+	.nav__nav {
+		display: none;
+	}
+
+	.nav__links {
+		display: flex;
+		align-items: center;
+		gap: clamp(1.25rem, 2.5vw, 2.25rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.nav__link {
+		font-size: var(--text-sm);
+		color: var(--color-bone-300);
+		text-decoration: none;
+		transition: color 0.24s var(--ease-out-quint);
+	}
+
+	.nav__link:hover {
+		color: var(--color-bone-50);
+	}
+
+	.nav__actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.nav__cta {
+		padding-block: 0.6875rem;
+		padding-inline: 1.1rem;
+	}
+
+	@media (min-width: 900px) {
+		.nav__nav {
+			display: block;
+		}
+	}
+</style>

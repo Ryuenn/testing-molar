@@ -1,0 +1,189 @@
+---
+import Section from '~/components/ui/Section.astro';
+
+const TYPES = [
+	{ name: 'Reels', body: 'Short-form treatment explainers, narrated in the practice’s own voice.' },
+	{ name: 'Carousels', body: 'Multi-slide breakdowns patients swipe through and save for later.' },
+	{ name: 'Before & afters', body: 'Case results framed to build trust without overclaiming.' },
+	{ name: 'Case studies', body: 'The full arc of a treatment, from consultation to final photo.' },
+];
+
+/**
+ * A schematic of a practice feed rather than stock photography: the point is
+ * that the arrangement differs per practice, and a diagram says that more
+ * honestly than six invented dental photos would.
+ */
+const TILES = [
+	{ type: 'Reel', span: 2 },
+	{ type: 'Carousel', span: 1 },
+	{ type: 'Before & after', span: 1 },
+	{ type: 'Reel', span: 1 },
+	{ type: 'Case study', span: 1 },
+	{ type: 'Carousel', span: 1 },
+	{ type: 'Reel', span: 1 },
+	{ type: 'Before & after', span: 2 },
+];
+---
+
+<Section
+	id="customized"
+	eyebrow="Customized at scale"
+	heading="The same platform powers every practice. No two grids look alike."
+	lede="Built around each practice's brand, patients and city — not a template with a logo dropped in."
+>
+	<div class="scale">
+		<ul class="scale__types" data-reveal-stagger>
+			{
+				TYPES.map((type) => (
+					<li class="scale__type" data-reveal data-reveal-group>
+						<h3 class="scale__type-name">{type.name}</h3>
+						<p class="scale__type-body">{type.body}</p>
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="scale__grid" data-reveal="fade" aria-hidden="true">
+			{
+				TILES.map((tile, i) => (
+					<div class="tile" data-span={tile.span} style={`--d:${i * 40}ms`}>
+						<span class="tile__type">{tile.type}</span>
+						<span class="tile__lines">
+							<span></span>
+							<span></span>
+						</span>
+					</div>
+				))
+			}
+		</div>
+		<p class="sr-only">
+			Illustration: a practice feed made up of reels, carousels, before &amp; afters and case
+			studies in a mix unique to that practice.
+		</p>
+	</div>
+</Section>
+
+<style>
+	.scale {
+		display: grid;
+		gap: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.scale__types {
+		display: grid;
+		gap: 0;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		align-content: start;
+	}
+
+	.scale__type {
+		display: grid;
+		gap: 0.4rem;
+		padding-block: 1.25rem;
+		border-bottom: 1px solid var(--color-line);
+	}
+
+	.scale__type:first-child {
+		border-top: 1px solid var(--color-line);
+	}
+
+	.scale__type-name {
+		margin: 0;
+		font-size: var(--text-lg);
+	}
+
+	.scale__type-body {
+		margin: 0;
+		max-width: 46ch;
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	/* ── Feed schematic ───────────────────────────────────────────────────── */
+	.scale__grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+	}
+
+	.tile {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		aspect-ratio: 4 / 5;
+		padding: 0.7rem;
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-sm);
+		background:
+			linear-gradient(
+				150deg,
+				color-mix(in oklab, var(--color-arc-700) 16%, transparent),
+				transparent 58%
+			),
+			var(--color-ink-850);
+		overflow: hidden;
+		transition:
+			border-color 0.35s var(--ease-out-quint),
+			background-color 0.35s var(--ease-out-quint);
+	}
+
+	.tile[data-span='2'] {
+		grid-column: span 2;
+		aspect-ratio: 8 / 5;
+	}
+
+	.tile::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(
+			to right,
+			color-mix(in oklab, var(--color-arc-400) 8%, transparent) 1px,
+			transparent 1px
+		);
+		background-size: 12px 12px;
+		opacity: 0.7;
+	}
+
+	.tile:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 34%, transparent);
+	}
+
+	.tile__type {
+		position: relative;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-arc-300);
+	}
+
+	.tile__lines {
+		position: relative;
+		display: grid;
+		gap: 0.3rem;
+	}
+
+	.tile__lines span {
+		display: block;
+		height: 2px;
+		border-radius: 2px;
+		background: color-mix(in oklab, var(--color-bone-300) 18%, transparent);
+	}
+
+	.tile__lines span:last-child {
+		width: 55%;
+	}
+
+	@media (min-width: 940px) {
+		.scale {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+			align-items: start;
+			gap: clamp(3rem, 6vw, 5.5rem);
+		}
+	}
+</style>

@@ -1,0 +1,152 @@
+---
+/**
+ * Section 4 — the strongest differentiator on the page, so it gets the most
+ * room: a full-width statement, then the three moments an asset does work.
+ */
+const MOMENTS = [
+	{
+		phase: 'Before',
+		title: 'Discovered organically',
+		body: 'A prospective patient finds the practice mid-scroll, months before they are ready to book. By the time they call, they already know the work.',
+	},
+	{
+		phase: 'During',
+		title: 'Replayed in the operatory',
+		body: 'The same reel that explained a full-arch case online explains it again chairside. Consent conversations get shorter and case acceptance gets easier.',
+	},
+	{
+		phase: 'After',
+		title: 'Sent after the appointment',
+		body: 'Post-op instructions, aftercare, the next stage of treatment — already filmed, already branded, already in the library. Send the link.',
+	},
+];
+---
+
+<section id="assets" class="asset section-rule" aria-labelledby="asset-heading">
+	<div class="container-content">
+		<p class="eyebrow" data-reveal="fade">The asset argument</p>
+
+		<h2 id="asset-heading" class="asset__title" data-reveal>
+			Every post doubles as a <span class="asset__accent">patient-education asset.</span>
+		</h2>
+
+		<p class="asset__lede measure-wide" data-reveal>
+			Agencies sell you impressions. MOLAR builds a library the practice owns — content that keeps
+			working long after the post stops trending. Education before, during and after every visit.
+		</p>
+
+		<ol class="asset__rail" data-reveal-stagger>
+			{
+				MOMENTS.map((moment) => (
+					<li class="asset__moment" data-reveal data-reveal-group>
+						<span class="asset__phase">{moment.phase}</span>
+						<span class="asset__node" aria-hidden="true" />
+						<h3 class="asset__moment-title">{moment.title}</h3>
+						<p class="asset__moment-body">{moment.body}</p>
+					</li>
+				))
+			}
+		</ol>
+
+		<p class="asset__close" data-reveal>
+			Education before, during and after every visit — from the same subscription.
+		</p>
+	</div>
+</section>
+
+<style>
+	.asset {
+		padding-block: clamp(6rem, 12vw, 11rem);
+		background:
+			radial-gradient(
+				90% 60% at 12% 0%,
+				color-mix(in oklab, var(--color-arc-700) 14%, transparent),
+				transparent 65%
+			),
+			var(--color-ink-950);
+	}
+
+	.asset__title {
+		margin: 1.25rem 0 0;
+		font-size: var(--text-4xl);
+		max-width: 18ch;
+	}
+
+	.asset__accent {
+		color: var(--color-arc-300);
+	}
+
+	.asset__lede {
+		margin: 1.5rem 0 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* ── The rail ─────────────────────────────────────────────────────────── */
+	.asset__rail {
+		display: grid;
+		gap: 2.5rem;
+		margin: clamp(3.5rem, 7vw, 6rem) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.asset__moment {
+		position: relative;
+		display: grid;
+		gap: 0.75rem;
+		padding-top: 2.25rem;
+		border-top: 1px solid var(--color-line);
+	}
+
+	.asset__phase {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--color-arc-400);
+	}
+
+	.asset__node {
+		position: absolute;
+		inset-block-start: -0.3125rem;
+		inset-inline-start: 0;
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: 1px;
+		rotate: 45deg;
+		background: var(--color-ink-950);
+		border: 1px solid var(--color-arc-500);
+	}
+
+	.asset__moment-title {
+		margin: 0;
+		font-size: var(--text-xl);
+	}
+
+	.asset__moment-body {
+		margin: 0;
+		max-width: 42ch;
+		color: var(--color-bone-400);
+	}
+
+	.asset__close {
+		margin: clamp(3rem, 6vw, 5rem) 0 0;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-line);
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 500;
+		letter-spacing: -0.02em;
+		max-width: 34ch;
+		color: var(--color-bone-100);
+	}
+
+	@media (min-width: 860px) {
+		.asset__rail {
+			grid-template-columns: repeat(3, 1fr);
+			gap: clamp(2rem, 4vw, 3.5rem);
+		}
+	}
+</style>

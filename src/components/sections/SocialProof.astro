@@ -1,0 +1,120 @@
+---
+import { VIEW_COUNTS, PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
+
+/**
+ * The marquee needs two identical tracks. The first scrolls a full -100% of its
+ * own width while the second slides in behind it, so the seam is invisible and
+ * the loop never shows a gap. Only the first is exposed to assistive tech.
+ */
+const TRACKS = [0, 1];
+---
+
+<section class="proof" aria-labelledby="proof-heading">
+	<div class="container-content proof__head">
+		<p class="proof__stat" id="proof-heading" data-reveal>
+			<span class="proof__number">{PROOF_HEADLINE}</span>
+			<span class="proof__label">{PROOF_SUB}</span>
+		</p>
+	</div>
+
+	<div class="marquee proof__marquee" data-reveal="fade">
+		{
+			TRACKS.map((track) => (
+				<div class="marquee__track" aria-hidden={track === 1 ? 'true' : undefined}>
+					{track === 0 && <span class="sr-only">Per-account view counts across MOLAR practices:</span>}
+					{VIEW_COUNTS.map((count) => (
+						<span class="proof__item">
+							<span class="proof__count">{count}</span>
+							<span class="proof__unit">views</span>
+						</span>
+					))}
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.proof {
+		position: relative;
+		padding-block: clamp(3rem, 6vw, 5rem);
+		border-bottom: 1px solid var(--color-line);
+		background: linear-gradient(180deg, var(--color-ink-950), var(--color-ink-900));
+		overflow: clip;
+	}
+
+	.proof__head {
+		margin-bottom: clamp(2rem, 4vw, 3rem);
+	}
+
+	.proof__stat {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.35rem 0.85rem;
+		margin: 0;
+	}
+
+	.proof__number {
+		font-family: var(--font-display);
+		font-size: var(--text-4xl);
+		font-weight: 600;
+		letter-spacing: -0.035em;
+		color: var(--color-bone-50);
+	}
+
+	.proof__label {
+		font-size: var(--text-lg);
+		color: var(--color-bone-400);
+	}
+
+	.proof__marquee {
+		--marquee-duration: 46s;
+	}
+
+	.proof__item {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.4rem;
+		white-space: nowrap;
+	}
+
+	.proof__count {
+		font-family: var(--font-mono);
+		font-size: clamp(1.5rem, 3vw, 2.25rem);
+		font-weight: 500;
+		letter-spacing: -0.03em;
+		color: var(--color-bone-100);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.proof__unit {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-arc-400);
+	}
+
+	/* The track is duplicated, so a static fallback would double every number.
+	   Reduced motion gets a single wrapped row instead. */
+	@media (prefers-reduced-motion: reduce) {
+		.proof__marquee {
+			mask-image: none;
+			-webkit-mask-image: none;
+			overflow: visible;
+			padding-inline: var(--gutter);
+		}
+
+		.proof__marquee .marquee__track {
+			flex-wrap: wrap;
+			min-width: 0;
+			padding-inline: 0;
+			row-gap: 1rem;
+		}
+
+		.proof__marquee .marquee__track[aria-hidden='true'] {
+			display: none;
+		}
+	}
+</style>

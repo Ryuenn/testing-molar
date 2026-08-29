@@ -1,0 +1,276 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ResourceCard from '~/components/ResourceCard.astro';
+import { RESOURCE_CATEGORIES } from '~/data/resources';
+import { breadcrumbSchema } from '~/data/schema';
+
+const all = (await getCollection('resources', ({ data }) => !data.draft)).sort((a, b) => {
+	if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+	return a.data.order - b.data.order;
+});
+
+// Only offer a filter for categories that actually have something in them.
+const used = RESOURCE_CATEGORIES.filter((category) =>
+	all.some((entry) => entry.data.category === category),
+);
+
+const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category === c).length]));
+---
+
+<BaseLayout
+	title="Resource library"
+	description="Free branded guides, scripts and checklists for dental practices — patient education, content calendars, review playbooks and consent kits. No subscription required."
+	ogImage={{
+		src: '/images/og/resources.png',
+		alt: 'MOLAR AI resource library — free guides for dental practices',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: 'Home', path: '/' },
+			{ name: 'Resources', path: '/resources/' },
+		]),
+	]}
+>
+	<section class="hero-lite" aria-labelledby="library-heading">
+		<div class="container-content">
+			<nav aria-label="Breadcrumb" class="crumbs">
+				<ol class="crumbs__list">
+					<li><a href="/">Home</a></li>
+					<li aria-current="page">Resources</li>
+				</ol>
+			</nav>
+
+			<p class="eyebrow">Free resources</p>
+			<h1 id="library-heading" class="hero-lite__title">The MOLAR resource library.</h1>
+			<p class="hero-lite__lede measure-wide">
+				Everything here is free and branded to hand straight to a patient or a team. Built from
+				what actually works across MOLAR practices.
+			</p>
+		</div>
+	</section>
+
+	<section class="library section-rule" aria-labelledby="library-grid-heading">
+		<div class="container-content">
+			<h2 id="library-grid-heading" class="sr-only">All resources</h2>
+
+			<div class="filters" data-filters>
+				<div class="filters__group" role="group" aria-label="Filter resources by category">
+					<button type="button" class="chip" data-filter="all" aria-pressed="true">
+						All <span class="chip__count">{all.length}</span>
+					</button>
+					{
+						used.map((category) => (
+							<button type="button" class="chip" data-filter={category} aria-pressed="false">
+								{category} <span class="chip__count">{counts.get(category)}</span>
+							</button>
+						))
+					}
+				</div>
+
+				<p class="filters__status" data-filter-status role="status" aria-live="polite">
+					Showing all {all.length} resources
+				</p>
+			</div>
+
+			<div class="library__grid" data-resource-grid>
+				{all.map((entry) => <ResourceCard entry={entry} headingLevel="h3" />)}
+			</div>
+
+			<p class="library__empty" data-empty hidden>
+				Nothing in that category yet. <button type="button" class="btn btn-quiet" data-reset>Show everything</button>
+			</p>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	/**
+	 * Category filter. Progressive: without JS the grid renders every resource and
+	 * the chips simply do nothing, which is why the markup ships complete rather
+	 * than being built client-side. Filtering by attribute keeps this O(n) and
+	 * indifferent to how many resources the collection grows to.
+	 */
+	const root = document.querySelector<HTMLElement>('[data-filters]');
+	const grid = document.querySelector<HTMLElement>('[data-resource-grid]');
+	const status = document.querySelector<HTMLElement>('[data-filter-status]');
+	const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+	if (root && grid && status && empty) {
+		const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+		const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-resource]'));
+
+		const apply = (filter: string) => {
+			let visible = 0;
+
+			for (const card of cards) {
+				const match = filter === 'all' || card.dataset.category === filter;
+				card.hidden = !match;
+				if (match) visible++;
+			}
+
+			for (const chip of chips) {
+				chip.setAttribute('aria-pressed', String(chip.dataset.filter === filter));
+			}
+
+			empty.hidden = visible > 0;
+			status.textContent =
+				filter === 'all'
+					? `Showing all ${visible} resources`
+					: `Showing ${visible} ${visible === 1 ? 'resource' : 'resources'} in ${filter}`;
+
+			const url = new URL(window.location.href);
+			if (filter === 'all') url.searchParams.delete('category');
+			else url.searchParams.set('category', filter);
+			history.replaceState(null, '', url);
+		};
+
+		root.addEventListener('click', (event) => {
+			const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+			if (chip?.dataset.filter) apply(chip.dataset.filter);
+		});
+
+		document.querySelector<HTMLButtonElement>('[data-reset]')?.addEventListener('click', () => {
+			apply('all');
+		});
+
+		// A shared link like /resources/?category=Operations lands pre-filtered.
+		const initial = new URL(window.location.href).searchParams.get('category');
+		if (initial && chips.some((chip) => chip.dataset.filter === initial)) apply(initial);
+	}
+</script>
+
+<style>
+	.hero-lite {
+		padding-block: calc(var(--nav-h, 4.5rem) + clamp(3rem, 8vw, 6rem)) clamp(2.5rem, 5vw, 4rem);
+		background:
+			radial-gradient(
+				80% 60% at 15% 0%,
+				color-mix(in oklab, var(--color-arc-700) 18%, transparent),
+				transparent 62%
+			),
+			var(--color-ink-950);
+	}
+
+	.hero-lite__title {
+		margin: 0.75rem 0 0;
+		font-size: var(--text-4xl);
+		max-width: 18ch;
+	}
+
+	.hero-lite__lede {
+		margin: 1.25rem 0 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.crumbs {
+		margin-bottom: 1.75rem;
+	}
+
+	.crumbs__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.crumbs__list li + li::before {
+		content: '/';
+		margin-inline-end: 0.5rem;
+		color: var(--color-ink-600);
+	}
+
+	.crumbs__list a {
+		color: var(--color-bone-400);
+		text-decoration: none;
+	}
+
+	.crumbs__list a:hover {
+		color: var(--color-arc-300);
+	}
+
+	.library {
+		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4.5rem, 9vw, 8rem);
+	}
+
+	.filters {
+		display: grid;
+		gap: 1rem;
+		margin-bottom: 2rem;
+	}
+
+	.filters__group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.5rem 0.85rem;
+		border: 1px solid var(--color-line);
+		border-radius: 99px;
+		background: transparent;
+		color: var(--color-bone-400);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition:
+			border-color 0.25s var(--ease-out-quint),
+			color 0.25s var(--ease-out-quint),
+			background-color 0.25s var(--ease-out-quint);
+	}
+
+	.chip:hover {
+		border-color: var(--color-line-strong);
+		color: var(--color-bone-100);
+	}
+
+	.chip[aria-pressed='true'] {
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 16%, transparent);
+		color: var(--color-arc-200);
+	}
+
+	.chip__count {
+		color: var(--color-bone-500);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.chip[aria-pressed='true'] .chip__count {
+		color: var(--color-arc-300);
+	}
+
+	.filters__status {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--color-bone-500);
+	}
+
+	.library__grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+	}
+
+	.library__empty {
+		margin: 3rem 0 0;
+		text-align: center;
+		color: var(--color-bone-400);
+	}
+</style>

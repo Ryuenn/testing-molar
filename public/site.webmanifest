@@ -1,0 +1,30 @@
+{
+	"name": "MOLAR AI",
+	"short_name": "MOLAR",
+	"description": "The content engine for dentistry.",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"background_color": "#04070e",
+	"theme_color": "#04070e",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"type": "image/svg+xml",
+			"sizes": "any",
+			"purpose": "any"
+		},
+		{
+			"src": "/images/logo-molar.png",
+			"type": "image/png",
+			"sizes": "512x512",
+			"purpose": "any"
+		},
+		{
+			"src": "/images/apple-touch-icon.png",
+			"type": "image/png",
+			"sizes": "180x180",
+			"purpose": "maskable"
+		}
+	]
+}

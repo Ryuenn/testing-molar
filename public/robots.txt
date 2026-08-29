@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Gated downloads — reachable from the resource pages, not from search.
+Disallow: /pdfs/
+
+Sitemap: https://molarai.studio/sitemap-index.xml

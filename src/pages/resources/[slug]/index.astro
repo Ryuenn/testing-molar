@@ -1,0 +1,269 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import ResourceGate from '~/components/ResourceGate.astro';
+import ResourceCard from '~/components/ResourceCard.astro';
+import { breadcrumbSchema, resourceSchema } from '~/data/schema';
+
+export const getStaticPaths = (async () => {
+	const entries = await getCollection('resources', ({ data }) => !data.draft);
+	return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+
+// Related: same category first, then anything else, capped at three.
+const others = (await getCollection('resources', ({ data: d }) => !d.draft)).filter(
+	(candidate) => candidate.id !== entry.id,
+);
+const related = [
+	...others.filter((o) => o.data.category === data.category),
+	...others.filter((o) => o.data.category !== data.category),
+].slice(0, 3);
+
+const path = `/resources/${entry.id}/`;
+const updated = data.updated.toLocaleDateString('en-US', {
+	year: 'numeric',
+	month: 'long',
+});
+---
+
+<BaseLayout
+	title={data.title}
+	description={data.blurb}
+	ogImage={{
+		// Per-resource card when one exists, hub card otherwise. Either way this
+		// page ships its own value rather than inheriting a sitewide default.
+		src: data.ogImage ?? '/images/og/resources.png',
+		alt: `${data.title} — free resource from MOLAR AI`,
+		width: 1200,
+		height: 630,
+	}}
+	type="article"
+	schema={[
+		breadcrumbSchema([
+			{ name: 'Home', path: '/' },
+			{ name: 'Resources', path: '/resources/' },
+			{ name: data.title, path },
+		]),
+		resourceSchema({
+			title: data.title,
+			description: data.blurb,
+			path,
+			updated: data.updated,
+			category: data.category,
+		}),
+	]}
+>
+	<article class="resource">
+		<div class="container-content resource__inner">
+			<nav aria-label="Breadcrumb" class="crumbs">
+				<ol class="crumbs__list">
+					<li><a href="/">Home</a></li>
+					<li><a href="/resources/">Resources</a></li>
+					<li aria-current="page">{data.title}</li>
+				</ol>
+			</nav>
+
+			<div class="resource__grid">
+				<div class="resource__main">
+					<p class="eyebrow">{data.category}</p>
+					<h1 class="resource__title">{data.title}</h1>
+					<p class="resource__blurb">{data.blurb}</p>
+
+					<div class="resource__body">
+						<Content />
+					</div>
+
+					<dl class="resource__facts">
+						<div>
+							<dt>Format</dt>
+							<dd>{data.format}</dd>
+						</div>
+						<div>
+							<dt>Length</dt>
+							<dd>{data.pages} pages</dd>
+						</div>
+						<div>
+							<dt>Updated</dt>
+							<dd>
+								<time datetime={data.updated.toISOString().slice(0, 10)}>{updated}</time>
+							</dd>
+						</div>
+						<div>
+							<dt>Price</dt>
+							<dd>Free</dd>
+						</div>
+					</dl>
+				</div>
+
+				<aside class="resource__gate panel" aria-labelledby="gate-heading">
+					<h2 class="resource__gate-title" id="gate-heading">Get the PDF</h2>
+					<p class="resource__gate-lede">
+						Enter an email and the download starts on the next page.
+					</p>
+					<ResourceGate action={`${path}download/`} resource={entry.id} />
+				</aside>
+			</div>
+		</div>
+	</article>
+
+	{
+		related.length > 0 && (
+			<section class="related section-rule" aria-labelledby="related-heading">
+				<div class="container-content">
+					<h2 class="related__title" id="related-heading">
+						More from the library
+					</h2>
+					<div class="related__grid">
+						{related.map((item) => (
+							<ResourceCard entry={item} headingLevel="h3" />
+						))}
+					</div>
+				</div>
+			</section>
+		)
+	}
+</BaseLayout>
+
+<style>
+	.resource {
+		padding-block: calc(var(--nav-h, 4.5rem) + clamp(3rem, 7vw, 5rem)) clamp(3.5rem, 7vw, 6rem);
+		background:
+			radial-gradient(
+				70% 55% at 12% 0%,
+				color-mix(in oklab, var(--color-arc-700) 16%, transparent),
+				transparent 60%
+			),
+			var(--color-ink-950);
+	}
+
+	.crumbs {
+		margin-bottom: 2rem;
+	}
+
+	.crumbs__list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.crumbs__list li + li::before {
+		content: '/';
+		margin-inline-end: 0.5rem;
+		color: var(--color-ink-600);
+	}
+
+	.crumbs__list a {
+		color: var(--color-bone-400);
+		text-decoration: none;
+	}
+
+	.crumbs__list a:hover {
+		color: var(--color-arc-300);
+	}
+
+	.resource__grid {
+		display: grid;
+		gap: clamp(2rem, 4vw, 3.5rem);
+		align-items: start;
+	}
+
+	.resource__title {
+		margin: 0.75rem 0 0;
+		font-size: var(--text-3xl);
+		max-width: 20ch;
+	}
+
+	.resource__blurb {
+		margin: 1.25rem 0 0;
+		max-width: 58ch;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.resource__body :global(p) {
+		margin: 1.5rem 0 0;
+		max-width: 62ch;
+		color: var(--color-bone-400);
+	}
+
+	.resource__facts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+		gap: 1.25rem;
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+		padding-top: 1.75rem;
+		border-top: 1px solid var(--color-line);
+	}
+
+	.resource__facts dt {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.resource__facts dd {
+		margin: 0.4rem 0 0;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 500;
+		color: var(--color-bone-50);
+	}
+
+	.resource__gate {
+		padding: clamp(1.5rem, 3vw, 2rem);
+	}
+
+	.resource__gate-title {
+		margin: 0;
+		font-size: var(--text-xl);
+	}
+
+	.resource__gate-lede {
+		margin: 0.5rem 0 1.5rem;
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	.related {
+		padding-block: clamp(3.5rem, 7vw, 6rem);
+	}
+
+	.related__title {
+		margin: 0 0 2rem;
+		font-size: var(--text-2xl);
+	}
+
+	.related__grid {
+		display: grid;
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+	}
+
+	@media (min-width: 900px) {
+		.resource__grid {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+		}
+
+		.resource__gate {
+			position: sticky;
+			top: calc(var(--nav-h, 4.5rem) + 1.5rem);
+		}
+	}
+</style>

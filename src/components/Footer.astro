@@ -1,0 +1,147 @@
+---
+import { SITE, NAV_LINKS } from '~/data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+	<div class="container-content footer__inner">
+		<div class="footer__brand">
+			<span class="footer__mark" aria-hidden="true"></span>
+			<span class="footer__wordmark">MOLAR<span class="footer__wordmark-ai">AI</span></span>
+		</div>
+
+		<nav aria-label="Footer" class="footer__nav">
+			<ul class="footer__links">
+				{
+					NAV_LINKS.map((link) => (
+						<li>
+							<a href={link.href} class="footer__link">
+								{link.label}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<p class="footer__legal">
+			<span>&copy; {year} {SITE.name}</span>
+			<span class="footer__dot" aria-hidden="true">&bull;</span>
+			<span>{SITE.tagline.replace(/\.$/, '')}</span>
+			<span class="footer__dot" aria-hidden="true">&bull;</span>
+			<a href={`mailto:${SITE.email}`} class="footer__mail">{SITE.email}</a>
+		</p>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		border-top: 1px solid var(--color-line);
+		background: var(--color-ink-950);
+		padding-block: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.footer__inner {
+		display: grid;
+		gap: 2rem;
+		align-items: center;
+	}
+
+	.footer__brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 1rem;
+		letter-spacing: 0.02em;
+		color: var(--color-bone-50);
+	}
+
+	.footer__mark {
+		width: 0.45rem;
+		height: 0.45rem;
+		border-radius: 1px;
+		background: var(--color-arc-500);
+		rotate: 45deg;
+	}
+
+	.footer__wordmark-ai {
+		color: var(--color-arc-400);
+		margin-inline-start: 0.15em;
+	}
+
+	.footer__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.footer__link {
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+		text-decoration: none;
+		transition: color 0.24s var(--ease-out-quint);
+	}
+
+	.footer__link:hover {
+		color: var(--color-bone-50);
+	}
+
+	.footer__legal {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem 0.6rem;
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		color: var(--color-bone-500);
+	}
+
+	.footer__dot {
+		color: var(--color-ink-600);
+	}
+
+	.footer__mail {
+		color: var(--color-bone-400);
+		text-decoration: none;
+	}
+
+	.footer__mail:hover {
+		color: var(--color-arc-300);
+		text-decoration: underline;
+	}
+
+	@media (min-width: 900px) {
+		.footer__inner {
+			grid-template-columns: auto 1fr;
+			grid-template-areas:
+				'brand nav'
+				'legal legal';
+			row-gap: 2.5rem;
+		}
+
+		.footer__brand {
+			grid-area: brand;
+		}
+
+		.footer__nav {
+			grid-area: nav;
+		}
+
+		.footer__links {
+			justify-content: flex-end;
+		}
+
+		.footer__legal {
+			grid-area: legal;
+			padding-top: 2rem;
+			border-top: 1px solid var(--color-line);
+		}
+	}
+</style>

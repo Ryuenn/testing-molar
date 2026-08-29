@@ -1,0 +1,148 @@
+---
+import { getCollection } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+import BaseLayout from '~/layouts/BaseLayout.astro';
+
+/**
+ * Where Netlify lands a visitor after the email gate. `noindex` and excluded
+ * from the sitemap — the indexable page for a resource is its detail page.
+ */
+export const getStaticPaths = (async () => {
+	const entries = await getCollection('resources', ({ data }) => !data.draft);
+	return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { data } = entry;
+---
+
+<BaseLayout
+	title={`Your download — ${data.title}`}
+	description={`Download ${data.title}, free from MOLAR AI.`}
+	ogImage={{
+		src: data.ogImage ?? '/images/og/resources.png',
+		alt: `${data.title} — free resource from MOLAR AI`,
+		width: 1200,
+		height: 630,
+	}}
+	noindex
+>
+	<section class="thanks" aria-labelledby="thanks-heading">
+		<div class="container-content thanks__inner">
+			<p class="eyebrow">Ready</p>
+			<h1 id="thanks-heading" class="thanks__title">{data.title} is ready.</h1>
+			<p class="thanks__lede">
+				The download should start on its own. If it does not, use the button below.
+			</p>
+
+			<p class="thanks__actions">
+				{/*
+					`download` is a hint, not a guarantee — Netlify also sets
+					Content-Disposition: attachment on /pdfs/*, which is what actually
+					makes this download rather than open in a viewer.
+				*/}
+				<a
+					href={data.file}
+					class="btn btn-primary thanks__cta"
+					download
+					data-auto-download
+				>
+					Download the {data.format}
+					<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+						<path d="M8 2v9M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"></path>
+					</svg>
+				</a>
+				<a href="/resources/" class="btn btn-ghost">Back to the library</a>
+			</p>
+
+			<p class="thanks__meta">{data.pages} pages &middot; {data.format} &middot; Free</p>
+
+			<hr class="thanks__rule" />
+
+			<p class="thanks__upsell">
+				Rather not run the content yourself?
+				<a href="/#pricing">See what MOLAR publishes for you</a> — live in 24 hours, from $497/mo.
+			</p>
+		</div>
+	</section>
+</BaseLayout>
+
+<script>
+	// Nudge the download once, on arrival. The button is the real path; this just
+	// saves a click for the common case.
+	const link = document.querySelector<HTMLAnchorElement>('[data-auto-download]');
+	if (link) window.setTimeout(() => link.click(), 700);
+</script>
+
+<style>
+	.thanks {
+		display: grid;
+		align-items: center;
+		min-height: 70dvh;
+		padding-block: calc(var(--nav-h, 4.5rem) + clamp(3rem, 8vw, 6rem)) clamp(4rem, 8vw, 7rem);
+		background:
+			radial-gradient(
+				70% 55% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-700) 18%, transparent),
+				transparent 62%
+			),
+			var(--color-ink-950);
+	}
+
+	.thanks__inner {
+		max-width: 44rem;
+	}
+
+	.thanks__title {
+		margin: 0.75rem 0 0;
+		font-size: var(--text-3xl);
+	}
+
+	.thanks__lede {
+		margin: 1rem 0 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.thanks__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin: 2rem 0 0;
+	}
+
+	.thanks__cta svg {
+		width: 0.9rem;
+		height: 0.9rem;
+	}
+
+	.thanks__meta {
+		margin: 1.25rem 0 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.thanks__rule {
+		margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+		border: none;
+		border-top: 1px solid var(--color-line);
+	}
+
+	.thanks__upsell {
+		margin: 1.75rem 0 0;
+		color: var(--color-bone-400);
+	}
+
+	.thanks__upsell a {
+		color: var(--color-arc-300);
+		text-decoration: none;
+	}
+
+	.thanks__upsell a:hover {
+		text-decoration: underline;
+	}
+</style>

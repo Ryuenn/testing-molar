@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import Section from '~/components/ui/Section.astro';
+import CaseStudy from '~/components/CaseStudy.astro';
+
+const entries = (await getCollection('caseStudies', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order,
+);
+---
+
+{
+	entries.length > 0 && (
+		<Section
+			id="case-studies"
+			eyebrow="Case study"
+			heading="What it looks like after a year of showing up."
+			lede="One practice, one subscription, no filming days."
+		>
+			<div class="cases">
+				{entries.map((entry) => (
+					<CaseStudy entry={entry} headingLevel="h3" />
+				))}
+			</div>
+		</Section>
+	)
+}
+
+<style>
+	.cases {
+		display: grid;
+		gap: clamp(1.5rem, 3vw, 2.5rem);
+	}
+</style>

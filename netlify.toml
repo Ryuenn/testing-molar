@@ -1,0 +1,106 @@
+# ── MOLAR AI — Netlify deploy configuration ───────────────────────────────────
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# Reports Lighthouse on every deploy. Intentionally threshold-free: it should
+# surface regressions in the deploy log, not block a release.
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+# ── Security headers (every response) ─────────────────────────────────────────
+# CSP notes:
+#   script-src  'unsafe-inline' is required for the JSON-LD blocks and the
+#               no-flash bootstrap in <head>. All executable code is bundled
+#               and served from 'self'; there are no third-party script hosts.
+#   style-src   'unsafe-inline' covers Astro's hoisted critical CSS.
+#   No external origins are allowed at all — fonts, media and images are
+#   self-hosted, so every fetch directive stays locked to 'self'.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), interest-cohort=()"
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
+
+# ── Immutable, content-hashed build output ────────────────────────────────────
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Static media in public/ ───────────────────────────────────────────────────
+# Filenames here are stable rather than hashed, so cache for a year and bust by
+# renaming the file (hero.mp4 -> hero-v2.mp4) when the creative changes.
+[[headers]]
+  for = "/videos/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Accept-Ranges = "bytes"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/pdfs/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+    X-Robots-Tag = "noindex"
+    Content-Disposition = "attachment"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/favicon.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── HTML: always revalidate, but serve instantly from the edge ────────────────
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/sitemap-*.xml"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+    Content-Type = "application/xml; charset=utf-8"
+
+# ── Redirects ─────────────────────────────────────────────────────────────────
+# Enforce the canonical apex host so canonicals, sitemap and served URLs agree.
+[[redirects]]
+  from = "https://www.molarai.studio/*"
+  to = "https://molarai.studio/:splat"
+  status = 301
+  force = true
+
+# Pricing is on-page; keep the shorthand link working.
+[[redirects]]
+  from = "/pricing"
+  to = "/#pricing"
+  status = 301
+
+[[redirects]]
+  from = "/faq"
+  to = "/#faq"
+  status = 301
+
+# No 404 rule: Astro emits 404.astro as /404.html at the publish root even under
+# build.format = "directory", and Netlify serves that automatically for any
+# unmatched path. Confirm dist/404.html exists after the first build.

@@ -1,0 +1,208 @@
+---
+import Section from '~/components/ui/Section.astro';
+import Tick from '~/components/ui/Tick.astro';
+import { COMPARISON } from '~/data/comparison';
+---
+
+<Section
+	id="comparison"
+	eyebrow="MOLAR vs. agencies"
+	heading="The same output, without the retainer."
+	lede="What a practice actually gets for the money, side by side."
+>
+	{/*
+		A scroll region only when it needs to be one: `tabindex` + `role` make the
+		overflow reachable by keyboard, and the caption tells a screen reader what
+		it is scrolling. Below 560px the table collapses into stacked rows instead,
+		because a horizontally scrolled seven-row table is technically acceptable
+		and still miserable.
+	*/}
+	<div class="scroll-x compare" tabindex="0" role="region" aria-labelledby="compare-caption">
+		<table class="compare__table">
+			<caption id="compare-caption" class="sr-only">
+				MOLAR AI compared with a traditional dental marketing agency across cost, speed,
+				ownership, filming, contracts, languages and team.
+			</caption>
+			<thead>
+				<tr>
+					<th scope="col" class="compare__rowhead">
+						<span class="sr-only">Comparison criteria</span>
+					</th>
+					<th scope="col" class="compare__col compare__col--molar">MOLAR AI</th>
+					<th scope="col" class="compare__col">Agencies</th>
+				</tr>
+			</thead>
+			<tbody>
+				{
+					COMPARISON.map((row) => (
+						<tr>
+							<th scope="row" class="compare__label">
+								{row.label}
+							</th>
+							<td class="compare__cell compare__cell--molar">
+								<span class="compare__value">
+									{row.molarWins && <Tick class="tick compare__tick" />}
+									{row.molar}
+								</span>
+							</td>
+							<td class="compare__cell">
+								<span class="compare__value">{row.agency}</span>
+							</td>
+						</tr>
+					))
+				}
+			</tbody>
+		</table>
+	</div>
+</Section>
+
+<style>
+	.compare {
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-lg);
+	}
+
+	.compare:focus-visible {
+		outline-offset: 2px;
+	}
+
+	.compare__table {
+		width: 100%;
+		min-width: 34rem;
+		border-collapse: collapse;
+		font-size: var(--text-sm);
+	}
+
+	.compare__rowhead {
+		width: 34%;
+	}
+
+	.compare__col,
+	.compare__label,
+	.compare__cell,
+	.compare__rowhead {
+		padding: 1rem clamp(0.85rem, 2vw, 1.5rem);
+		text-align: left;
+		border-bottom: 1px solid var(--color-line);
+	}
+
+	.compare__col {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+		white-space: nowrap;
+	}
+
+	.compare__col--molar {
+		color: var(--color-arc-300);
+	}
+
+	.compare__label {
+		font-family: var(--font-sans);
+		font-size: var(--text-sm);
+		font-weight: 400;
+		color: var(--color-bone-400);
+	}
+
+	.compare__cell {
+		color: var(--color-bone-400);
+	}
+
+	.compare__cell--molar {
+		background: color-mix(in oklab, var(--color-arc-700) 12%, transparent);
+		color: var(--color-bone-50);
+		font-weight: 500;
+	}
+
+	.compare__value {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.compare__tick {
+		width: 0.8rem;
+		height: 0.8rem;
+	}
+
+	tbody tr:last-child :is(.compare__label, .compare__cell) {
+		border-bottom: none;
+	}
+
+	/*
+		Under 560px the table becomes a stack of labelled pairs. The markup stays a
+		real table — only the layout changes — so the header association survives.
+	*/
+	@media (max-width: 559px) {
+		.compare {
+			border: none;
+			overflow: visible;
+		}
+
+		.compare__table {
+			min-width: 0;
+			display: block;
+		}
+
+		.compare__table thead {
+			display: none;
+		}
+
+		.compare__table tbody,
+		.compare__table tr {
+			display: block;
+		}
+
+		.compare__table tr {
+			padding-block: 1rem;
+			border-bottom: 1px solid var(--color-line);
+		}
+
+		.compare__table tr:last-child {
+			border-bottom: none;
+		}
+
+		.compare__label {
+			display: block;
+			padding: 0 0 0.65rem;
+			border: none;
+			font-family: var(--font-mono);
+			font-size: var(--text-2xs);
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: var(--color-bone-500);
+		}
+
+		.compare__cell {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			padding: 0.55rem 0.85rem;
+			border: 1px solid var(--color-line);
+			border-radius: var(--radius-sm);
+		}
+
+		.compare__cell + .compare__cell {
+			margin-top: 0.4rem;
+		}
+
+		/* The column header has to come back as text once the thead is gone. */
+		.compare__cell::after {
+			content: 'Agencies';
+			font-family: var(--font-mono);
+			font-size: var(--text-2xs);
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+			color: var(--color-bone-500);
+		}
+
+		.compare__cell--molar::after {
+			content: 'MOLAR AI';
+			color: var(--color-arc-300);
+		}
+	}
+</style>
