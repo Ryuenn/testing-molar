@@ -64,6 +64,25 @@ dimensions. Swapping in the real artwork at the same filename and size needs no 
 
 ---
 
+## Brand assets
+
+One master file, everything else generated:
+
+```bash
+npm run brand     # icons + social cards
+npm run icons     # favicons, .ico, touch icon, manifest icons
+npm run og        # Open Graph cards
+```
+
+The master is `src/assets/brand/logo-molar.png`. Replace it, run `npm run brand`, and the nav
+lockup, the footer, every favicon size, the `.ico`, the Apple touch icon, the manifest icons and
+all twelve social cards follow. Nothing is hand-edited and nothing else needs a code change.
+
+Full details — what each output is for, why the small favicons get sharpened, and the system-font
+caveat on the social cards — are in [`src/assets/brand/README.md`](src/assets/brand/README.md).
+
+---
+
 ## Adding a new PDF resource
 
 1. Drop the file in `public/pdfs/` as `molar-<slug>.pdf`.

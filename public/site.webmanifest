@@ -9,9 +9,15 @@
 	"theme_color": "#04070e",
 	"icons": [
 		{
-			"src": "/favicon.svg",
-			"type": "image/svg+xml",
-			"sizes": "any",
+			"src": "/favicon-96.png",
+			"type": "image/png",
+			"sizes": "96x96",
+			"purpose": "any"
+		},
+		{
+			"src": "/images/logo-molar-192.png",
+			"type": "image/png",
+			"sizes": "192x192",
 			"purpose": "any"
 		},
 		{
@@ -21,9 +27,9 @@
 			"purpose": "any"
 		},
 		{
-			"src": "/images/apple-touch-icon.png",
+			"src": "/images/logo-molar-maskable.png",
 			"type": "image/png",
-			"sizes": "180x180",
+			"sizes": "512x512",
 			"purpose": "maskable"
 		}
 	]

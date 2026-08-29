@@ -19,6 +19,8 @@
  *   - `data-nav-transparent` is toggled off once the page scrolls past the hero,
  *     driven by the ScrollTrigger in `src/scripts/motion.ts`
  */
+import { Image } from 'astro:assets';
+import logoMark from '~/assets/brand/logo-mark.png';
 import { NAV_LINKS, CTA } from '~/data/site';
 
 export interface NavLink {
@@ -57,7 +59,20 @@ const {
 				appended for screen readers only.
 			*/}
 			<a href="/" class="nav__brand">
-				<span class="nav__mark" aria-hidden="true"></span>
+				{/*
+					Decorative: the wordmark beside it already names the company, so
+					announcing the mark as well would just make a screen reader say
+					"MOLAR AI" twice.
+				*/}
+				<Image
+					src={logoMark}
+					alt=""
+					height={32}
+					densities={[1, 2]}
+					loading="eager"
+					decoding="sync"
+					class="nav__mark"
+				/>
 				<span class="nav__wordmark">MOLAR <span class="nav__wordmark-ai">AI</span></span>
 				<span class="sr-only">home</span>
 			</a>
@@ -132,12 +147,10 @@ const {
 	}
 
 	.nav__mark {
-		width: 0.5rem;
-		height: 0.5rem;
-		border-radius: 1px;
-		background: var(--color-arc-500);
-		box-shadow: 0 0 12px 0 color-mix(in oklab, var(--color-arc-400) 80%, transparent);
-		rotate: 45deg;
+		width: auto;
+		height: 2rem;
+		/* The mark carries its own glow; a little more of it sells the crystal. */
+		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
 	}
 
 	.nav__wordmark-ai {

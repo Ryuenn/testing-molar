@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import logoMark from '~/assets/brand/logo-mark.png';
 import { SITE, NAV_LINKS } from '~/data/site';
 
 const year = new Date().getFullYear();
@@ -7,7 +9,7 @@ const year = new Date().getFullYear();
 <footer class="footer">
 	<div class="container-content footer__inner">
 		<div class="footer__brand">
-			<span class="footer__mark" aria-hidden="true"></span>
+			<Image src={logoMark} alt="" height={26} densities={[1, 2]} loading="lazy" decoding="async" class="footer__mark" />
 			<span class="footer__wordmark">MOLAR <span class="footer__wordmark-ai">AI</span></span>
 		</div>
 
@@ -60,11 +62,8 @@ const year = new Date().getFullYear();
 	}
 
 	.footer__mark {
-		width: 0.45rem;
-		height: 0.45rem;
-		border-radius: 1px;
-		background: var(--color-arc-500);
-		rotate: 45deg;
+		width: auto;
+		height: 1.625rem;
 	}
 
 	.footer__wordmark-ai {
