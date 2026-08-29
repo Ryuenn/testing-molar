@@ -7,6 +7,7 @@ pages: 24
 updated: 2026-06-02
 featured: true
 order: 20
+ogImage: /images/og/resource-treatment-explainer-scripts.png
 ---
 
 Crowns, veneers, implants, root canals, aligners, whitening, extractions, bone grafts, night

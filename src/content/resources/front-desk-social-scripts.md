@@ -6,6 +6,7 @@ file: /pdfs/molar-front-desk-social-scripts.pdf
 pages: 9
 updated: 2026-02-11
 order: 80
+ogImage: /images/og/resource-front-desk-social-scripts.png
 ---
 
 Checkout, recall calls, new patient paperwork and post-op follow-ups — the four moments where a

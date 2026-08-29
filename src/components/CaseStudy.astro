@@ -26,27 +26,25 @@ const { Content } = await render(entry);
 
 	<Heading class="case__headline">{data.headline}</Heading>
 
-	<div class="case__body">
-		<div class="case__narrative">
-			<Content />
-		</div>
-
-		{
-			data.image && (
-				<div class="case__figure">
-					<Image
-						src={data.image}
-						alt={data.imageAlt ?? `${data.practice} — case study`}
-						widths={[320, 480, 640]}
-						sizes="(min-width: 960px) 320px, (min-width: 640px) 40vw, 80vw"
-						loading="lazy"
-						decoding="async"
-						class="case__image"
-					/>
-				</div>
-			)
-		}
+	<div class="case__narrative">
+		<Content />
 	</div>
+
+	{
+		data.image && (
+			<div class="case__figure">
+				<Image
+					src={data.image}
+					alt={data.imageAlt ?? `${data.practice} — case study`}
+					widths={[300, 450, 600]}
+					sizes="(min-width: 960px) 300px, (min-width: 640px) 40vw, 80vw"
+					loading="lazy"
+					decoding="async"
+					class="case__image"
+				/>
+			</div>
+		)
+	}
 
 	<div class="case__contrast">
 		<section class="case__col case__col--before" aria-labelledby={`${entry.id}-before`}>
@@ -119,12 +117,6 @@ const { Content } = await render(entry);
 		margin: 0;
 		font-size: var(--text-2xl);
 		max-width: 24ch;
-	}
-
-	.case__body {
-		display: grid;
-		gap: clamp(1.5rem, 3vw, 2.5rem);
-		align-items: start;
 	}
 
 	.case__narrative :global(p) {
@@ -255,8 +247,50 @@ const { Content } = await render(entry);
 	}
 
 	@media (min-width: 960px) {
-		.case__body {
-			grid-template-columns: 1fr 320px;
+		/*
+			The still is portrait — it is a reel frame, and cropping it to landscape
+			would throw that away. So instead of pairing it with the narrative alone
+			(a short paragraph beside a tall image leaves a column of dead space), it
+			runs as a rail down the side of the headline, narrative and before/after
+			together, where its height is doing work.
+		*/
+		.case {
+			grid-template-columns: minmax(0, 1fr) 300px;
+			column-gap: clamp(2rem, 4vw, 3.5rem);
+			grid-template-areas:
+				'meta     meta'
+				'headline figure'
+				'story    figure'
+				'contrast figure'
+				'stat     stat';
+			align-content: start;
+		}
+
+		.case__meta {
+			grid-area: meta;
+		}
+		.case__headline {
+			grid-area: headline;
+		}
+		.case__narrative {
+			grid-area: story;
+		}
+		.case__figure {
+			grid-area: figure;
+			align-self: stretch;
+		}
+		.case__contrast {
+			grid-area: contrast;
+		}
+		.case__stat {
+			grid-area: stat;
+		}
+
+		/* Fill the rail however tall the left column ends up. */
+		.case__image {
+			height: 100%;
+			object-fit: cover;
+			object-position: 50% 35%;
 		}
 	}
 </style>

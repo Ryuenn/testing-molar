@@ -19,7 +19,7 @@
  *   - `data-nav-transparent` is toggled off once the page scrolls past the hero,
  *     driven by the ScrollTrigger in `src/scripts/motion.ts`
  */
-import { NAV_LINKS, SITE, CTA } from '~/data/site';
+import { NAV_LINKS, CTA } from '~/data/site';
 
 export interface NavLink {
 	label: string;
@@ -49,9 +49,17 @@ const {
 >
 	<div class="container-content nav__inner">
 		<slot name="brand">
-			<a href="/" class="nav__brand" aria-label={`${SITE.name} — home`}>
+			{/*
+				No aria-label here. An aria-label would override the visible wordmark
+				with a string that does not contain it, which fails the
+				label-in-name check — a real problem for anyone driving the page by
+				voice. The name is built from content instead, with the destination
+				appended for screen readers only.
+			*/}
+			<a href="/" class="nav__brand">
 				<span class="nav__mark" aria-hidden="true"></span>
-				<span class="nav__wordmark">MOLAR<span class="nav__wordmark-ai">AI</span></span>
+				<span class="nav__wordmark">MOLAR <span class="nav__wordmark-ai">AI</span></span>
+				<span class="sr-only">home</span>
 			</a>
 		</slot>
 
@@ -134,7 +142,6 @@ const {
 
 	.nav__wordmark-ai {
 		color: var(--color-arc-400);
-		margin-inline-start: 0.15em;
 	}
 
 	.nav__nav {

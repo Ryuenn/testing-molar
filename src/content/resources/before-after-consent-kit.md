@@ -6,6 +6,7 @@ file: /pdfs/molar-before-after-consent-kit.pdf
 pages: 11
 updated: 2026-05-19
 order: 30
+ogImage: /images/og/resource-before-after-consent-kit.png
 ---
 
 Everything a front desk needs to collect usable before and after photography without an awkward

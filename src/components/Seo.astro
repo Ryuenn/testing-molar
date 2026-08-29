@@ -30,7 +30,14 @@ const fullTitle = title.includes(SITE.name) ? title : `${title} — ${SITE.name}
 
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical.href} />
+
+{/*
+	No canonical on a noindex page. The 404 in particular is served at whatever
+	URL the visitor mistyped, so canonicalising it to /404/ would point at a route
+	that is never served; the post-gate download pages are excluded for the same
+	reason they are kept out of the sitemap.
+*/}
+{!noindex && <link rel="canonical" href={canonical.href} />}
 
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 {

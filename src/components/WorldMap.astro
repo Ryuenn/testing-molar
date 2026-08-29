@@ -164,6 +164,17 @@ const descId = 'world-map-desc';
 		fill: var(--color-bone-300);
 	}
 
+	/*
+		The viewBox scales with the container, so on a phone these labels land at
+		around 6px — unreadable noise over the graticule. The list beside the map
+		names every region legibly, so drop them rather than shrink the map.
+	*/
+	@media (max-width: 700px) {
+		.map__label {
+			display: none;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.map__links,
 		.map__node-ring {

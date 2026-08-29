@@ -6,7 +6,10 @@ import { SITE, CTA } from '~/data/site';
  * Renaming any of these means updating `public/videos/README.md` too.
  */
 const VIDEO = {
-	poster: '/images/hero-poster.jpg',
+	// `poster` takes a single URL — no srcset, no <picture> — so it gets the WebP:
+	// a quarter the weight of the JPEG and supported everywhere that matters. The
+	// CSS fallback below negotiates AVIF/WebP/JPEG properly via image-set().
+	poster: '/images/hero-poster.webp',
 	webm: '/videos/hero.webm',
 	mp4: '/videos/hero.mp4',
 	mobile: '/videos/hero-mobile.mp4',
@@ -38,7 +41,7 @@ const FLOW = [
 			aria-hidden="true"
 			tabindex="-1"
 			disablepictureinpicture
-			disableremoteplayback
+			disableRemotePlayback
 		>
 			{/* Lighter cut first — the browser takes the first source it can play
 			    and the media query keeps the heavy file off small screens. */}
@@ -121,8 +124,15 @@ const FLOW = [
 		inset: 0;
 		z-index: -1;
 		background-color: var(--color-ink-950);
-		/* Shows through if the video 404s or is still downloading. */
+		/* Shows through if the video 404s or is still downloading. JPEG first as
+		   the floor, then let the browser take the best format it supports —
+		   8 KiB of AVIF against 67 KiB of JPEG on the largest paint on the page. */
 		background-image: url('/images/hero-poster.jpg');
+		background-image: image-set(
+			url('/images/hero-poster.avif') type('image/avif'),
+			url('/images/hero-poster.webp') type('image/webp'),
+			url('/images/hero-poster.jpg') type('image/jpeg')
+		);
 		background-size: cover;
 		background-position: 50% 42%;
 	}
@@ -304,7 +314,12 @@ const FLOW = [
 		}
 	}
 
-	/* Below 768 the flow reads better as a stacked list than a wrapped row. */
+	/*
+		Below 640 the flow reads better stacked. The first step has no arrow, so a
+		flex row would start it flush left while the other two sit indented behind
+		theirs — a ragged left edge. A two-column grid keeps the arrow gutter
+		reserved on every row, arrow or not.
+	*/
 	@media (max-width: 640px) {
 		.hero__flow {
 			flex-direction: column;
@@ -312,13 +327,19 @@ const FLOW = [
 			gap: 0.5rem;
 		}
 
+		.hero__flow-item {
+			display: grid;
+			grid-template-columns: 1rem 1fr;
+			gap: 0.75rem;
+		}
+
 		.hero__flow-arrow {
+			grid-column: 1;
 			rotate: 90deg;
-			margin-inline-start: 0.5rem;
 		}
 
 		.hero__flow-body {
-			flex: 1;
+			grid-column: 2;
 		}
 	}
 

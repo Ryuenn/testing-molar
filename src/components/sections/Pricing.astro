@@ -227,6 +227,23 @@ import { PROMO } from '~/data/site';
 			grid-template-columns: repeat(3, 1fr);
 		}
 
+		/*
+			Each card is its own grid, so the CTA and the feature list land at
+			whatever height that card's header happens to end — and the Premium
+			header is taller because of the promo block. Subgrid hands the three
+			rows back to the parent so the buttons line up across all three cards.
+		*/
+		@supports (grid-template-rows: subgrid) {
+			.plans {
+				grid-template-rows: auto auto auto;
+			}
+
+			.plan {
+				grid-row: span 3;
+				grid-template-rows: subgrid;
+			}
+		}
+
 		/* The featured card sits slightly proud of the other two. */
 		.plan--featured {
 			margin-block: -0.75rem;

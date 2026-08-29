@@ -6,6 +6,7 @@ file: /pdfs/molar-implant-consultation-guide.pdf
 pages: 20
 updated: 2026-03-22
 order: 60
+ogImage: /images/og/resource-implant-consultation-guide.png
 ---
 
 Built for handing to a patient at the end of a consult. Stages, timelines, what to expect at each

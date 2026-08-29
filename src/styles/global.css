@@ -29,7 +29,12 @@
 	--color-bone-100: #dbe4f2;
 	--color-bone-300: #a8b7cf;
 	--color-bone-400: #8494b0;
-	--color-bone-500: #64748f;
+	/*
+		The quietest text on the site, and it still has to clear WCAG AA. Most of
+		its uses are 11–12px mono labels, so it is held at 4.9:1 on ink-950 —
+		#64748f looked right but measured 4.25:1 and failed the audit.
+	*/
+	--color-bone-500: #6f7e99;
 
 	/* The single accent. */
 	--color-arc-200: #b9dbff;

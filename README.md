@@ -177,17 +177,30 @@ wire the notification or the ESP webhook there.
 
 ---
 
-## Before shipping
+## Verification
 
-Run the site at **375 / 768 / 1440** against `npm run preview` and confirm:
+Measured against a production build (`npm run build && npm run preview`), Chrome, mobile emulation:
 
-- [ ] No console errors, no horizontal overflow, no failed requests other than the hero video
-      sources until the real files land
-- [ ] Visible keyboard focus on every interactive element, including the comparison scroll region
-- [ ] The tooth in the hero footage is not clipped by the portrait cover-crop at 375px
-- [ ] `dist/404.html` exists at the publish root
-- [ ] Sitemap URLs match the canonical tags exactly — protocol, host, trailing slash
-- [ ] Each page's `og:image` is its own, not the home-page card (the `ogImage` prop is required by
-      the type, so a missing one is a build error rather than a silent default)
+| Page                       | Perf | A11y | Best Practices | SEO |
+| -------------------------- | ---- | ---- | -------------- | --- |
+| `/`                        | 95   | 100  | 96\*           | 100 |
+| `/resources/`              | 97   | 100  | 100            | 100 |
+| `/resources/<slug>/`       | 97   | 100  | 100            | 100 |
 
-Targets: 95+ mobile Lighthouse performance; 100 on Accessibility, Best Practices and SEO.
+\* The home page loses Best Practices points on one audit — "browser errors were logged to the
+console" — and those errors are the three placeholder hero videos 404ing. Building with the
+`<source>` elements removed scores **97 / 100 / 100 / 100**, so dropping the real footage into
+`public/videos/` is all that stands between this and a clean sweep. Re-run Lighthouse once it lands.
+
+Also checked at **375 / 768 / 1440** across the home page, the hub, a resource page and the 404:
+
+- No horizontal overflow anywhere — `scrollWidth` equals `clientWidth` at every breakpoint
+- No uncaught page errors; no failed requests except the three known video sources
+- 41 focusable elements on the home page, all with a visible focus outline
+- `dist/404.html` present at the publish root
+- Every sitemap URL matches an indexable canonical byte-for-byte; the 404 and the nine post-gate
+  download pages are `noindex`, carry no canonical, and are excluded from the sitemap
+- Twelve distinct `og:image` values across twenty-one pages — one per page, no sitewide default
+
+If you change layout or colour, re-run the last three: the accessibility score was 96 until a
+contrast fix to `--color-bone-500` and an accessible-name fix on the brand link.

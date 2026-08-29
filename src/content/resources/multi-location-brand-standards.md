@@ -6,6 +6,7 @@ file: /pdfs/molar-multi-location-brand-standards.pdf
 pages: 22
 updated: 2026-01-26
 order: 90
+ogImage: /images/og/resource-multi-location-brand-standards.png
 ---
 
 Naming, tone, photography, logo lockups and the localisation rules that let a fifty-location group

@@ -7,6 +7,7 @@ pages: 18
 updated: 2026-07-14
 featured: true
 order: 10
+ogImage: /images/og/resource-90-day-content-calendar.png
 ---
 
 Ninety days of planned posts, organised week by week. Each slot names the treatment, the format,

@@ -6,6 +6,7 @@ file: /pdfs/molar-review-request-playbook.pdf
 pages: 14
 updated: 2026-04-28
 order: 40
+ogImage: /images/og/resource-review-request-playbook.png
 ---
 
 Timing, channel and phrasing for review requests, plus response templates for the three kinds of

@@ -6,6 +6,7 @@ file: /pdfs/molar-qr-follow-kit.pdf
 pages: 8
 updated: 2026-04-06
 order: 50
+ogImage: /images/og/resource-qr-follow-kit.png
 ---
 
 Six sign formats sized for chairside, mirror, reception desk and checkout, with the copy that
