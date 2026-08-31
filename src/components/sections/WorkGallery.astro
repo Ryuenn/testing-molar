@@ -1,0 +1,478 @@
+---
+/**
+ * The work, as feed grids.
+ *
+ * A selection, not an inventory. The page never states how many accounts we run,
+ * and the heading says "a sample" for that reason — the grids here are the ones
+ * picked to show the range, and a count on the page would read as the total.
+ * Nothing in this component derives copy from `WORK.length`; keep it that way.
+ *
+ * One featured account running the full measure, then the rest in two columns.
+ * The count in `work.ts` is currently odd, which a two-column grid cannot divide
+ * — so the odd one out is promoted to a feature rather than left sitting in a
+ * hole on the last row, and an even number falls through to the grid. Adding or
+ * removing an entry flips that: with an even total the grid orphans one instead,
+ * and the fix is to add or drop one more, not to restyle the row.
+ *
+ * Each card is an image plus the things that make it *this* practice's grid and
+ * nobody else's: palette, language, specialty. Without those named, seven
+ * pretty grids read as seven pretty grids; with them, they read as seven brand
+ * systems, which is the actual claim.
+ *
+ * The grids are shown at 4:5 — Instagram's portrait crop, which is the shape
+ * they were composed in. Nothing here re-crops them.
+ */
+import { Image } from 'astro:assets';
+import { FEATURED, REST, LANGUAGE_COUNT, type WorkAccount } from '~/data/work';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	Images are matched to accounts by slug rather than imported one by one beside
+	the data, so a new entry in `work.ts` plus a file of the same name is the whole
+	job. Eager, because these are build-time `ImageMetadata` records for <Image>,
+	not lazily fetched modules.
+*/
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/work/*.png', {
+	eager: true,
+});
+
+const gridFor = (account: WorkAccount): ImageMetadata => {
+	const file = files[`../../assets/work/${account.slug}.png`];
+	if (!file) {
+		/* Build-time, and loud. A silently missing grid would ship as a hole in the
+		   page that nobody notices until a client does. */
+		throw new Error(
+			`work.ts lists "${account.slug}" but src/assets/work/${account.slug}.png does not exist.`,
+		);
+	}
+	return file.default;
+};
+
+const altFor = (account: WorkAccount) =>
+	t('work.alt', {
+		practice: account.practice,
+		specialty: account.specialty.toLowerCase(),
+		language: account.language,
+		a: account.palette[0].name.toLowerCase(),
+		b: account.palette[1].name.toLowerCase(),
+	});
+---
+
+{/*
+	`section-rule` plus the glow and grain, the same band treatment the case
+	exhibit on /results/ and the rail on /how-it-works/ wear. Without them this
+	section ran straight on from the page intro with no seam, so the two headings
+	read as one long run of copy rather than as an introduction and then the work.
+*/}
+<section class="work section section-rule" aria-labelledby="work-heading">
+	<div class="work__glow" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
+
+	<div class="container-content work__inner">
+		<header class="work__head">
+			<p class="eyebrow" data-reveal="fade">{t('work.eyebrow')}</p>
+
+			<h2 id="work-heading" class="work__title" data-reveal>
+				{t('work.heading')}
+			</h2>
+
+			<p class="work__lede measure-wide" data-reveal>
+				{t('work.lede', { n: LANGUAGE_COUNT })}
+			</p>
+		</header>
+
+		{/* ── Featured ─────────────────────────────────────────────────────── */}
+		<article class="feature" data-reveal>
+			<div class="feature__media">
+				<div class="frame">
+					<Image
+						src={gridFor(FEATURED)}
+						alt={altFor(FEATURED)}
+						widths={[520, 780, 1040]}
+						sizes="(min-width: 64rem) 46vw, 92vw"
+						loading="eager"
+						fetchpriority="high"
+					/>
+				</div>
+			</div>
+
+			<div class="feature__body">
+				<p class="tag">{t('work.featured')}</p>
+
+				<h3 class="feature__name">{FEATURED.practice}</h3>
+
+				<ul class="facts">
+					<li><span class="facts__k">{t('work.specialty')}</span>{FEATURED.specialty}</li>
+					{FEATURED.place && <li><span class="facts__k">{t('work.market')}</span>{FEATURED.place}</li>}
+					<li>
+						<span class="facts__k">{t('work.language')}</span>
+						<span lang={FEATURED.languageCode}>{FEATURED.language}</span>
+					</li>
+				</ul>
+
+				<p class="feature__note">{FEATURED.note}</p>
+
+				<div class="palette" role="list" aria-label={t('work.palette')}>
+					{
+						FEATURED.palette.map((swatch) => (
+							<span class="palette__chip" role="listitem" style={`--swatch:${swatch.hex}`}>
+								<span class="palette__dot" aria-hidden="true" />
+								{swatch.name}
+							</span>
+						))
+					}
+				</div>
+
+				{
+					FEATURED.caseStudy && (
+						<a href={FEATURED.caseStudy.href} class="feature__link">
+							<span>{FEATURED.caseStudy.label}</span>
+							<svg
+								viewBox="0 0 14 14"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<path d="M2.5 7h8M7 3.5 10.5 7 7 10.5" />
+							</svg>
+						</a>
+					)
+				}
+			</div>
+		</article>
+
+		{/* ── The rest ─────────────────────────────────────────────────────── */}
+		<ul class="grid" data-reveal-stagger>
+			{
+				REST.map((account) => (
+					<li class="card" data-reveal data-reveal-group>
+						<div class="frame">
+							<Image
+								src={gridFor(account)}
+								alt={altFor(account)}
+								widths={[420, 640, 900]}
+								sizes="(min-width: 60rem) 44vw, 92vw"
+								loading="lazy"
+							/>
+						</div>
+
+						<div class="card__body">
+							<h3 class="card__name">{account.practice}</h3>
+
+							<p class="card__meta">
+								{account.specialty}
+								<span class="card__lang" lang={account.languageCode}>
+									{account.language}
+								</span>
+							</p>
+
+							<p class="card__note">{account.note}</p>
+
+							<div class="palette" role="list" aria-label={t('work.palette')}>
+								{account.palette.map((swatch) => (
+									<span class="palette__chip" role="listitem" style={`--swatch:${swatch.hex}`}>
+										<span class="palette__dot" aria-hidden="true" />
+										{swatch.name}
+									</span>
+								))}
+							</div>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.work {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+	}
+
+	/*
+		Weighted to the upper left, behind the featured grid — the one image on this
+		page shown large enough to carry light. The other two bands on the site put
+		their glow where the section arrives; here the arrival is the feature.
+	*/
+	.work__glow {
+		position: absolute;
+		z-index: -1;
+		inset-block: 8% -20%;
+		inset-inline: -12% 40%;
+		background: radial-gradient(
+			42% 46% at 34% 38%,
+			color-mix(in oklab, var(--color-arc-600) 24%, transparent),
+			transparent 72%
+		);
+		filter: blur(40px);
+	}
+
+	.work__inner {
+		position: relative;
+	}
+
+	.work__head {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: clamp(2.75rem, 5.5vw, 4.5rem);
+	}
+
+	.work__title {
+		margin: 0;
+		max-width: 24ch;
+		font-size: var(--text-3xl);
+		/* Explicit — `--text-3xl--line-height` pairs with the `text-3xl` utility
+		   class, not with `font-size: var(--text-3xl)` set by hand. */
+		line-height: 1.14;
+	}
+
+	.work__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* ── Shared: the frame around a grid ─────────────────────────────────── */
+	/*
+		These are bright, busy images on a near-black page. They need an edge or
+		they bleed into the ground; they do not need a heavy one, or the page turns
+		into a contact sheet of boxes.
+	*/
+	.frame {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-line);
+		background: var(--color-ink-900);
+		box-shadow: 0 24px 60px -40px #000;
+		transition:
+			border-color 0.45s var(--ease-out-quint),
+			box-shadow 0.45s var(--ease-out-quint);
+	}
+
+	.frame :global(img) {
+		width: 100%;
+		/* Instagram's portrait crop — the shape these were composed in. Declared so
+		   the row never reflows as the lazy ones arrive. */
+		aspect-ratio: 4 / 5;
+		object-fit: cover;
+	}
+
+	/* ── Shared: palette chips ───────────────────────────────────────────── */
+	.palette {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.palette__chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.3rem 0.6rem 0.3rem 0.45rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-800) 70%, transparent);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.04em;
+		color: var(--color-bone-400);
+		white-space: nowrap;
+	}
+
+	.palette__dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: 50%;
+		background: var(--swatch);
+		/* The pale swatches need a rim or they vanish into the chip. */
+		box-shadow: inset 0 0 0 1px color-mix(in oklab, #000 30%, transparent);
+	}
+
+	/* ── Featured ────────────────────────────────────────────────────────── */
+	.feature {
+		display: grid;
+		gap: clamp(1.75rem, 4vw, 3.5rem);
+		align-items: center;
+		margin-bottom: clamp(3.5rem, 7vw, 6rem);
+	}
+
+	.feature__body {
+		display: flex;
+		flex-direction: column;
+		align-items: start;
+		gap: 1.25rem;
+	}
+
+	.tag {
+		margin: 0;
+		padding: 0.3rem 0.65rem;
+		border-radius: var(--radius-md);
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 32%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 14%, transparent);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		line-height: 1;
+		color: var(--color-arc-200);
+	}
+
+	.feature__name {
+		margin: 0;
+		font-size: var(--text-2xl);
+		line-height: 1.16;
+	}
+
+	.facts {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: grid;
+		gap: 0.5rem;
+		font-size: var(--text-sm);
+		color: var(--color-bone-100);
+	}
+
+	.facts__k {
+		display: inline-block;
+		min-width: 6.5rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.feature__note {
+		margin: 0;
+		max-width: 46ch;
+		font-size: var(--text-base);
+		line-height: 1.7;
+		color: var(--color-bone-300);
+	}
+
+	.feature__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-arc-300);
+		text-decoration: none;
+	}
+
+	.feature__link svg {
+		width: 0.875rem;
+		transition: transform 0.28s var(--ease-out-quint);
+	}
+
+	.feature__link:hover {
+		color: var(--color-arc-200);
+	}
+
+	.feature__link:hover svg {
+		transform: translateX(3px);
+	}
+
+	.feature:hover .frame,
+	.feature:focus-within .frame {
+		border-color: color-mix(in oklab, var(--color-arc-400) 36%, transparent);
+		box-shadow:
+			0 0 0 1px color-mix(in oklab, var(--color-arc-500) 12%, transparent),
+			0 30px 70px -40px color-mix(in oklab, var(--color-arc-600) 70%, transparent),
+			0 24px 60px -40px #000;
+	}
+
+	/* ── Grid ────────────────────────────────────────────────────────────── */
+	.grid {
+		display: grid;
+		gap: clamp(2rem, 4.5vw, 3.5rem) clamp(1.25rem, 3vw, 2.5rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		min-width: 0;
+	}
+
+	.card:hover .frame,
+	.card:focus-within .frame {
+		border-color: color-mix(in oklab, var(--color-arc-400) 30%, transparent);
+	}
+
+	.card__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.card__name {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: 1.3;
+	}
+
+	.card__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	/* The language is the point of the whole page, so it is the one piece of the
+	   meta line that is lit rather than grey. */
+	.card__lang {
+		color: var(--color-arc-300);
+	}
+
+	.card__lang::before {
+		content: '·';
+		margin-inline-end: 0.5rem;
+		color: var(--color-ink-600);
+	}
+
+	.card__note {
+		margin: 0;
+		font-size: var(--text-sm);
+		line-height: 1.7;
+		color: var(--color-bone-400);
+	}
+
+	@media (min-width: 60rem) {
+		.grid {
+			/*
+				Two columns, not three. At three the nine posts inside each grid land
+				around 120px square and the set copy — which is the craft being sold —
+				stops being legible at all.
+			*/
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (min-width: 64rem) {
+		.feature {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		}
+	}
+</style>

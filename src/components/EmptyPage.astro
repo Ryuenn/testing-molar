@@ -1,0 +1,39 @@
+---
+/**
+ * A route that exists so the nav works, and holds nothing yet.
+ *
+ * Deliberately empty: nav at the top, footer at the bottom, nothing between.
+ * The only thing it renders is an `<h1>` for assistive tech and the document
+ * outline — a page with no heading is invalid, and a screen reader landing here
+ * would otherwise be told nothing at all about where it is.
+ *
+ * The height is a spacer, and a modest one. It used to be a full `100svh` so the
+ * footer could not ride up under the nav on a page with nothing in it; the
+ * closing CTA now sits between this and the footer on every route, so that job
+ * is done and a full screen of blank navy above the CTA would just read as a
+ * page that failed to load. What is left is enough to keep the nav off the CTA.
+ *
+ * `svh`, not `vh`: the small viewport is the one that is always there, so the
+ * spacer never grows past its share on a phone with its chrome expanded.
+ *
+ * Each page using this is `noindex` and out of the sitemap (STUB_ROUTES in
+ * astro.config.mjs). When one gets real content, all three come off together:
+ * this component, the `noindex` prop, and the STUB_ROUTES entry.
+ */
+export interface Props {
+	/** Announced as the page's heading. Not shown. */
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<div class="empty">
+	<h1 class="sr-only">{title}</h1>
+</div>
+
+<style>
+	.empty {
+		min-height: calc(30svh + var(--nav-h, 5.25rem));
+	}
+</style>

@@ -1,0 +1,51 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import Pricing from '~/components/sections/Pricing.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
+import { breadcrumbSchema, productSchema } from '~/data/schema';
+
+/*
+	Real content, so this page is indexed: no `noindex`, and it is out of
+	STUB_ROUTES in astro.config.mjs.
+
+	`productSchema()` lives here rather than on the home page — Product/Offer
+	markup has to describe prices a visitor can actually see, and these are now
+	the only prices on the site.
+
+	The section renders headless (`head={false}`): the page's own <h1> already
+	carries the headline, and saying it twice is worse than saying it once.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.pricingTitle')}
+	description={t('pages.pricingDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR AI — plans and pricing',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		productSchema(locale),
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.pricing'), path: '/pricing/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('pricing.eyebrow')}
+		title={t('pricing.headline')}
+		lede={t('pricing.lede')}
+		crumb={t('nav.pricing')}
+	>
+		<Pricing head={false} />
+	</PageIntro>
+
+	<ClosingCta />
+</BaseLayout>

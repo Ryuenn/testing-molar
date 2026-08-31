@@ -1,26 +1,40 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
 
 import Hero from '~/components/sections/Hero.astro';
-import SocialProof from '~/components/sections/SocialProof.astro';
+import VideoReel from '~/components/sections/VideoReel.astro';
 import GlobalReach from '~/components/sections/GlobalReach.astro';
-import AssetArgument from '~/components/sections/AssetArgument.astro';
-import HowItWorks from '~/components/sections/HowItWorks.astro';
-import CustomizedAtScale from '~/components/sections/CustomizedAtScale.astro';
-import CaseStudies from '~/components/sections/CaseStudies.astro';
+import AssetFilm from '~/components/sections/AssetFilm.astro';
 import Comparison from '~/components/sections/Comparison.astro';
-import Pricing from '~/components/sections/Pricing.astro';
-import ResourceHub from '~/components/sections/ResourceHub.astro';
-import Faq from '~/components/sections/Faq.astro';
 import ClosingCta from '~/components/sections/ClosingCta.astro';
 
-import { SITE } from '~/data/site';
-import { productSchema, faqSchema } from '~/data/schema';
+
+/*
+	The page is the hero, the reel, the reach band, the film, the agency
+	comparison and the footer — nothing else.
+	The sections that used to run below them still exist under
+	`src/components/sections/`, unimported; the scaffold routes left in the nav
+	are where that material is headed.
+
+	No outcome claim on this page any more. The proof band that used to sit under
+	the reel has been removed — the numbers and the screenshots live on /results/,
+	which the nav already points at, and the home page is the work rather than the
+	argument about it.
+
+	No `productSchema()` or `faqSchema()` here any more. Both describe content —
+	prices, offers, questions and answers — that is no longer on the page, and
+	structured data that a visitor cannot see is a manual action waiting to
+	happen. Organization and WebSite are still added by the layout, for every
+	page, and neither depends on what the body holds.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
 ---
 
 <BaseLayout
-	title="The easiest way to educate patients online"
-	description={SITE.description}
+	title={t('pages.homeTitle')}
+	description={t('site.description')}
 	ogImage={{
 		src: '/images/og/home.png',
 		alt: 'MOLAR AI — the easiest way to educate patients online',
@@ -28,19 +42,12 @@ import { productSchema, faqSchema } from '~/data/schema';
 		height: 630,
 	}}
 	type="website"
-	schema={[productSchema(), faqSchema()]}
 	transparentNav
 >
 	<Hero />
-	<SocialProof />
+	<VideoReel />
 	<GlobalReach />
-	<AssetArgument />
-	<HowItWorks />
-	<CustomizedAtScale />
-	<CaseStudies />
+	<AssetFilm />
 	<Comparison />
-	<Pricing />
-	<ResourceHub limit={6} />
-	<Faq />
 	<ClosingCta />
 </BaseLayout>

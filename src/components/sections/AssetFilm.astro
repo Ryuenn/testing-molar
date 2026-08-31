@@ -1,0 +1,868 @@
+---
+/**
+ * The film: a headline, one card, one paragraph.
+ *
+ * The card is a button, not a video with controls. Clicking it opens the film
+ * in a real modal — `<dialog>` with `showModal()`, which puts it in the top
+ * layer, makes the page behind it inert, traps focus and closes on Escape
+ * without a line of script. Everything below is the part the platform does not
+ * hand you: the transition, the crop, the transport and the scroll lock.
+ */
+
+import { Image } from 'astro:assets';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+import thumbnail from '~/assets/film/thumbnail-testimonial.png';
+
+/**
+ * `moov` sits at the tail of this file, so a browser has to range-request the
+ * end of it before it can show a frame. It plays, but it starts slower than it
+ * should — see `public/videos/README.md` for the one-line remux that fixes it.
+ */
+const FILM = {
+	src: '/videos/molar-testimonial-0721.mp4',
+	/**
+	 * The modal's still. Frame at 2.4s, already cropped to the picture window, so
+	 * it is the shape of the film rather than the shape of the card.
+	 *
+	 * Deliberately NOT the card thumbnail. The two are different shapes because
+	 * they are doing different jobs: the card is a designed landscape thumbnail,
+	 * the stage has to match the portrait footage it is about to play or the first
+	 * frame jumps.
+	 */
+	poster: '/images/film-poster.webp',
+	/** 37.15s, read from the container. */
+	runtime: '0:37',
+};
+
+const TITLE = t('film.title');
+
+const BODY = t('film.body');
+---
+
+<section id="film" class="film section-rule" aria-labelledby="film-heading">
+	<div class="container-content film__inner">
+		{/*
+			Set in caps and hidden from assistive tech, with the real sentence
+			carried once by the sr-only span — the same reasoning as the hero and
+			the reach band: some screen readers announce transformed capitals as an
+			initialism.
+		*/}
+		<h2 id="film-heading" class="film__title" data-reveal>
+			<span class="sr-only">{TITLE}</span>
+			<span class="film__title-visual" aria-hidden="true">{TITLE}</span>
+		</h2>
+
+		<button class="film__card" type="button" data-film-open aria-haspopup="dialog" data-reveal>
+			{/*
+				The designed thumbnail, not a frame of the film. It is shown whole:
+				the card takes its aspect ratio from the artwork, so nothing is cut
+				off any edge, and `object-fit: contain` holds that even if the file
+				is ever swapped for one of a different shape.
+
+				Decorative. The button's own text ("Watch the film, 0:37") is its
+				accessible name, and describing a thumbnail that repeats the heading
+				above it would only make a screen reader say the same thing twice.
+			*/}
+			<Image
+				class="film__poster"
+				src={thumbnail}
+				alt=""
+				widths={[480, 760, 1040]}
+				sizes="(min-width: 52rem) 46rem, 92vw"
+				loading="lazy"
+				decoding="async"
+			/>
+
+			<span class="film__scrim" aria-hidden="true"></span>
+
+			<span class="film__play" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path d="M9 6.5v11l9-5.5-9-5.5Z" fill="currentColor"></path>
+				</svg>
+			</span>
+
+			<span class="film__meta">
+				<span class="film__cue">{t('film.watch')}</span>
+				<span class="film__runtime">{FILM.runtime}</span>
+			</span>
+		</button>
+
+		<p class="film__body measure-wide" data-reveal>{BODY}</p>
+	</div>
+
+	{/*
+		Fills the viewport and centres its own frame, so a click that lands on the
+		dialog itself is a click on the backdrop and can close it. A dialog sized
+		to its contents has no such area.
+	*/}
+	<dialog class="film__dialog" data-film-dialog aria-label="MOLAR AI — practice testimonial">
+		<div class="film__frame">
+			<div
+				class="film__stage"
+				data-film-stage
+				style={`background-image:url('${FILM.poster}')`}
+			>
+				<span class="film__media">
+					<video
+						class="film__video"
+						data-film-video
+						src={FILM.src}
+						playsinline
+						preload="none"></video>
+				</span>
+			</div>
+
+			{/*
+				A transport of our own rather than the browser's. Two reasons: the
+				native bar renders at the bottom of the video element, which the crop
+				above has pushed outside the frame, and it would sit on the film's own
+				burnt-in captions even if it did not.
+			*/}
+			<div class="film__controls" data-film-controls>
+				<button class="film__ctl" type="button" data-film-toggle>
+					<svg class="film__icon film__icon--play" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M9 6.5v11l9-5.5-9-5.5Z" fill="currentColor"></path>
+					</svg>
+					<svg class="film__icon film__icon--pause" viewBox="0 0 24 24" aria-hidden="true">
+						<path d="M9 6h2.2v12H9zm3.8 0H15v12h-2.2z" fill="currentColor"></path>
+					</svg>
+					<span class="sr-only" data-film-toggle-label>Pause</span>
+				</button>
+
+				<input
+					class="film__seek"
+					type="range"
+					min="0"
+					max="1000"
+					value="0"
+					step="1"
+					data-film-seek
+					aria-label="Seek through the film"
+				/>
+
+				<span class="film__time" data-film-time aria-hidden="true">0:00 / {FILM.runtime}</span>
+
+				<button class="film__ctl" type="button" data-film-mute>
+					<svg class="film__icon film__icon--loud" viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M4 9.5h3.2L12 6v12L7.2 14.5H4zM16 9a4 4 0 0 1 0 6M18.4 6.8a7 7 0 0 1 0 10.4"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+							stroke-linejoin="round"></path>
+					</svg>
+					<svg class="film__icon film__icon--muted" viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M4 9.5h3.2L12 6v12L7.2 14.5H4zM16 9.5l4.5 5M20.5 9.5 16 14.5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+							stroke-linejoin="round"></path>
+					</svg>
+					<span class="sr-only" data-film-mute-label>Mute</span>
+				</button>
+			</div>
+
+			<button class="film__close" type="button" data-film-close>
+				<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<path
+						d="m7 7 10 10M17 7 7 17"
+						stroke="currentColor"
+						stroke-width="1.6"
+						stroke-linecap="round"></path>
+				</svg>
+				<span class="sr-only">Close the film</span>
+			</button>
+		</div>
+	</dialog>
+</section>
+
+<style>
+	.film {
+		/*
+			The delivered file is a 2010x1080 screen recording, and the picture
+			inside it occupies a 747x965 window at (636, 42) — measured across all
+			37 seconds, over which it does not move by a pixel. The rest is baked-in
+			black: 63% of the frame's width.
+
+			So the card and the modal are the shape of the *picture*, and the
+			recording is scaled and offset until the picture is the only part of it
+			inside them. Nothing here crops the subject; it removes a letterbox that
+			should never have been exported.
+
+			Re-cut the master and these six numbers are all that change — see
+			public/videos/README.md.
+		*/
+		--film-w: 2010;
+		--film-h: 1080;
+		--pic-x: 636;
+		--pic-y: 42;
+		--pic-w: 747;
+		--pic-h: 965;
+
+		/*
+			The card thumbnail's own dimensions, and a separate pair on purpose.
+
+			The artwork is landscape and the footage is portrait, so the card and the
+			modal are different shapes. Forcing one onto the other would mean either
+			cropping the thumbnail — which loses the wordmark and the pull-quote it
+			was designed around — or cropping the film into a landscape window, which
+			takes the top off the speaker's head. A thumbnail that does not share the
+			video's aspect ratio is ordinary; a beheaded subject is not.
+		*/
+		--thumb-w: 1432;
+		--thumb-h: 1098;
+
+		position: relative;
+		padding-block: clamp(3rem, 5.5vw, 5rem);
+		background: var(--color-ink-950);
+		overflow: clip;
+	}
+
+	.film__inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+
+	.film__title {
+		max-width: 20ch;
+		margin: 0 0 clamp(2rem, 4vw, 3rem);
+		font-size: var(--text-4xl);
+		line-height: 1.04;
+		letter-spacing: -0.015em;
+	}
+
+	.film__title-visual {
+		display: block;
+		text-transform: uppercase;
+	}
+
+	/*
+		Holds the offset recording. Separate from whatever contains it so a hover
+		zoom has a box of its own to scale — composed onto the video's transform it
+		would drag the picture off its window.
+	*/
+	.film__media {
+		position: absolute;
+		inset: 0;
+		display: block;
+		overflow: hidden;
+		transition: transform 0.6s var(--ease-out-quint);
+	}
+
+	.film__video {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline-start: 0;
+		/* Blown up until the picture window is exactly as wide as the box… */
+		width: calc(var(--film-w) / var(--pic-w) * 100%);
+		height: auto;
+		/* …which needs the base layer's `max-width: 100%` out of the way… */
+		max-width: none;
+		/* …then slid so the window's top-left corner lands on the box's. Both
+		   percentages resolve against this element, which is why they are the
+		   offsets as a fraction of the whole frame rather than of the window. */
+		transform: translate(
+			calc(var(--pic-x) / var(--film-w) * -100%),
+			calc(var(--pic-y) / var(--film-h) * -100%)
+		);
+	}
+
+	/* ── The card ────────────────────────────────────────────────────────── */
+	.film__card {
+		position: relative;
+		display: block;
+		/* Landscape now, so it takes the room a portrait card did not need. */
+		width: min(100%, 46rem);
+		/* The thumbnail's shape, exactly — which is what keeps it uncropped. */
+		aspect-ratio: var(--thumb-w) / var(--thumb-h);
+		padding: 0;
+		border: 1px solid var(--color-line);
+		border-radius: clamp(0.75rem, 1vw, 1.125rem);
+		background: var(--color-ink-900);
+		cursor: pointer;
+		overflow: hidden;
+		isolation: isolate;
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 9%, transparent),
+			0 40px 90px -50px #000;
+		transition:
+			border-color 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint),
+			transform 0.4s var(--ease-out-quint);
+	}
+
+	.film__card:hover,
+	.film__card:focus-visible {
+		border-color: color-mix(in oklab, var(--color-arc-400) 42%, transparent);
+		transform: translateY(-3px);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 12%, transparent),
+			0 46px 110px -50px color-mix(in oklab, var(--color-arc-600) 75%, transparent);
+	}
+
+	/*
+		`contain`, not `cover`. The card is already the artwork's exact aspect
+		ratio, so the two behave identically today — but this is the guarantee that
+		nothing is ever shaved off the wordmark or the pull-quote if the thumbnail
+		is later swapped for one cut slightly differently.
+
+		No hover scale either, for the same reason: zooming a full-bleed graphic
+		inside a clipped card crops it every time the pointer crosses it. The card
+		still answers hover — it lifts, its border lights and its shadow opens.
+	*/
+	.film__poster {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		/* The card is the control. Nothing inside it takes a click. */
+		pointer-events: none;
+	}
+
+	/*
+		Holds the play mark and the label off whatever the frame happens to be.
+		The bottom ramp this used to carry is gone. It existed to lay a clean band
+		under a text label, back when the card showed a frame of the film with
+		burnt-in captions along its lower edge. The thumbnail is a designed graphic
+		with its own type — a wordmark, a pull-quote and a TESTIMONIAL chip — and
+		darkening the bottom third of it to print our own label over the top of the
+		chip would be vandalising the artwork to say something it already says.
+
+		What is left is the centre pool, and only that: it buys the play mark its
+		contrast against whatever sits behind it.
+	*/
+	.film__scrim {
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(
+			38% 32% at 50% 50%,
+			color-mix(in oklab, var(--color-ink-950) 46%, transparent),
+			transparent 74%
+		);
+		transition: opacity 0.4s var(--ease-out-quint);
+	}
+
+	.film__card:hover .film__scrim,
+	.film__card:focus-visible .film__scrim {
+		opacity: 0.82;
+	}
+
+	/*
+		Glass, the same material as the nav pills and the reach tiles — and here
+		it sits over moving footage, which is the one place on this site where a
+		backdrop blur has something real to work with.
+	*/
+	.film__play {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		margin: auto;
+		width: clamp(3.5rem, 5vw, 4.5rem);
+		height: clamp(3.5rem, 5vw, 4.5rem);
+		border: 1px solid color-mix(in oklab, #e6ecf5 26%, transparent);
+		border-radius: 50%;
+		background-color: color-mix(in oklab, var(--color-ink-950) 34%, transparent);
+		background-image: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 20%, transparent),
+			color-mix(in oklab, #a3adbd 6%, transparent)
+		);
+		backdrop-filter: blur(14px) saturate(150%);
+		color: var(--color-bone-50);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #fff 22%, transparent),
+			0 0 0 0 color-mix(in oklab, var(--color-arc-400) 55%, transparent),
+			0 20px 50px -24px #000;
+		transition:
+			transform 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint),
+			background-color 0.4s var(--ease-out-quint);
+	}
+
+	.film__play svg {
+		width: 42%;
+		height: 42%;
+		/* The glyph's mass sits left of its box; nudge it onto the optical centre
+		   of the disc rather than the geometric one. */
+		margin-inline-start: 6%;
+	}
+
+	.film__card:hover .film__play,
+	.film__card:focus-visible .film__play {
+		transform: scale(1.08);
+		background-color: color-mix(in oklab, var(--color-arc-600) 40%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #fff 28%, transparent),
+			0 0 0 10px color-mix(in oklab, var(--color-arc-400) 12%, transparent),
+			0 24px 60px -24px color-mix(in oklab, var(--color-arc-500) 80%, transparent);
+	}
+
+	.film__card:active .film__play {
+		transform: scale(1.02);
+	}
+
+	/*
+		Bottom-right only. The thumbnail's own TESTIMONIAL chip owns the
+		bottom-left, and the runtime is the one thing the artwork does not already
+		tell you.
+	*/
+	.film__meta {
+		position: absolute;
+		inset-inline-end: clamp(0.75rem, 1.6vw, 1rem);
+		inset-block-end: clamp(0.75rem, 1.6vw, 1rem);
+		display: flex;
+		align-items: center;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+
+	/*
+		Hidden, not deleted. "Watch the film" plus the runtime IS the button's
+		accessible name — the thumbnail is decorative and the play mark is
+		aria-hidden, so removing this text would leave the control unnamed.
+		Repeating the same rule as the global .sr-only, because a scoped stylesheet
+		cannot reach a utility class from global.css.
+	*/
+	.film__cue {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/*
+		It sits over the lit side of the artwork, so it carries its own ground
+		rather than trusting the picture underneath to stay dark.
+	*/
+	.film__runtime {
+		padding: 0.3rem 0.55rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 30%, transparent);
+		background: color-mix(in oklab, var(--color-ink-950) 66%, transparent);
+		backdrop-filter: blur(8px);
+		color: var(--color-arc-200);
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.film__body {
+		margin: clamp(1.75rem, 3.5vw, 2.75rem) 0 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* ── The modal ───────────────────────────────────────────────────────── */
+	/*
+		Open and close are one CSS transition, not a pair of scripted classes.
+		`display` and `overlay` are discrete properties — without
+		`allow-discrete` on both, the element leaves the top layer on the first
+		frame of the close and the exit plays to an empty screen.
+		`@starting-style` supplies the state it animates *from* on open, which
+		otherwise does not exist: the element was `display: none`.
+
+		Where `@starting-style` is unsupported the dialog simply appears and
+		disappears, which is the correct thing for it to fall back to.
+	*/
+	.film__dialog {
+		--dialog-pad: clamp(1rem, 4vw, 3rem);
+		--bar: 3.25rem;
+
+		width: 100%;
+		max-width: none;
+		height: 100%;
+		max-height: none;
+		margin: 0;
+		padding: var(--dialog-pad);
+		border: 0;
+		background: none;
+		color: inherit;
+		overscroll-behavior: contain;
+
+		opacity: 0;
+		transform: translateY(14px) scale(0.965);
+		transition:
+			opacity 0.34s var(--ease-out-quint),
+			transform 0.34s var(--ease-out-quint),
+			display 0.34s allow-discrete,
+			overlay 0.34s allow-discrete;
+	}
+
+	.film__dialog[open] {
+		display: grid;
+		place-items: center;
+		opacity: 1;
+		transform: none;
+	}
+
+	@starting-style {
+		.film__dialog[open] {
+			opacity: 0;
+			transform: translateY(14px) scale(0.965);
+		}
+	}
+
+	.film__dialog::backdrop {
+		background-color: rgb(2 5 12 / 0);
+		backdrop-filter: blur(0px);
+		transition:
+			background-color 0.34s var(--ease-out-quint),
+			backdrop-filter 0.34s var(--ease-out-quint),
+			display 0.34s allow-discrete,
+			overlay 0.34s allow-discrete;
+	}
+
+	.film__dialog[open]::backdrop {
+		background-color: rgb(2 5 12 / 0.74);
+		backdrop-filter: blur(16px) saturate(120%);
+	}
+
+	@starting-style {
+		.film__dialog[open]::backdrop {
+			background-color: rgb(2 5 12 / 0);
+			backdrop-filter: blur(0px);
+		}
+	}
+
+	/*
+		Sized by width, from whichever of three limits bites first: the room
+		across, the room down once the transport has taken its cut, or a ceiling
+		so the film is never blown up past the point of looking soft. Height then
+		falls out of the stage's aspect ratio, so there is only ever one number to
+		reason about.
+	*/
+	.film__frame {
+		position: relative;
+		width: min(
+			calc(100dvw - 2 * var(--dialog-pad)),
+			calc((100dvh - 2 * var(--dialog-pad) - var(--bar)) * var(--pic-w) / var(--pic-h)),
+			30rem
+		);
+		border: 1px solid var(--color-line-strong);
+		border-radius: clamp(0.5rem, 0.9vw, 1rem);
+		background: var(--color-ink-950);
+		overflow: hidden;
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent),
+			0 60px 140px -60px #000;
+	}
+
+	.film__stage {
+		position: relative;
+		aspect-ratio: var(--pic-w) / var(--pic-h);
+		/* The same still, holding the frame until the video has decoded one of
+		   its own. The video paints over it the moment it can. */
+		background: #000 center / cover no-repeat;
+		cursor: pointer;
+	}
+
+	/* ── Transport ───────────────────────────────────────────────────────── */
+	.film__controls {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		height: var(--bar);
+		padding-inline: 0.5rem 0.75rem;
+		border-block-start: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-900) 92%, transparent);
+	}
+
+	.film__ctl {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
+		border: 0;
+		border-radius: 0.5rem;
+		background: none;
+		color: var(--color-bone-100);
+		cursor: pointer;
+		transition:
+			background-color 0.2s var(--ease-out-quint),
+			color 0.2s var(--ease-out-quint);
+	}
+
+	.film__ctl:hover {
+		background: color-mix(in oklab, var(--color-bone-50) 9%, transparent);
+		color: var(--color-bone-50);
+	}
+
+	.film__icon {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	/* One button, two glyphs; the state on the bar decides which is out. */
+	.film__icon--pause,
+	.film__controls[data-playing] .film__icon--play,
+	.film__icon--muted,
+	.film__controls[data-muted] .film__icon--loud {
+		display: none;
+	}
+
+	.film__controls[data-playing] .film__icon--pause,
+	.film__controls[data-muted] .film__icon--muted {
+		display: block;
+	}
+
+	.film__time {
+		flex: none;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.08em;
+		color: var(--color-bone-400);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/*
+		A real <input type="range">, not a div with a drag handler: it arrives
+		keyboard-operable, draggable and announced, and only wants painting.
+	*/
+	.film__seek {
+		flex: 1;
+		min-width: 0;
+		height: 1.25rem;
+		margin: 0;
+		padding: 0;
+		appearance: none;
+		-webkit-appearance: none;
+		background: none;
+		cursor: pointer;
+	}
+
+	.film__seek::-webkit-slider-runnable-track {
+		height: 3px;
+		border-radius: 99px;
+		background: linear-gradient(
+			90deg,
+			var(--color-arc-400) var(--progress, 0%),
+			color-mix(in oklab, var(--color-bone-50) 16%, transparent) var(--progress, 0%)
+		);
+	}
+
+	.film__seek::-webkit-slider-thumb {
+		appearance: none;
+		-webkit-appearance: none;
+		width: 0.75rem;
+		height: 0.75rem;
+		/* Half the thumb, less half the track, to sit it on the line. */
+		margin-block-start: -0.28rem;
+		border-radius: 50%;
+		background: var(--color-bone-50);
+		box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-arc-400) 24%, transparent);
+	}
+
+	.film__seek::-moz-range-track {
+		height: 3px;
+		border-radius: 99px;
+		background: color-mix(in oklab, var(--color-bone-50) 16%, transparent);
+	}
+
+	.film__seek::-moz-range-progress {
+		height: 3px;
+		border-radius: 99px;
+		background: var(--color-arc-400);
+	}
+
+	.film__seek::-moz-range-thumb {
+		width: 0.75rem;
+		height: 0.75rem;
+		border: 0;
+		border-radius: 50%;
+		background: var(--color-bone-50);
+		box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-arc-400) 24%, transparent);
+	}
+
+	/*
+		Over the picture's top-right corner, clear of the transport at the other
+		end of the frame and clear of the film's own burnt-in captions.
+	*/
+	.film__close {
+		position: absolute;
+		inset-block-start: clamp(0.5rem, 1vw, 0.75rem);
+		inset-inline-end: clamp(0.5rem, 1vw, 0.75rem);
+		display: grid;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
+		border: 1px solid color-mix(in oklab, #e6ecf5 22%, transparent);
+		border-radius: 50%;
+		background-color: color-mix(in oklab, var(--color-ink-950) 52%, transparent);
+		backdrop-filter: blur(14px) saturate(150%);
+		color: var(--color-bone-50);
+		cursor: pointer;
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #fff 18%, transparent);
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			border-color 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
+	}
+
+	.film__close:hover,
+	.film__close:focus-visible {
+		background-color: color-mix(in oklab, var(--color-arc-600) 62%, transparent);
+		border-color: color-mix(in oklab, var(--color-arc-300) 55%, transparent);
+		transform: scale(1.06);
+	}
+
+	.film__close svg {
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+</style>
+
+<script>
+	/**
+	 * The film card, its modal and the modal's transport.
+	 *
+	 * `showModal()` does the hard parts — top layer, inert background, focus
+	 * trap, Escape. What is left: starting playback on the click that opened it
+	 * (a user gesture, which is what buys the right to play with sound),
+	 * stopping it again on close, closing on a backdrop click, holding the page
+	 * still underneath, and driving four controls.
+	 */
+
+	/** The seek slider's resolution. Finer than a pixel on any plausible width. */
+	const SEEK_STEPS = 1000;
+
+	/** `0:07`. Never longer than this film needs. */
+	function clock(seconds: number): string {
+		if (!Number.isFinite(seconds)) return '0:00';
+		const whole = Math.max(0, Math.floor(seconds));
+		return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
+	}
+
+	function init(): void {
+		const section = document.querySelector<HTMLElement>('#film');
+		const dialog = section?.querySelector<HTMLDialogElement>('[data-film-dialog]');
+		const opener = section?.querySelector<HTMLButtonElement>('[data-film-open]');
+		const closer = section?.querySelector<HTMLButtonElement>('[data-film-close]');
+		const video = section?.querySelector<HTMLVideoElement>('[data-film-video]');
+		const stage = section?.querySelector<HTMLElement>('[data-film-stage]');
+		const bar = section?.querySelector<HTMLElement>('[data-film-controls]');
+		const toggle = section?.querySelector<HTMLButtonElement>('[data-film-toggle]');
+		const toggleLabel = section?.querySelector<HTMLElement>('[data-film-toggle-label]');
+		const mute = section?.querySelector<HTMLButtonElement>('[data-film-mute]');
+		const muteLabel = section?.querySelector<HTMLElement>('[data-film-mute-label]');
+		const seek = section?.querySelector<HTMLInputElement>('[data-film-seek]');
+		const time = section?.querySelector<HTMLElement>('[data-film-time]');
+		if (!section || !dialog || !opener || !closer || !video) return;
+
+		// ── Transport ──────────────────────────────────────────────────────────
+		/** Dragging must not be fought by `timeupdate` writing the thumb back. */
+		let scrubbing = false;
+
+		const paint = (): void => {
+			const ratio = video.duration ? video.currentTime / video.duration : 0;
+			if (seek && !scrubbing) {
+				seek.value = String(Math.round(ratio * SEEK_STEPS));
+				seek.style.setProperty('--progress', `${(ratio * 100).toFixed(2)}%`);
+			}
+			if (time) time.textContent = `${clock(video.currentTime)} / ${clock(video.duration)}`;
+		};
+
+		const paintState = (): void => {
+			bar?.toggleAttribute('data-playing', !video.paused);
+			bar?.toggleAttribute('data-muted', video.muted || video.volume === 0);
+			if (toggleLabel) toggleLabel.textContent = video.paused ? 'Play' : 'Pause';
+			if (muteLabel) muteLabel.textContent = video.muted ? 'Unmute' : 'Mute';
+		};
+
+		video.addEventListener('timeupdate', paint);
+		video.addEventListener('durationchange', paint);
+		video.addEventListener('play', paintState);
+		video.addEventListener('pause', paintState);
+		video.addEventListener('volumechange', paintState);
+		video.addEventListener('ended', () => {
+			video.currentTime = 0;
+			paint();
+		});
+
+		const play = (): void => {
+			void video.play().catch(() => {
+				/* Refused — the transport is right there. */
+			});
+		};
+
+		toggle?.addEventListener('click', () => (video.paused ? play() : video.pause()));
+		stage?.addEventListener('click', () => (video.paused ? play() : video.pause()));
+		mute?.addEventListener('click', () => {
+			video.muted = !video.muted;
+		});
+
+		if (seek) {
+			const scrubTo = (): void => {
+				const ratio = Number(seek.value) / SEEK_STEPS;
+				seek.style.setProperty('--progress', `${(ratio * 100).toFixed(2)}%`);
+				if (video.duration) video.currentTime = ratio * video.duration;
+			};
+			seek.addEventListener('pointerdown', () => (scrubbing = true));
+			seek.addEventListener('pointerup', () => (scrubbing = false));
+			seek.addEventListener('input', scrubTo);
+			seek.addEventListener('change', () => {
+				scrubbing = false;
+				scrubTo();
+			});
+		}
+
+		// ── Open and close ─────────────────────────────────────────────────────
+		/*
+			Lenis owns the scroll, so `overflow: hidden` alone would not stop it —
+			it has to be told. The attribute covers the reduced-motion path, where
+			Lenis never loaded to hear the event.
+		*/
+		const lock = (on: boolean): void => {
+			document.documentElement.toggleAttribute('data-modal-open', on);
+			window.dispatchEvent(new CustomEvent(on ? 'molar:lock-scroll' : 'molar:unlock-scroll'));
+		};
+
+		opener.addEventListener('click', () => {
+			dialog.showModal();
+			lock(true);
+			paintState();
+			paint();
+			// Called from inside the gesture, so this is allowed to play aloud.
+			play();
+		});
+
+		closer.addEventListener('click', () => dialog.close());
+
+		// A click that lands on the dialog itself landed on the backdrop — the
+		// frame is a child and would have been the target otherwise.
+		dialog.addEventListener('click', (event) => {
+			if (event.target === dialog) dialog.close();
+		});
+
+		// Fires for the close button, the backdrop and Escape alike, which is why
+		// the teardown lives here rather than in three handlers. The film keeps
+		// its position: closing by accident should not cost you your place.
+		dialog.addEventListener('close', () => {
+			video.pause();
+			lock(false);
+			// Native dialog restores focus to whatever had it, which is the card
+			// for a real click. Being explicit covers the paths where it was not.
+			opener.focus();
+		});
+	}
+
+	init();
+</script>

@@ -1,0 +1,286 @@
+---
+/**
+ * The wall of unsolicited DMs — the screenshots themselves.
+ *
+ * This is a different claim from the one the exhibit above makes, and it is
+ * worth keeping the two apart. The exhibit says the content grew an account.
+ * This says other dentists and orthodontists — the ones who would know — saw the
+ * work and wrote in to ask who was making it. Nobody asks that about content
+ * they think they could have made themselves.
+ *
+ * The screenshots are shown rather than retyped, because a transcription is a
+ * claim about a message and a screenshot is the message. That costs three things
+ * and each is paid for here:
+ *
+ *   Legibility   phone captures are ~1290px of large text, so the wall runs at a
+ *                wider measure than the page's reading column and caps at two
+ *                columns. Three would put the text under 12px.
+ *   Access       an image of a sentence says nothing to a screen reader, so the
+ *                verbatim transcription in `results.ts` is the alt on every shot.
+ *                Nothing was lost by stopping rendering it as text.
+ *   Weight       ten light-on-white captures on a near-black page, so each is
+ *                framed the way the profile shots above are — a document set
+ *                down on the table, not a hole burned through the layout.
+ */
+import { Image } from 'astro:assets';
+import { INBOUND } from '~/data/results';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+export interface Props {
+	as?: 'h2' | 'h3';
+}
+
+const { as: Heading = 'h2' } = Astro.props;
+
+/*
+	Matched to messages by slug rather than imported one by one beside the data, so
+	a new entry in `results.ts` plus a file of the same name is the whole job.
+*/
+const files = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/results/inbound/*.png',
+	{ eager: true },
+);
+
+const shotFor = (slug: string): ImageMetadata => {
+	const file = files[`../../assets/results/inbound/${slug}.png`];
+	if (!file) {
+		/* Build-time, and loud. A missing screenshot would ship as a hole in the
+		   wall that nobody notices until a visitor does. */
+		throw new Error(
+			`results.ts lists shot "${slug}" but src/assets/results/inbound/${slug}.png does not exist.`,
+		);
+	}
+	return file.default;
+};
+
+/*
+	The ones that ask outright come first — they are the argument, and the wall
+	should open with it rather than bury it three cards down. Stable sort, so the
+	hand-chosen order inside each group survives.
+*/
+const messages = [...INBOUND].sort((a, b) => Number(b.asking ?? false) - Number(a.asking ?? false));
+
+const asking = messages.filter((m) => m.asking).length;
+---
+
+<section class="inbound section section-rule" aria-labelledby="inbound-heading">
+	<div class="container-content">
+		<header class="inbound__head">
+			<p class="eyebrow" data-reveal="fade">{t('inbound.eyebrow')}</p>
+
+			<Heading id="inbound-heading" class="inbound__title" data-reveal>
+				{t('inbound.heading')}
+			</Heading>
+
+			<p class="inbound__lede measure-wide" data-reveal>
+				{t('inbound.lede', { asking, total: messages.length })}
+			</p>
+		</header>
+	</div>
+
+	{/* The evidence runs wider than the prose — see the note in the frontmatter. */}
+	<div class="inbound__wide">
+		<ul class="wall" data-reveal-stagger>
+			{
+				messages.map((message) => (
+					<li
+						class:list={['note', message.asking && 'note--asking']}
+						data-reveal
+						data-reveal-group
+					>
+						<figure class="note__figure">
+							<div class="note__frame">
+								<Image
+									src={shotFor(message.shot)}
+									alt={t('inbound.alt', { quote: message.quote })}
+									widths={[420, 640, 900]}
+									sizes="(min-width: 64rem) 44vw, 92vw"
+									loading="lazy"
+								/>
+							</div>
+
+							<figcaption class="note__meta">
+								<span class="note__who">
+									{t(`inbound.${message.who}` as never)}
+									{message.where && <span class="note__where">{t(`inbound.${message.where}` as never)}</span>}
+								</span>
+								<span class="note__channel">{t(`inbound.${message.channel}` as never)}</span>
+							</figcaption>
+						</figure>
+					</li>
+				))
+			}
+		</ul>
+
+		<p class="inbound__source" data-reveal="fade">
+			{t('inbound.source')}
+		</p>
+	</div>
+</section>
+
+<style>
+	.inbound__head {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.inbound__title {
+		margin: 0;
+		max-width: 20ch;
+		font-size: var(--text-3xl);
+		/* Explicit — `--text-3xl--line-height` only pairs with the `text-3xl`
+		   utility class, not with `font-size: var(--text-3xl)` set by hand. */
+		line-height: 1.14;
+	}
+
+	.inbound__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* Wider than the 76rem reading measure — the screenshots need the room. */
+	.inbound__wide {
+		width: 100%;
+		max-width: 90rem;
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+	}
+
+	/*
+		Columns, not a grid. These captures are wildly different shapes — one is
+		1290×494 and another 944×2048 — and a grid would either stretch the short
+		ones to match their row or leave holes under them. Columns let each card be
+		exactly as tall as its screenshot.
+	*/
+	.wall {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		columns: 1;
+		column-gap: clamp(1rem, 2.5vw, 1.75rem);
+	}
+
+	.note {
+		/* A screenshot split across a column break is unreadable. */
+		break-inside: avoid;
+		margin-bottom: clamp(1.25rem, 2.5vw, 1.75rem);
+	}
+
+	.note__figure {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+		margin: 0;
+	}
+
+	/*
+		The same frame the profile shots above wear. A light capture on a navy page
+		has to read as a document set down on the table, not as a hole burned
+		through the layout — hence the border, the lit top edge, and a drop shadow
+		that grounds it.
+	*/
+	.note__frame {
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-line-strong);
+		background: #fff;
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #fff 60%, transparent),
+			0 20px 50px -34px #000;
+		transition:
+			border-color 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint);
+	}
+
+	.note__frame :global(img) {
+		width: 100%;
+		/* No aspect-ratio and no object-fit: every capture keeps its own shape.
+		   Astro writes the intrinsic width and height, so nothing shifts on load. */
+		height: auto;
+		display: block;
+	}
+
+	/*
+		The ones that ask outright get the accent — a lit edge on the frame, which
+		is the quietest way to mark a card without putting a badge in front of the
+		screenshot it is meant to be drawing attention to.
+	*/
+	.note--asking .note__frame {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #fff 60%, transparent),
+			0 0 0 1px color-mix(in oklab, var(--color-arc-500) 12%, transparent),
+			0 24px 60px -36px color-mix(in oklab, var(--color-arc-600) 80%, transparent),
+			0 20px 50px -34px #000;
+	}
+
+	.note:hover .note__frame {
+		border-color: color-mix(in oklab, var(--color-arc-400) 60%, transparent);
+	}
+
+	.note__meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.4rem 1rem;
+	}
+
+	.note__who {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-bone-100);
+	}
+
+	.note--asking .note__who {
+		color: var(--color-bone-50);
+	}
+
+	.note__where::before {
+		content: '·';
+		margin-inline: 0.4rem;
+		color: var(--color-ink-600);
+	}
+
+	.note__where {
+		font-weight: 400;
+		color: var(--color-bone-400);
+	}
+
+	.note__channel {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+		white-space: nowrap;
+	}
+
+	.inbound__source {
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+		max-width: 68ch;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		line-height: 1.7;
+		letter-spacing: 0.04em;
+		color: var(--color-bone-500);
+	}
+
+	@media (min-width: 64rem) {
+		/*
+			Two, and no more. At three columns inside this measure each capture lands
+			near 420px wide, which puts the message text under 12px — at which point
+			the wall is a picture of evidence rather than evidence.
+		*/
+		.wall {
+			columns: 2;
+		}
+	}
+</style>

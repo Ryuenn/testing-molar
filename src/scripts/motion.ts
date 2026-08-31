@@ -14,7 +14,7 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
 function revealInstantly(): void {
 	document.documentElement.classList.remove('motion-ok');
 	document
-		.querySelectorAll<HTMLElement>('[data-reveal], [data-hero-in]')
+		.querySelectorAll<HTMLElement>('[data-reveal], [data-hero-in], [data-hero-letter]')
 		.forEach((el) => {
 			el.style.opacity = '1';
 			el.style.transform = 'none';
@@ -83,23 +83,41 @@ async function init(): Promise<void> {
 	});
 
 	// ── Hero: one staggered sequence, not five scattered ones ────────────────
-	const heroItems = gsap.utils.toArray<HTMLElement>('[data-hero-in]');
-	if (heroItems.length) {
-		gsap
-			.timeline({ defaults: { ease: 'power3.out' } })
-			.to(heroItems, {
-				opacity: 1,
-				y: 0,
-				duration: 1,
-				stagger: 0.09,
-				delay: 0.15,
-			})
-			.fromTo(
-				'[data-hero-scrim]',
-				{ opacity: 0 },
-				{ opacity: 1, duration: 1.2 },
-				0,
-			);
+	/*
+		Four beats on one timeline, each pinned to an absolute time rather than
+		chained. Chaining would make the tail's start depend on the letter count,
+		so editing the headline would silently retime the button.
+
+		  0.00  scrim fades up over the first frames of video
+		  0.15  eyebrow
+		  0.40  headline, a letter at a time
+		  1.05  flow line, then the CTA
+	*/
+	const heroLead = gsap.utils.toArray<HTMLElement>('[data-hero-in="lead"]');
+	const heroTail = gsap.utils.toArray<HTMLElement>('[data-hero-in="tail"]');
+	const heroLetters = gsap.utils.toArray<HTMLElement>('[data-hero-letter]');
+
+	if (heroLead.length || heroTail.length || heroLetters.length) {
+		const hero = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+		hero.fromTo('[data-hero-scrim]', { opacity: 0 }, { opacity: 1, duration: 1.2 }, 0);
+
+		if (heroLead.length) {
+			hero.to(heroLead, { opacity: 1, y: 0, duration: 1, stagger: 0.09 }, 0.15);
+		}
+
+		if (heroLetters.length) {
+			/*
+				0.026s apart: the line lands in a little over a second. Slower and it
+				stops reading as an entrance and starts reading as a page still
+				loading.
+			*/
+			hero.to(heroLetters, { opacity: 1, y: 0, duration: 0.85, stagger: 0.026 }, 0.4);
+		}
+
+		if (heroTail.length) {
+			hero.to(heroTail, { opacity: 1, y: 0, duration: 1, stagger: 0.09 }, 1.05);
+		}
 	}
 
 	// ── Section reveals ──────────────────────────────────────────────────────
@@ -139,6 +157,15 @@ async function init(): Promise<void> {
 			},
 		});
 	});
+
+	/*
+		Lenis drives the scroll, so a modal cannot stop the page with CSS alone —
+		`overflow: hidden` leaves Lenis still calling scrollTo underneath. The
+		components that open one say so here rather than importing this module,
+		which keeps the instance private and works whether or not it exists.
+	*/
+	window.addEventListener('molar:lock-scroll', () => lenis.stop());
+	window.addEventListener('molar:unlock-scroll', () => lenis.start());
 
 	bindNavState(ScrollTrigger);
 

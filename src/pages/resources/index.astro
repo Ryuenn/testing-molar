@@ -2,8 +2,15 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import ResourceCard from '~/components/ResourceCard.astro';
+import StepIcon from '~/components/ui/StepIcon.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
 import { RESOURCE_CATEGORIES } from '~/data/resources';
 import { breadcrumbSchema } from '~/data/schema';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
 
 const all = (await getCollection('resources', ({ data }) => !data.draft)).sort((a, b) => {
 	if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
@@ -16,11 +23,24 @@ const used = RESOURCE_CATEGORIES.filter((category) =>
 );
 
 const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category === c).length]));
+
+/*
+	Strings the client script builds sentences from. Serialised onto the element
+	rather than inlined into the script, because a module script tag is bundled once
+	for every page that uses it and cannot see this component's "t". Templates,
+	not fragments — see the note on interpolation in ~/i18n/utils.
+*/
+const scriptStrings = JSON.stringify({
+	showingAll: t('resources.showingAll'),
+	showingIn: t('resources.showingIn'),
+	nothingYet: t('resources.nothingYet'),
+	matching: t('resources.searchPlaceholder'),
+});
 ---
 
 <BaseLayout
-	title="Resource library"
-	description="Free branded guides, scripts and checklists for dental practices — patient education, content calendars, review playbooks and consent kits. No subscription required."
+	title={t('pages.resourcesTitle')}
+	description={t('pages.resourcesDesc')}
 	ogImage={{
 		src: '/images/og/resources.png',
 		alt: 'MOLAR AI resource library — free guides for dental practices',
@@ -29,37 +49,129 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 	}}
 	schema={[
 		breadcrumbSchema([
-			{ name: 'Home', path: '/' },
-			{ name: 'Resources', path: '/resources/' },
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.resources'), path: '/resources/' },
 		]),
 	]}
 >
-	<section class="hero-lite" aria-labelledby="library-heading">
+	<section class="hero-lite lit-band" aria-labelledby="library-heading">
 		<div class="container-content">
 			<nav aria-label="Breadcrumb" class="crumbs">
 				<ol class="crumbs__list">
-					<li><a href="/">Home</a></li>
-					<li aria-current="page">Resources</li>
+					<li><a href={localizePath('/', locale)}>{t('crumbs.home')}</a></li>
+					<li aria-current="page">{t('nav.resources')}</li>
 				</ol>
 			</nav>
 
-			<p class="eyebrow">Free resources</p>
-			<h1 id="library-heading" class="hero-lite__title">The MOLAR resource library.</h1>
+			<p class="eyebrow">{t('resources.eyebrow')}</p>
+			<h1 id="library-heading" class="hero-lite__title">{t('resources.heading')}</h1>
 			<p class="hero-lite__lede measure-wide">
-				Everything here is free and branded to hand straight to a patient or a team. Built from
-				what actually works across MOLAR practices.
+				{t('resources.lede')}{' '}
+				{locale !== 'en' && <span class="hero-lite__note">{t('resources.englishNote')}</span>}
 			</p>
 		</div>
 	</section>
 
 	<section class="library section-rule" aria-labelledby="library-grid-heading">
-		<div class="container-content">
-			<h2 id="library-grid-heading" class="sr-only">All resources</h2>
+		{/* The field the cards and chips blur — without it, translucency is just
+		    a paler grey. */}
+		<div class="library__aurora" aria-hidden="true"></div>
+		<div class="grain" aria-hidden="true"></div>
+		<div class="container-content library__inner">
+			<h2 id="library-grid-heading" class="sr-only">{t('resources.allResources')}</h2>
 
-			<div class="filters" data-filters>
-				<div class="filters__group" role="group" aria-label="Filter resources by category">
+			{/*
+				The library's doorway, above the filter bar rather than inside the grid.
+				The grid is PDFs and every card in it downloads one; the library is a
+				different kind of thing and behaves differently when clicked, so it sits
+				outside rather than pretending to be the thirteenth document.
+			*/}
+			<a class="lib-promo" href={localizePath('/resources/video-library/', locale)}>
+				{/* The mark, so the row says "video" before the sentence does. */}
+				<span class="lib-promo__mark" aria-hidden="true">
+					<StepIcon name="video" />
+				</span>
+
+				<span class="lib-promo__text">
+					<span class="lib-promo__title">{t('library.hubTitle')}</span>
+					<span class="lib-promo__blurb">{t('library.hubBlurb')}</span>
+				</span>
+				<span class="lib-promo__cta">
+					{t('library.hubCta')}
+					<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+						<path d="M2.5 7h8M7 3.5 10.5 7 7 10.5" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</span>
+			</a>
+
+			<div class="filters" data-filters data-strings={scriptStrings}>
+				{/*
+					Search and sort sit above the chips because they act on everything;
+					the chips narrow what those two are working over. All three compose —
+					a search inside a category, sorted — rather than overriding each other.
+				*/}
+				<div class="toolbar">
+					{/*
+						A real <form> with role="search", so the field is a landmark and
+						Enter does not wander off looking for a submit. Nothing is posted:
+						filtering happens on input, and the submit handler exists only to
+						stop the browser navigating.
+					*/}
+					<form class="search" role="search" data-search-form>
+						<label for="resource-search" class="sr-only">{t('resources.search')}</label>
+						<svg
+							class="search__icon"
+							viewBox="0 0 16 16"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							aria-hidden="true"
+						>
+							<circle cx="7" cy="7" r="4.5"></circle>
+							<path d="m10.5 10.5 3 3" stroke-linecap="round"></path>
+						</svg>
+						<input
+							type="search"
+							id="resource-search"
+							class="search__input"
+							placeholder={t('resources.searchPlaceholder')}
+							autocomplete="off"
+							data-search
+						/>
+						<button type="button" class="search__clear" data-search-clear hidden>
+							<span class="sr-only">{t('resources.clearSearch')}</span>
+							<svg
+								viewBox="0 0 16 16"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								aria-hidden="true"
+							>
+								<path d="m5 5 6 6M11 5l-6 6"></path>
+							</svg>
+						</button>
+					</form>
+
+					<div class="sort">
+						<label for="resource-sort" class="sort__label">{t('resources.sort')}</label>
+						{/*
+							A native <select>. A custom listbox here would be a keyboard-trap
+							risk and a mobile regression for the sake of matching the chips,
+							and the chips are already the styled control on this row.
+						*/}
+						<select id="resource-sort" class="sort__select" data-sort>
+							<option value="featured">{t('resources.sortFeatured')}</option>
+							<option value="newest">{t('resources.sortNewest')}</option>
+							<option value="title">{t('resources.sortTitle')}</option>
+							<option value="shortest">{t('resources.sortShortest')}</option>
+						</select>
+					</div>
+				</div>
+
+				<div class="filters__group" role="group" aria-label={t('resources.filterBy')}>
 					<button type="button" class="chip" data-filter="all" aria-pressed="true">
-						All <span class="chip__count">{all.length}</span>
+						{t('resources.all')} <span class="chip__count">{all.length}</span>
 					</button>
 					{
 						used.map((category) => (
@@ -71,7 +183,7 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 				</div>
 
 				<p class="filters__status" data-filter-status role="status" aria-live="polite">
-					Showing all {all.length} resources
+					{t('resources.showingAll', { n: all.length })}
 				</p>
 			</div>
 
@@ -79,84 +191,211 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 				{all.map((entry) => <ResourceCard entry={entry} headingLevel="h3" />)}
 			</div>
 
+			{/*
+				The message is rewritten by the script to name whatever actually caused
+				the empty result — a search, a category, or both. This is the no-JS
+				wording, and with no JS the grid is never empty, so it never shows.
+			*/}
 			<p class="library__empty" data-empty hidden>
-				Nothing in that category yet. <button type="button" class="btn btn-quiet" data-reset>Show everything</button>
+				<span data-empty-text>{t('resources.nothingYet')}</span>
+				<button type="button" class="btn btn-quiet" data-reset>{t('resources.clearFilters')}</button>
 			</p>
 		</div>
 	</section>
+
+	<ClosingCta />
 </BaseLayout>
 
 <script>
 	/**
-	 * Category filter. Progressive: without JS the grid renders every resource and
-	 * the chips simply do nothing, which is why the markup ships complete rather
-	 * than being built client-side. Filtering by attribute keeps this O(n) and
-	 * indifferent to how many resources the collection grows to.
+	 * The hub's three controls: category chips, a search field and a sort select.
+	 *
+	 * They compose rather than override — the visible set is
+	 * (category ∩ search), ordered by sort — so narrowing by category and then
+	 * typing does what you would expect instead of resetting the other control.
+	 *
+	 * Progressive throughout. The grid renders every resource server-side and the
+	 * controls simply do nothing without JS, which is why the markup ships
+	 * complete rather than being built here. Filtering is attribute-based and
+	 * O(n) per keystroke, which at library scale is nothing.
+	 *
+	 * Sorting reorders actual DOM nodes rather than setting CSS `order`. Flex and
+	 * grid `order` moves a card visually while leaving it where it was in the tab
+	 * sequence, so a keyboard user would tab through the cards in an order that no
+	 * longer matches the page. Reordering the nodes keeps the two the same thing.
 	 */
 	const root = document.querySelector<HTMLElement>('[data-filters]');
 	const grid = document.querySelector<HTMLElement>('[data-resource-grid]');
 	const status = document.querySelector<HTMLElement>('[data-filter-status]');
 	const empty = document.querySelector<HTMLElement>('[data-empty]');
+	const emptyText = document.querySelector<HTMLElement>('[data-empty-text]');
+	const searchForm = document.querySelector<HTMLFormElement>('[data-search-form]');
+	const search = document.querySelector<HTMLInputElement>('[data-search]');
+	const clear = document.querySelector<HTMLButtonElement>('[data-search-clear]');
+	const sort = document.querySelector<HTMLSelectElement>('[data-sort]');
 
-	if (root && grid && status && empty) {
+	if (root && grid && status && empty && emptyText && search && sort) {
+		/* Sentences the server rendered for this page's locale — see data-strings. */
+		const S = JSON.parse(root.dataset.strings || '{}') as Record<string, string>;
+		const fill = (tpl: string, vars: Record<string, string | number>) =>
+			(tpl || '').replace(/{(w+)}/g, (w, k) => (k in vars ? String(vars[k]) : w));
+
 		const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-filter]'));
 		const cards = Array.from(grid.querySelectorAll<HTMLElement>('[data-resource]'));
 
-		const apply = (filter: string) => {
+		/*
+			The server-rendered order is the "Featured" sort — featured entries first,
+			then by curated `order`. Captured once, because sorting is about to move
+			these nodes around and the original sequence is not recoverable after that.
+		*/
+		const curated = new Map(cards.map((card, i) => [card, i]));
+
+		const text = (card: HTMLElement) =>
+			`${card.dataset.title ?? ''} ${card.dataset.blurb ?? ''} ${(
+				card.dataset.category ?? ''
+			).toLowerCase()}`;
+
+		const comparators: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+			featured: (a, b) => (curated.get(a) ?? 0) - (curated.get(b) ?? 0),
+			/* Ties fall back to the curated order rather than to whatever the sort
+			   happened to leave behind — every entry added on the same day would
+			   otherwise shuffle between sorts. */
+			newest: (a, b) =>
+				(b.dataset.updated ?? '').localeCompare(a.dataset.updated ?? '') ||
+				comparators.featured(a, b),
+			title: (a, b) => (a.dataset.title ?? '').localeCompare(b.dataset.title ?? ''),
+			shortest: (a, b) =>
+				Number(a.dataset.pages ?? 0) - Number(b.dataset.pages ?? 0) ||
+				comparators.featured(a, b),
+		};
+
+		let category = 'all';
+		let query = '';
+
+		const apply = () => {
+			const q = query.trim().toLowerCase();
 			let visible = 0;
 
 			for (const card of cards) {
-				const match = filter === 'all' || card.dataset.category === filter;
+				const inCategory = category === 'all' || card.dataset.category === category;
+				const inSearch = !q || text(card).includes(q);
+				const match = inCategory && inSearch;
 				card.hidden = !match;
 				if (match) visible++;
 			}
 
 			for (const chip of chips) {
-				chip.setAttribute('aria-pressed', String(chip.dataset.filter === filter));
+				chip.setAttribute('aria-pressed', String(chip.dataset.filter === category));
 			}
 
-			empty.hidden = visible > 0;
-			status.textContent =
-				filter === 'all'
-					? `Showing all ${visible} resources`
-					: `Showing ${visible} ${visible === 1 ? 'resource' : 'resources'} in ${filter}`;
+			/* Reorder only what is on screen. Hidden cards keep their nodes in the
+			   container and are re-sorted the moment they come back. */
+			const order = comparators[sort.value] ?? comparators.featured;
+			for (const card of [...cards].sort(order)) grid.append(card);
 
+			empty.hidden = visible > 0;
+			clear?.toggleAttribute('hidden', q.length === 0);
+
+			const q2 = query.trim();
+			if (q && category !== 'all') {
+				status.textContent = fill(S.showingIn, { n: visible, category }) + " — " + q2;
+				emptyText.textContent = fill(S.showingIn, { n: 0, category }) + " — " + q2;
+			} else if (q) {
+				status.textContent = fill(S.showingAll, { n: visible }) + " — " + q2;
+				emptyText.textContent = S.nothingYet;
+			} else if (category !== 'all') {
+				status.textContent = fill(S.showingIn, { n: visible, category });
+				emptyText.textContent = S.nothingYet;
+			} else {
+				status.textContent = fill(S.showingAll, { n: visible });
+				emptyText.textContent = S.nothingYet;
+			}
+
+			/*
+				Shareable state. `replaceState`, not `pushState` — a filter is not a
+				page, and pushing one per keystroke would bury the back button under a
+				hundred entries.
+			*/
 			const url = new URL(window.location.href);
-			if (filter === 'all') url.searchParams.delete('category');
-			else url.searchParams.set('category', filter);
+			category === 'all'
+				? url.searchParams.delete('category')
+				: url.searchParams.set('category', category);
+			q ? url.searchParams.set('q', query.trim()) : url.searchParams.delete('q');
+			sort.value === 'featured'
+				? url.searchParams.delete('sort')
+				: url.searchParams.set('sort', sort.value);
 			history.replaceState(null, '', url);
 		};
 
 		root.addEventListener('click', (event) => {
 			const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
-			if (chip?.dataset.filter) apply(chip.dataset.filter);
+			if (!chip?.dataset.filter) return;
+			category = chip.dataset.filter;
+			apply();
 		});
+
+		search.addEventListener('input', () => {
+			query = search.value;
+			apply();
+		});
+
+		/* Nothing to submit — the results are already live. */
+		searchForm?.addEventListener('submit', (event) => event.preventDefault());
+
+		/* Escape clears the field, which is what a search input is expected to do
+		   and what the native clear button does not do for keyboard users. */
+		search.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || !search.value) return;
+			search.value = '';
+			query = '';
+			apply();
+		});
+
+		clear?.addEventListener('click', () => {
+			search.value = '';
+			query = '';
+			search.focus();
+			apply();
+		});
+
+		sort.addEventListener('change', apply);
 
 		document.querySelector<HTMLButtonElement>('[data-reset]')?.addEventListener('click', () => {
-			apply('all');
+			category = 'all';
+			query = '';
+			search.value = '';
+			apply();
+			search.focus();
 		});
 
-		// A shared link like /resources/?category=Operations lands pre-filtered.
-		const initial = new URL(window.location.href).searchParams.get('category');
-		if (initial && chips.some((chip) => chip.dataset.filter === initial)) apply(initial);
+		/* A shared link like /resources/?category=Operations&q=chatgpt&sort=newest
+		   lands with all three already applied. */
+		const params = new URL(window.location.href).searchParams;
+		const initialCategory = params.get('category');
+		const initialSort = params.get('sort');
+		if (initialCategory && chips.some((chip) => chip.dataset.filter === initialCategory)) {
+			category = initialCategory;
+		}
+		if (initialSort && initialSort in comparators) sort.value = initialSort;
+		query = params.get('q') ?? '';
+		search.value = query;
+		if (category !== 'all' || query || sort.value !== 'featured') apply();
 	}
 </script>
 
 <style>
+	/* The light comes from `.lit-band` in global.css, which this section also
+	   wears — see the note there. Only the band's own metrics live here. */
 	.hero-lite {
 		padding-block: calc(var(--nav-h, 4.5rem) + clamp(3rem, 8vw, 6rem)) clamp(2.5rem, 5vw, 4rem);
-		background:
-			radial-gradient(
-				80% 60% at 15% 0%,
-				color-mix(in oklab, var(--color-arc-700) 18%, transparent),
-				transparent 62%
-			),
-			var(--color-ink-950);
 	}
 
 	.hero-lite__title {
 		margin: 0.75rem 0 0;
 		font-size: var(--text-4xl);
+		/* Display sizes want their own leading; the inherited body value opens a
+		   hole between the two lines this wraps to. */
+		line-height: 1.06;
 		max-width: 18ch;
 	}
 
@@ -201,13 +440,175 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 	}
 
 	.library {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
 		padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4.5rem, 9vw, 8rem);
+	}
+
+	.library__aurora {
+		position: absolute;
+		inset: -10% 0;
+		z-index: -1;
+		background:
+			radial-gradient(
+				38% 34% at 12% 10%,
+				color-mix(in oklab, var(--color-arc-600) 24%, transparent),
+				transparent 72%
+			),
+			radial-gradient(
+				46% 38% at 88% 46%,
+				color-mix(in oklab, var(--color-arc-700) 30%, transparent),
+				transparent 74%
+			),
+			radial-gradient(
+				52% 34% at 40% 96%,
+				color-mix(in oklab, var(--color-arc-600) 22%, transparent),
+				transparent 72%
+			);
+		filter: blur(30px);
+	}
+
+	.library__inner {
+		position: relative;
+		max-width: 58rem;
 	}
 
 	.filters {
 		display: grid;
 		gap: 1rem;
 		margin-bottom: 2rem;
+	}
+
+	/* ── Toolbar: search + sort ──────────────────────────────────────────── */
+	.toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/*
+		Same glass as the chips, so the row reads as one control surface rather
+		than a form dropped on top of a filter bar.
+	*/
+	.search,
+	.sort {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		height: 2.875rem;
+		padding-inline: 0.875rem;
+		border: 1px solid var(--color-line);
+		border-radius: 99px;
+		background-color: color-mix(in oklab, var(--color-ink-950) 40%, transparent);
+		background-image: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 11%, transparent),
+			color-mix(in oklab, #a3adbd 3%, transparent)
+		);
+		backdrop-filter: blur(14px) saturate(140%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
+		transition: border-color 0.25s var(--ease-out-quint);
+	}
+
+	.search {
+		/* Takes the row; the sort control is content-width beside it. */
+		flex: 1 1 18rem;
+		min-width: 0;
+	}
+
+	.search:focus-within,
+	.sort:focus-within {
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+	}
+
+	.search__icon {
+		flex: none;
+		width: 1rem;
+		color: var(--color-bone-500);
+	}
+
+	.search__input {
+		flex: 1;
+		min-width: 0;
+		border: 0;
+		background: none;
+		color: var(--color-bone-50);
+		font-family: inherit;
+		font-size: var(--text-sm);
+	}
+
+	.search__input::placeholder {
+		color: var(--color-bone-500);
+	}
+
+	/*
+		The field carries the focus ring on the pill instead, via :focus-within —
+		an outline drawn around the bare input would sit inside the glass and read
+		as a second, smaller box.
+	*/
+	.search__input:focus-visible {
+		outline: none;
+	}
+
+	/* Chrome and Safari draw their own clear affordance on type="search"; ours is
+	   keyboard-reachable and matches the page, so theirs goes. */
+	.search__input::-webkit-search-cancel-button {
+		appearance: none;
+	}
+
+	.search__clear {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: color-mix(in oklab, var(--color-bone-50) 10%, transparent);
+		color: var(--color-bone-300);
+		cursor: pointer;
+		transition: color 0.2s var(--ease-out-quint);
+	}
+
+	.search__clear:hover {
+		color: var(--color-bone-50);
+	}
+
+	.search__clear svg {
+		width: 0.75rem;
+	}
+
+	.sort__label {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.sort__select {
+		border: 0;
+		background: none;
+		color: var(--color-bone-100);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		cursor: pointer;
+	}
+
+	.sort__select:focus-visible {
+		outline: none;
+	}
+
+	/* The popup is painted by the OS, not the page — without this the options
+	   render as dark-on-dark in some browsers. */
+	.sort__select option {
+		background: var(--color-ink-900);
+		color: var(--color-bone-100);
 	}
 
 	.filters__group {
@@ -223,7 +624,14 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 		padding: 0.5rem 0.85rem;
 		border: 1px solid var(--color-line);
 		border-radius: 99px;
-		background: transparent;
+		background-color: color-mix(in oklab, var(--color-ink-950) 40%, transparent);
+		background-image: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 11%, transparent),
+			color-mix(in oklab, #a3adbd 3%, transparent)
+		);
+		backdrop-filter: blur(14px) saturate(140%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
 		color: var(--color-bone-400);
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
@@ -243,8 +651,11 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 
 	.chip[aria-pressed='true'] {
 		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
-		background: color-mix(in oklab, var(--color-arc-600) 16%, transparent);
+		background-color: color-mix(in oklab, var(--color-arc-600) 34%, transparent);
 		color: var(--color-arc-200);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe4ff 16%, transparent),
+			0 10px 24px -14px color-mix(in oklab, var(--color-arc-500) 80%, transparent);
 	}
 
 	.chip__count {
@@ -262,13 +673,122 @@ const counts = new Map(used.map((c) => [c, all.filter((e) => e.data.category ===
 		color: var(--color-bone-500);
 	}
 
+	/* ── The content library's doorway ───────────────────────────────────── */
+	.lib-promo {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+		padding: 1.125rem 1.25rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 30%, transparent);
+		border-radius: 0.875rem;
+		background-color: color-mix(in oklab, var(--color-arc-700) 22%, transparent);
+		background-image: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 10%, transparent),
+			color-mix(in oklab, #a3adbd 2%, transparent)
+		);
+		backdrop-filter: blur(14px) saturate(140%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 14%, transparent);
+		text-decoration: none;
+		color: inherit;
+		transition:
+			border-color 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
+	}
+
+	.lib-promo:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 60%, transparent);
+		transform: translateY(-2px);
+	}
+
+	.lib-promo__mark {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 0.75rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 24%, transparent);
+		color: var(--color-arc-200);
+		/* Two passes, tight then wide: the glyph is a hairline stroke and one
+		   large blur only smears it. */
+		filter:
+			drop-shadow(0 0 4px color-mix(in oklab, var(--color-arc-300) 45%, transparent))
+			drop-shadow(0 0 14px color-mix(in oklab, var(--color-arc-500) 35%, transparent));
+	}
+
+	.lib-promo__mark :global(svg) {
+		width: 1.5rem;
+		height: 1.5rem;
+	}
+
+	.lib-promo__text {
+		display: grid;
+		gap: 0.25rem;
+		/* Lets the blurb wrap instead of shoving the CTA off the row. */
+		flex: 1 1 22rem;
+		min-width: 0;
+	}
+
+	.lib-promo__title {
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+
+	.lib-promo__blurb {
+		font-size: var(--text-sm);
+		color: var(--color-bone-300);
+	}
+
+	.lib-promo__cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex: none;
+		color: var(--color-arc-300);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+	}
+
+	.lib-promo__cta svg {
+		width: 0.875rem;
+		transition: transform 0.28s var(--ease-out-quint);
+	}
+
+	.lib-promo:hover .lib-promo__cta svg {
+		transform: translateX(3px);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.lib-promo:hover {
+			transform: none;
+		}
+	}
+
+	/*
+		A list, not a grid. See the note in ResourceCard — the rows carry their own
+		hairline, so there is nothing to space them with here.
+	*/
 	.library__grid {
 		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+		gap: 0;
+		border-top: 1px solid var(--color-line);
 	}
 
 	.library__empty {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		gap: 0.5rem;
 		margin: 3rem 0 0;
 		text-align: center;
 		color: var(--color-bone-400);

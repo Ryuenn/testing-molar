@@ -1,14 +1,28 @@
+import { SALES_CALL } from './site';
+
+/**
+ * The plans, matching molarai.studio exactly — names, prices, feature copy and
+ * checkout destinations.
+ *
+ * **The `href` on Starter and Premium are live Stripe Payment Links.** They
+ * take real money from real cards. Change one only against the Stripe
+ * dashboard, never by guessing at the id; a link that 404s and a link that
+ * charges the wrong amount look identical from here.
+ */
 export interface Plan {
-	id: string;
-	name: string;
+	id: 'starter' | 'premium' | 'enterprise';
+	/** Prefix into `pricing.*`: name, summary, blurb, cta, note. */
+	key: 'starter' | 'premium' | 'enterprise';
+	/** Feature key prefix, numbered from 1 — 's1'…'s8', 'p1'…'p9', 'e1'…'e9'. */
+	featureKey: 's' | 'p' | 'e';
+	featureCount: number;
+	/** Not translated: billed in USD wherever the buyer is. */
 	price: string;
-	cadence: string | null;
-	summary: string;
-	blurb: string;
-	features: string[];
-	cta: { label: string; href: string };
+	/** `true` renders the per-month cadence beside the price. */
+	perMonth: boolean;
+	cta: { href: string };
+	badge?: boolean;
 	featured: boolean;
-	/** Numeric price in USD, for Product/Offer structured data. Null = quote. */
 	amount: number | null;
 }
 
@@ -17,68 +31,40 @@ export const CURRENCY = 'USD';
 export const PLANS: Plan[] = [
 	{
 		id: 'starter',
-		name: 'MOLAR Starter',
-		price: '$497',
-		cadence: '/month',
+		key: 'starter',
+		featureKey: 's',
+		featureCount: 8,
+		price: '97',
+		perMonth: true,
 		amount: 497,
-		summary: 'Consistent content, zero effort.',
-		blurb: 'For practices that want reliable content without adding work to the team.',
-		features: [
-			'3 posts per week — 1 educational reel, 1 carousel, 1 social proof post',
-			'Customized to branding, treatments, and practice',
-			'Reviews and before & afters incorporated when provided',
-			'Powered by the MOLAR content library',
-			'Captions, scheduling, and publishing included',
-			'Instagram & Facebook',
-			'Live within 24 hours',
-		],
-		cta: { label: 'Start with Starter', href: '#start' },
+		cta: { href: 'https://buy.stripe.com/cNicN5aUb9le1G470EeAg01' },
 		featured: false,
 	},
 	{
 		id: 'premium',
-		name: 'MOLAR Premium',
-		price: '$1,497',
-		cadence: '/month',
+		key: 'premium',
+		featureKey: 'p',
+		featureCount: 9,
+		price: ',497',
+		perMonth: true,
 		amount: 1497,
-		summary: 'Their patient acquisition system.',
-		blurb: 'Daily content across every channel, built around the treatments that matter most.',
-		features: [
-			'Daily content for Instagram & Facebook',
-			'Fully custom reels, carousels, stories, and still image posts',
-			"Focused on the practice's highest-value treatments",
-			'Reviews, before & afters, and patient cases turned into content',
-			"Multilingual content in patients' own language",
-			'Voice cloning — narrated by the dentist',
-			'YouTube Shorts included',
-			'Client Portal access',
-			'Priority production & support',
-		],
-		cta: { label: 'Start with Premium', href: '#start' },
+		cta: { href: 'https://buy.stripe.com/9B65kD7HZdBuckI5WAeAg02' },
+		badge: true,
 		featured: true,
 	},
 	{
 		id: 'enterprise',
-		name: 'MOLAR Enterprise',
-		price: 'Custom',
-		cadence: null,
+		key: 'enterprise',
+		featureKey: 'e',
+		featureCount: 9,
+		price: '',
+		perMonth: false,
 		amount: null,
-		summary: 'One content strategy, every location.',
-		blurb: 'For groups, DSOs, and multi-location practices.',
-		features: [
-			'Everything in Premium',
-			'AI avatars of doctors and leadership teams',
-			'Multi-location content distribution',
-			'Per-location branding & localization',
-			'Centralized content management across every practice',
-			'Enterprise onboarding & deployment',
-			'Dedicated strategist & priority support',
-			'Volume pricing',
-			'Exclusive content rights available',
-		],
-		cta: { label: 'Talk with sales', href: 'mailto:team@molarai.studio?subject=MOLAR%20Enterprise' },
+		cta: { href: SALES_CALL },
 		featured: false,
 	},
 ];
 
-export const PRICING_FOOTNOTE = 'Prices in USD. No long-term contracts. Cancel anytime.';
+
+/** True for the two plans that open a checkout rather than a calendar. */
+export const isCheckout = (plan: Plan): boolean => plan.cta.href.includes('buy.stripe.com');

@@ -1,0 +1,360 @@
+---
+import { reelClips } from '~/data/reel';
+
+const CLIPS = reelClips();
+---
+
+{/*
+	Decorative, and deliberately so: a wall of moving footage with no controls is
+	exactly the thing a screen reader should be spared and a reduced-motion
+	visitor should not be handed. The sentence below is what the section says;
+	the strip itself is hidden from assistive tech and cannot be focused,
+	hovered, clicked or picture-in-pictured.
+*/}
+<section class="reel" aria-label="Example videos">
+	<p class="sr-only">
+		A sample of the patient education videos MOLAR AI produces for dental practices, playing on a
+		continuous loop.
+	</p>
+
+	<div class="reel__viewport" data-reel aria-hidden="true">
+		<div class="reel__track" data-reel-track>
+			{/*
+				The items are absolutely positioned — the loop moves each one on its
+				own and wraps it around the end of the strip, so there is no flow for
+				the browser to arrange. Their resting offsets are written in the same
+				`calc()` the widths use, which means the row is already correct in
+				plain CSS: no pile-up at the left edge before the script runs, and
+				reduced motion gets a real static strip for free.
+			*/}
+			{
+				CLIPS.map((src, i) => (
+					<div
+						class="reel__item"
+						data-reel-item
+						style={`--reel-x:calc((var(--reel-w) + var(--reel-gap)) * ${i})`}
+					>
+						{/*
+							No `autoplay` attribute. It would override `preload="none"` and
+							pull all of this footage down alongside the hero video on first
+							paint. The script starts playback instead, once the strip is
+							near the viewport, one clip at a time.
+						*/}
+						<video
+							class="reel__video"
+							data-reel-video
+							src={src}
+							muted
+							loop
+							playsinline
+							preload="none"
+							tabindex="-1"
+							disablepictureinpicture
+							disableRemotePlayback
+						/>
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.reel {
+		position: relative;
+		/* Generous above, where it has to clear the hero; shorter below, where
+		   the reach band brings padding of its own to the same seam. */
+		padding-block: clamp(3rem, 7vw, 6.5rem) clamp(2rem, 4vw, 3.5rem);
+		/* The hero's scrim already resolves to ink-950 at its bottom edge, so the
+		   two sections meet with no seam and none is drawn. */
+		background: var(--color-ink-950);
+		overflow: clip;
+	}
+
+	.reel__viewport {
+		position: relative;
+		width: 100%;
+		overflow: hidden;
+		/* The strip should read as continuing past the screen rather than as a
+		   filmstrip that stops, so the edges dissolve instead of cutting. */
+		mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+		-webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+		/* Nothing here is interactive, and nothing here should swallow a drag, a
+		   selection or a tap meant for the page. */
+		pointer-events: none;
+		user-select: none;
+		/* Most of the strip is outside the viewport at any given moment. */
+		contain: paint;
+	}
+
+	.reel__track {
+		/*
+			Card height. The lower bound is what keeps a vertical cut legible on a
+			phone; the upper stops a 27" monitor from turning the row into three
+			billboards.
+
+			The vw term is load-bearing beyond size: the loop needs the strip to be
+			longer than the screen plus one card, or the wrap leaves a hole in it.
+			With these numbers the nine current clips clear that up to about
+			2770px, and the script clones the set if they ever do not.
+		*/
+		--reel-h: clamp(18rem, 26vw, 36rem);
+		--reel-gap: clamp(0.625rem, 1.1vw, 1.25rem);
+
+		/*
+			9:16, for every clip, whatever shape its file is.
+
+			This is the format the product makes — vertical social cuts — and one
+			shape is what makes the strip read as a strip. It is also what keeps a
+			bad master from wrecking the row: `ai_animation_new.mp4` is a 9:16 clip
+			exported centred inside a 720x408 landscape frame, and giving cards the
+			shape of their file handed that one a card three times the width of its
+			neighbours with two thirds of it pillarbox. Covering into a fixed
+			portrait card crops it back to its picture, within a few pixels.
+		*/
+		--reel-w: calc(var(--reel-h) * 9 / 16);
+
+		position: relative;
+		height: var(--reel-h);
+	}
+
+	.reel__item {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		/* Border-box, so the gap rides inside the item's own width. The script
+		   then measures one rectangle per card and gets the stride, rather than a
+		   width plus a gap it would have to parse back out of a clamp(). */
+		width: calc(var(--reel-w) + var(--reel-gap));
+		padding-inline-end: var(--reel-gap);
+		/* Overwritten inline, frame by frame, once the loop is running. */
+		transform: translate3d(var(--reel-x, 0px), 0, 0);
+		will-change: transform;
+	}
+
+	.reel__video {
+		width: 100%;
+		/* Beats the `height: auto` every video gets in the base layer. */
+		height: 100%;
+		object-fit: cover;
+		border-radius: clamp(0.5rem, 0.6vw, 0.875rem);
+		/* Stands in for the frame until it decodes — and is the whole card for a
+		   visitor with no JS, where nothing ever starts playing. */
+		background: linear-gradient(160deg, var(--color-ink-800), var(--color-ink-900));
+		border: 1px solid var(--color-line);
+		box-shadow: 0 32px 64px -36px rgb(0 0 0 / 0.85);
+	}
+</style>
+
+<script>
+	/**
+	 * The reel: a conveyor, not a marquee.
+	 *
+	 * A CSS marquee duplicates its track so the copy can slide in behind the
+	 * original. Here the track is nine playing videos, and a second set of them
+	 * is nine more decoders running footage that is already on screen. So each
+	 * card is moved on its own and wrapped around the end of the strip when it
+	 * leaves on the left, which keeps the loop seamless at one element per clip.
+	 *
+	 * It starts from a standstill and eases up to a slow constant crawl. Nothing
+	 * pauses it: no hover, no controls, no buttons.
+	 */
+
+	/** Cruising speed, px/s. Slow enough to actually watch a clip go past. */
+	const CRUISE = 34;
+	/** Seconds from a standstill to `CRUISE`. */
+	const RAMP = 3.6;
+	/** A backgrounded tab hands back one enormous delta; do not lurch on it. */
+	const MAX_FRAME = 1 / 30;
+	/** Between one clip starting and the next, so they do not all fetch at once. */
+	const STAGGER = 260;
+
+	interface Item {
+		el: HTMLElement;
+		video: HTMLVideoElement;
+		/** Left edge in the unwrapped strip. */
+		pos: number;
+		/** Width including its trailing gap — the stride to the next card. */
+		w: number;
+	}
+
+	function init(): void {
+		const viewport = document.querySelector<HTMLElement>('[data-reel]');
+		const track = viewport?.querySelector<HTMLElement>('[data-reel-track]');
+		if (!viewport || !track) return;
+
+		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const originals = Array.from(track.querySelectorAll<HTMLElement>('[data-reel-item]'));
+		if (!originals.length) return;
+
+		const items: Item[] = [];
+		let cycle = 0;
+		let widest = 0;
+		let offset = 0;
+		let elapsed = 0;
+		let last = 0;
+		let running = false;
+
+		function collect(): void {
+			items.length = 0;
+			for (const el of track!.querySelectorAll<HTMLElement>('[data-reel-item]')) {
+				const video = el.querySelector<HTMLVideoElement>('[data-reel-video]');
+				if (video) items.push({ el, video, pos: 0, w: 0 });
+			}
+		}
+
+		function measure(): void {
+			cycle = 0;
+			widest = 0;
+			for (const item of items) {
+				item.w = item.el.getBoundingClientRect().width;
+				item.pos = cycle;
+				cycle += item.w;
+				if (item.w > widest) widest = item.w;
+			}
+		}
+
+		/**
+		 * A card is only ever in one place at a time, so the strip has to be at
+		 * least a screen plus a card long or the wrap leaves a hole in it. The
+		 * card sizes in the stylesheet cover every ordinary width; past that — 4K,
+		 * a wide ultrawide — the set is cloned until it reaches, which is the
+		 * usual duplicated-marquee cost, paid only where it is actually needed.
+		 */
+		function ensureCoverage(): void {
+			for (let guard = 0; guard < 4; guard += 1) {
+				if (cycle >= viewport!.clientWidth + widest) return;
+
+				const added: HTMLVideoElement[] = [];
+				for (const el of originals) {
+					const clone = el.cloneNode(true) as HTMLElement;
+					track!.append(clone);
+					const video = clone.querySelector<HTMLVideoElement>('[data-reel-video]');
+					if (video) added.push(video);
+				}
+
+				collect();
+				measure();
+				if (running) added.forEach((video, i) => play(video, i * STAGGER));
+			}
+		}
+
+		function place(): void {
+			for (const item of items) {
+				/*
+					Shifted by the card's own width before the wrap, so it travels all
+					the way off the left edge before reappearing on the right rather
+					than jumping the moment its left edge reaches zero.
+				*/
+				const x = ((((item.pos + item.w - offset) % cycle) + cycle) % cycle) - item.w;
+				item.el.style.transform = `translate3d(${x.toFixed(2)}px, 0, 0)`;
+			}
+		}
+
+		function frame(now: number): void {
+			if (!running) return;
+
+			const dt = last ? Math.min((now - last) / 1000, MAX_FRAME) : 0;
+			last = now;
+			elapsed += dt;
+
+			// Smoothstep on the speed, so it leaves the standstill and settles into
+			// the crawl with no kick at either end.
+			const t = Math.min(1, elapsed / RAMP);
+			const speed = CRUISE * t * t * (3 - 2 * t);
+
+			offset = (offset + speed * dt) % cycle;
+			place();
+			requestAnimationFrame(frame);
+		}
+
+		/** Muted and inline, which is the only reason any of this may autoplay. */
+		function play(video: HTMLVideoElement, delay: number): void {
+			window.setTimeout(() => {
+				void video.play().catch(() => {
+					/* A refused autoplay leaves the card on its own ground. */
+				});
+			}, delay);
+		}
+
+		/**
+		 * Reduced motion gets the strip standing still, on its opening frame. The
+		 * CSS has already laid the row out; all that is missing is a picture, and
+		 * a seek is what makes a paused video decode one.
+		 */
+		function showStills(): void {
+			for (const item of items) {
+				item.video.preload = 'metadata';
+				item.video.addEventListener(
+					'loadedmetadata',
+					() => {
+						try {
+							item.video.currentTime = 0.05;
+						} catch {
+							/* Not seekable — the card keeps its own ground. */
+						}
+					},
+					{ once: true },
+				);
+				item.video.load();
+			}
+		}
+
+		collect();
+
+		if (reduced.matches) {
+			showStills();
+			return;
+		}
+
+		const start = (): void => {
+			measure();
+			ensureCoverage();
+			place();
+			items.forEach((item, i) => play(item.video, i * STAGGER));
+			running = true;
+			last = 0;
+			requestAnimationFrame(frame);
+		};
+
+		// Nothing is fetched until the strip is nearly on screen — the hero video
+		// has the network to itself until then.
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				observer.disconnect();
+				start();
+			},
+			{ rootMargin: '400px 0px' },
+		);
+		observer.observe(viewport);
+
+		// Card widths are viewport-relative, so every stride changes with the
+		// window. Re-measuring keeps the wrap honest; the strip shifts a few
+		// pixels at the seam and nothing else moves.
+		let queued = false;
+		new ResizeObserver(() => {
+			if (queued) return;
+			queued = true;
+			requestAnimationFrame(() => {
+				queued = false;
+				if (!running) return;
+				measure();
+				ensureCoverage();
+				place();
+			});
+		}).observe(viewport);
+
+		// Someone flipping the OS setting mid-session gets the quiet version, the
+		// same as everything else on the page.
+		reduced.addEventListener('change', (event) => {
+			if (!event.matches) return;
+			observer.disconnect();
+			running = false;
+			for (const item of items) item.video.pause();
+		});
+	}
+
+	init();
+</script>

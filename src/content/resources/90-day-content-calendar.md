@@ -8,6 +8,11 @@ updated: 2026-07-14
 featured: true
 order: 10
 ogImage: /images/og/resource-90-day-content-calendar.png
+# HELD BACK. The PDF at the path above is the generated placeholder that says so
+# on its own first page — see public/pdfs/README.md. This entry is real and ready;
+# it is hidden only so the library never offers a download that is not a document.
+# Drop the finished PDF in at that exact filename and delete this flag.
+draft: true
 ---
 
 Ninety days of planned posts, organised week by week. Each slot names the treatment, the format,

@@ -4,9 +4,14 @@
 | ---------------- | -------------------------------------------------------------------------------- |
 | `logo-molar.png` | **The master.** Crystalline tooth on transparency, 1174×1340. Edit or replace this one. |
 | `logo-mark.png`  | Generated. The master with its transparent margin trimmed, for in-page use.      |
+| `arrow.png`      | Hand-placed. Crystal arrow on transparency, 1672×941, matching the mark's material. Used by the hero's Subscribe → Connect → Stay flow. Not part of any generated pipeline — `npm run brand` neither reads nor writes it. |
 
 Everything else — favicons, the `.ico`, the Apple touch icon, the manifest icons and every Open
 Graph card — is derived from the master. Nothing is hand-edited.
+
+Files here go through Astro's `<Image>`, which is why they belong in `src/assets/` rather than
+`public/`. `arrow.png` is 970 KiB on disk and ships as roughly 1 KiB of WebP; dropped into
+`public/` it would have shipped whole.
 
 ```bash
 npm run brand     # icons + social cards

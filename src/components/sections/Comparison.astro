@@ -2,13 +2,20 @@
 import Section from '~/components/ui/Section.astro';
 import Tick from '~/components/ui/Tick.astro';
 import { COMPARISON } from '~/data/comparison';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/* Title-case the key so 'cost' reaches 'compare.molarCost' / 'compare.agencyCost'. */
+const cap = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
 ---
 
 <Section
 	id="comparison"
-	eyebrow="MOLAR vs. agencies"
-	heading="The same output, without the retainer."
-	lede="What a practice actually gets for the money, side by side."
+	eyebrow={t('compare.eyebrow')}
+	heading={t('compare.heading')}
+	lede={t('compare.lede')}
 >
 	{/*
 		A scroll region only when it needs to be one: `tabindex` + `role` make the
@@ -20,16 +27,15 @@ import { COMPARISON } from '~/data/comparison';
 	<div class="scroll-x compare" tabindex="0" role="region" aria-labelledby="compare-caption">
 		<table class="compare__table">
 			<caption id="compare-caption" class="sr-only">
-				MOLAR AI compared with a traditional dental marketing agency across cost, speed,
-				ownership, filming, contracts, languages and team.
+				{t('compare.caption')}
 			</caption>
 			<thead>
 				<tr>
 					<th scope="col" class="compare__rowhead">
-						<span class="sr-only">Comparison criteria</span>
+						<span class="sr-only">{t('compare.criteria')}</span>
 					</th>
-					<th scope="col" class="compare__col compare__col--molar">MOLAR AI</th>
-					<th scope="col" class="compare__col">Agencies</th>
+					<th scope="col" class="compare__col compare__col--molar">{t('compare.molar')}</th>
+					<th scope="col" class="compare__col">{t('compare.agencies')}</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -37,16 +43,19 @@ import { COMPARISON } from '~/data/comparison';
 					COMPARISON.map((row) => (
 						<tr>
 							<th scope="row" class="compare__label">
-								{row.label}
+								{t(`compare.${row.key}` as never)}
 							</th>
-							<td class="compare__cell compare__cell--molar">
+							<td class="compare__cell compare__cell--molar" data-col={t('compare.molar')}>
 								<span class="compare__value">
 									{row.molarWins && <Tick class="tick compare__tick" />}
-									{row.molar}
+									{t(`compare.molar${cap(row.key)}` as never)}
 								</span>
 							</td>
-							<td class="compare__cell">
-								<span class="compare__value">{row.agency}</span>
+							<td
+								class:list={['compare__cell', row.agencyPenalty && 'compare__cell--penalty']}
+								data-col={t('compare.agencies')}
+							>
+								<span class="compare__value">{t(`compare.agency${cap(row.key)}` as never)}</span>
 							</td>
 						</tr>
 					))
@@ -114,6 +123,20 @@ import { COMPARISON } from '~/data/comparison';
 	.compare__cell--molar {
 		background: color-mix(in oklab, var(--color-arc-700) 12%, transparent);
 		color: var(--color-bone-50);
+		font-weight: 500;
+	}
+
+	/*
+		The four values that are a cost rather than a shortfall — see the note in
+		`~/data/comparison`. Desaturated rose, the same tone the crosses wear on
+		/results/, so "this one hurts" reads the same wherever it appears.
+
+		Colour is not carrying the meaning on its own: the value itself says "No",
+		"Yes" or "6+ months", and the MOLAR column beside it is ticked. Anyone who
+		cannot see the tint still has the whole comparison.
+	*/
+	.compare__cell--penalty {
+		color: #c4737a;
 		font-weight: 500;
 	}
 
@@ -192,7 +215,7 @@ import { COMPARISON } from '~/data/comparison';
 
 		/* The column header has to come back as text once the thead is gone. */
 		.compare__cell::after {
-			content: 'Agencies';
+			content: attr(data-col);
 			font-family: var(--font-mono);
 			font-size: var(--text-2xs);
 			letter-spacing: 0.14em;
@@ -200,8 +223,9 @@ import { COMPARISON } from '~/data/comparison';
 			color: var(--color-bone-500);
 		}
 
+		/* The stacked view has no thead, so each cell names its own column via
+		   data-col — translated, unlike the hardcoded string this used to carry. */
 		.compare__cell--molar::after {
-			content: 'MOLAR AI';
 			color: var(--color-arc-300);
 		}
 	}

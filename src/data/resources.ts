@@ -5,6 +5,7 @@
  * import target.
  */
 export const RESOURCE_CATEGORIES = [
+	'AI Workflows',
 	'Patient Education',
 	'Practice Growth',
 	'Social Media',

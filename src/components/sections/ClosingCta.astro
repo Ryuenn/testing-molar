@@ -1,24 +1,28 @@
 ---
 import { CTA } from '~/data/site';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
 ---
 
 <section id="start" class="close section-rule" aria-labelledby="close-heading">
 	<div class="container-content close__inner">
 		<h2 id="close-heading" class="close__title" data-reveal>
-			Own the feed in your city.
+			{t('close.heading')}
 		</h2>
 
 		<p class="close__lede" data-reveal>
-			Go live in 24 hours. No filming, no contracts, no agencies — just daily content patients
-			actually want to watch.
+			{t('close.lede')}
 		</p>
 
 		<div class="close__actions" data-reveal>
-			<a href={CTA.primary.href} class="btn btn-primary close__cta">Start now</a>
-			<a href={CTA.sales.href} class="btn btn-ghost">Talk with sales</a>
+			<a href={localizePath(CTA.primary.href, locale)} class="btn btn-primary close__cta">{t('cta.start')}</a>
+			<a href={CTA.sales.href} class="btn btn-ghost">{t('cta.sales')}</a>
 		</div>
 
-		<p class="close__note" data-reveal>Cancel anytime &middot; Prices in USD</p>
+		<p class="close__note" data-reveal>{t('close.note')}</p>
 	</div>
 
 	<div class="close__glow" aria-hidden="true"></div>

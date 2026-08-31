@@ -17,6 +17,8 @@ import Footer from '~/components/Footer.astro';
 import type { OgImage, PageType } from '~/data/seo';
 import { SITE } from '~/data/site';
 import { organizationSchema, websiteSchema } from '~/data/schema';
+import { LOCALES, DEFAULT_LOCALE, localizePath } from '~/i18n/config';
+import { getLocale } from '~/i18n/utils';
 
 export interface Props {
 	title: string;
@@ -43,11 +45,25 @@ const {
 	class: className,
 } = Astro.props;
 
+const locale = getLocale(Astro);
+const htmlLang = LOCALES.find((l) => l.code === locale)?.htmlLang ?? 'en';
+
+/*
+	One alternate per locale plus x-default, built from this page's own path so
+	each page points at its own translation rather than at the other language's
+	home page. Absolute URLs — hreflang is ignored when it is relative.
+*/
+const alternates = LOCALES.map((l) => ({
+	hreflang: l.htmlLang,
+	href: new URL(localizePath(Astro.url.pathname, l.code), SITE.origin).href,
+}));
+const xDefault = new URL(localizePath(Astro.url.pathname, DEFAULT_LOCALE), SITE.origin).href;
+
 const graph = [organizationSchema(), websiteSchema(), ...schema];
 ---
 
 <!doctype html>
-<html lang={SITE.lang}>
+<html lang={htmlLang}>
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -65,6 +81,20 @@ const graph = [organizationSchema(), websiteSchema(), ...schema];
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
 		<link rel="sitemap" href="/sitemap-index.xml" />
+
+		{/*
+			Every locale points at every locale, itself included — that reciprocity is
+			what Google requires before it will treat two pages as translations rather
+			than as duplicates. Suppressed on noindex pages, which have no canonical
+			either and are not meant to be discovered in any language.
+		*/}
+		{
+			!noindex &&
+				alternates.map((alt) => (
+					<link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+				))
+		}
+		{!noindex && <link rel="alternate" hreflang="x-default" href={xDefault} />}
 
 		<Seo
 			title={title}

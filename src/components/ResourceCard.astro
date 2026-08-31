@@ -1,5 +1,22 @@
 ---
+/**
+ * One resource, as a row in the library list.
+ *
+ * A row rather than a card, and deliberately: the library is something you scan
+ * down looking for a title, not a gallery you browse. A grid of glass cards
+ * gives every entry equal visual weight and forces the eye to zig-zag; a list
+ * puts the titles in one column so twenty of them read in one pass, and it
+ * leaves room for the whole blurb instead of a card-sized crop of it.
+ *
+ * The hairline is the only chrome. Everything else — the category above the
+ * title, the arrow at the end — is there to say "this is a link to a page",
+ * which a card had to spend a border and a shadow to say.
+ */
 import type { CollectionEntry } from 'astro:content';
+import { localizePath } from '~/i18n/config';
+import { getLocale } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
 
 export interface Props {
 	entry: CollectionEntry<'resources'>;
@@ -8,51 +25,74 @@ export interface Props {
 
 const { entry, headingLevel: Heading = 'h3' } = Astro.props;
 const { data } = entry;
-const href = `/resources/${entry.id}/`;
+const href = localizePath(`/resources/${entry.id}/`, locale);
 ---
 
+{/*
+	The hub filters, searches and sorts against these attributes rather than
+	re-rendering from a JSON blob, so the list ships complete and works with the
+	script disabled. Lowercased here so the search does not have to case-fold
+	twice per row on every keystroke.
+*/}
 <article
-	class="rcard panel panel-hover"
+	class="row"
 	data-resource
 	data-category={data.category}
 	data-title={data.title.toLowerCase()}
+	data-blurb={data.blurb.toLowerCase()}
+	data-pages={data.pages}
+	data-updated={data.updated.toISOString().slice(0, 10)}
 >
-	<p class="rcard__cat">{data.category}</p>
+	<div class="row__text">
+		<p class="row__cat">{data.category}</p>
 
-	<Heading class="rcard__title">
-		{/* Whole card is the target; the link stays the accessible name. */}
-		<a href={href} class="rcard__link">
-			{data.title}
-			<span class="rcard__cover" aria-hidden="true"></span>
-		</a>
-	</Heading>
+		<Heading class="row__title">
+			{/* Whole row is the target; the link stays the accessible name. */}
+			<a href={href} class="row__link">
+				{data.title}
+				<span class="row__cover" aria-hidden="true"></span>
+			</a>
+		</Heading>
 
-	<p class="rcard__blurb">{data.blurb}</p>
+		<p class="row__blurb">{data.blurb}</p>
+	</div>
 
-	<p class="rcard__meta">
-		<span>{data.format}</span>
-		<span class="rcard__dot" aria-hidden="true">&middot;</span>
-		<span>{data.pages} pages</span>
-	</p>
-
-	<p class="rcard__cta" aria-hidden="true">
-		Download
-		<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
-			<path d="M8 2v9M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"></path>
+	<span class="row__arrow" aria-hidden="true">
+		<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+			<path d="M2.5 8h11M9.5 4 13.5 8l-4 4" stroke-linecap="round" stroke-linejoin="round"></path>
 		</svg>
-	</p>
+	</span>
 </article>
 
 <style>
-	.rcard {
+	/*
+		Border on the bottom of every row rather than between them. `:last-child`
+		would be the tidier rule, but the hub hides rows as you filter and a hidden
+		last child still answers `:last-child` — the rule would strip the hairline
+		off a row that is no longer at the end.
+	*/
+	.row {
 		position: relative;
 		display: grid;
-		grid-template-rows: auto auto 1fr auto auto;
-		gap: 0.75rem;
-		padding: clamp(1.25rem, 2.5vw, 1.75rem);
+		grid-template-columns: 1fr auto;
+		align-items: center;
+		gap: 1.5rem;
+		padding-block: clamp(1.25rem, 2.5vw, 1.6rem);
+		border-bottom: 1px solid var(--color-line);
+		transition: border-color 0.28s var(--ease-out-quint);
 	}
 
-	.rcard__cat {
+	.row:hover {
+		border-color: var(--color-line-strong);
+	}
+
+	.row__text {
+		display: grid;
+		gap: 0.4rem;
+		min-width: 0;
+	}
+
+	.row__cat {
 		margin: 0;
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
@@ -61,70 +101,68 @@ const href = `/resources/${entry.id}/`;
 		color: var(--color-arc-400);
 	}
 
-	.rcard__title {
+	.row__title {
 		margin: 0;
 		font-size: var(--text-lg);
-		line-height: 1.32;
+		line-height: 1.28;
+		letter-spacing: -0.01em;
 	}
 
-	.rcard__link {
+	.row__link {
 		text-decoration: none;
-		color: inherit;
+		color: var(--color-bone-50);
+		transition: color 0.28s var(--ease-out-quint);
 	}
 
-	.rcard__link:hover {
+	.row:hover .row__link {
 		color: var(--color-arc-200);
 	}
 
-	/* Expands the hit area to the whole card without nesting interactive elements. */
-	.rcard__cover {
+	/* Expands the hit area to the whole row without nesting interactive elements. */
+	.row__cover {
 		position: absolute;
 		inset: 0;
-		border-radius: inherit;
 	}
 
-	.rcard__blurb {
+	/*
+		One line, clipped. The blurb is a scent to help you pick, not something to
+		read here — two rows of it per entry would double the list's height and cost
+		you the scan the list exists to give.
+	*/
+	.row__blurb {
 		margin: 0;
+		overflow: hidden;
 		font-size: var(--text-sm);
 		color: var(--color-bone-400);
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.rcard__meta {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		margin: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-2xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
+	.row__arrow {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
 		color: var(--color-bone-500);
+		transition:
+			color 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
 	}
 
-	.rcard__dot {
-		color: var(--color-ink-600);
-	}
-
-	.rcard__cta {
-		display: flex;
-		align-items: center;
-		gap: 0.45rem;
-		margin: 0;
-		padding-top: 0.85rem;
-		border-top: 1px solid var(--color-line);
-		font-family: var(--font-display);
-		font-size: var(--text-sm);
-		font-weight: 600;
+	.row:hover .row__arrow {
 		color: var(--color-arc-300);
+		transform: translateX(4px);
 	}
 
-	.rcard__cta svg {
-		width: 0.9rem;
-		height: 0.9rem;
-		transition: transform 0.3s var(--ease-out-quint);
+	.row__arrow svg {
+		width: 100%;
+		height: 100%;
 	}
 
-	.rcard:hover .rcard__cta svg {
-		transform: translateY(2px);
+	@media (prefers-reduced-motion: reduce) {
+		.row:hover .row__arrow {
+			transform: none;
+		}
 	}
 </style>

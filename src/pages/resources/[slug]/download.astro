@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
 
 /**
  * Where Netlify lands a visitor after the email gate. `noindex` and excluded
@@ -62,10 +63,12 @@ const { data } = entry;
 
 			<p class="thanks__upsell">
 				Rather not run the content yourself?
-				<a href="/#pricing">See what MOLAR publishes for you</a> — live in 24 hours, from $497/mo.
+				<a href="/pricing/">See what MOLAR publishes for you</a> — live in 24 hours, from $497/mo.
 			</p>
 		</div>
 	</section>
+
+	<ClosingCta />
 </BaseLayout>
 
 <script>

@@ -1,130 +1,320 @@
 ---
-import Section from '~/components/ui/Section.astro';
+import StepIcon from '~/components/ui/StepIcon.astro';
+import { CTA } from '~/data/site';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
 
 /**
- * The one place on the page where visible numbering is warranted: these steps
- * happen in order and the order is the point.
+ * The four beats between subscribing and the first post going out.
+ *
+ * Built as a rail rather than four cards in a row, because the order is the
+ * whole content — a card grid says "here are four features", a rail says "this
+ * happens, then this". The connecting line carries a gradient that builds from
+ * dim on the left to lit on the right, and the fourth node is the only one that
+ * arrives fully lit: the light on this page means the same thing it means on
+ * /results/, which is that the account is live.
+ *
+ * Numbering is the <ol>'s own. The visible digits are decoration and are hidden
+ * from assistive tech, or a screen reader announces the position twice.
  */
+export interface Props {
+	/** Heading level. The page runs this under its own h1. */
+	as?: 'h2' | 'h3';
+}
+
+const { as: Heading = 'h2' } = Astro.props;
+
 const STEPS = [
-	{
-		title: 'Subscribe',
-		body: 'Choose the plan that fits the practice. No sales call required, no onboarding fee, no minimum term.',
-	},
-	{
-		title: 'Connect your accounts',
-		body: 'Securely link Instagram, Facebook and YouTube through the official APIs. Two minutes, once.',
-	},
-	{
-		title: 'Customize your brand',
-		body: 'Logo, colors, treatments, tone, the cases worth leading with. Everything MOLAR produces inherits it.',
-	},
-	{
-		title: 'Go live',
-		body: 'Branded patient education starts posting automatically, on schedule, without another meeting.',
-	},
-];
+	{ title: t('how.step1'), body: t('how.step1body'), icon: 'card' },
+	{ title: t('how.step2'), body: t('how.step2body'), icon: 'link' },
+	{ title: t('how.step3'), body: t('how.step3body'), icon: 'sliders' },
+	{ title: t('how.step4'), body: t('how.step4body'), icon: 'megaphone' },
+] as const;
 ---
 
-<Section
-	id="how-it-works"
-	eyebrow="How it works"
-	heading="One setup. Fully automated. Live the same day."
-	lede="Four steps between subscribing and the first post going out."
->
-	<ol class="steps" data-reveal-stagger>
-		{
-			STEPS.map((step, i) => (
-				<li class="step" data-reveal data-reveal-group>
-					<span class="step__index" aria-hidden="true">
-						{String(i + 1).padStart(2, '0')}
-					</span>
-					<div class="step__body">
-						<h3 class="step__title">{step.title}</h3>
-						<p class="step__text">{step.body}</p>
-					</div>
-				</li>
-			))
-		}
-	</ol>
+<section class="how section section-rule" aria-labelledby="how-heading">
+	<div class="how__glow" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
 
-	<p class="steps__note" data-reveal>
-		Most practices are live within 24 hours of subscribing.
-	</p>
-</Section>
+	<div class="container-content how__inner">
+		<header class="how__head">
+			<p class="eyebrow" data-reveal="fade">{t('how.eyebrow')}</p>
+
+			<Heading id="how-heading" class="how__title" data-reveal>{t('how.heading')}</Heading>
+
+			<p class="how__lede" data-reveal>
+				{t('how.lede')}
+			</p>
+		</header>
+
+		<ol class="rail" data-reveal-stagger>
+			{
+				STEPS.map((step, i) => (
+					<li
+						class:list={['station', i === STEPS.length - 1 && 'station--live']}
+						data-reveal
+						data-reveal-group
+					>
+						{/*
+							The rail itself, drawn per station rather than as one line behind
+							the row. A single background line would run under the nodes and
+							show through the gaps between them at every breakpoint; a segment
+							owned by each station starts and stops exactly where its own node
+							does, and the last station simply has none.
+						*/}
+						{i < STEPS.length - 1 && <span class="station__rail" aria-hidden="true" />}
+
+						<span class="station__node">
+							<span class="station__icon" aria-hidden="true">
+								<StepIcon name={step.icon} />
+							</span>
+							<span class="station__num" aria-hidden="true">
+								{String(i + 1).padStart(2, '0')}
+							</span>
+						</span>
+
+						<div class="station__body">
+							<h3 class="station__title">{step.title}</h3>
+							<p class="station__text">{step.body}</p>
+						</div>
+					</li>
+				))
+			}
+		</ol>
+
+		<div class="how__actions" data-reveal>
+			<a href={localizePath(CTA.primary.href, locale)} class="btn btn-primary">{t('cta.start')}</a>
+		</div>
+	</div>
+</section>
 
 <style>
-	.steps {
+	.how {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+	}
+
+	/* Weighted to the right, where the rail arrives. */
+	.how__glow {
+		position: absolute;
+		z-index: -1;
+		inset-block: 20% -20%;
+		inset-inline: 30% -10%;
+		background: radial-gradient(
+			44% 50% at 70% 40%,
+			color-mix(in oklab, var(--color-arc-600) 26%, transparent),
+			transparent 72%
+		);
+		filter: blur(40px);
+	}
+
+	.how__inner {
+		position: relative;
+	}
+
+	.how__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: clamp(3rem, 6vw, 5rem);
+		text-align: center;
+	}
+
+	.how__title {
+		margin: 0;
+		max-width: 20ch;
+		font-size: var(--text-4xl);
+		/* Explicit — `--text-4xl--line-height` pairs with the `text-4xl` utility
+		   class, not with `font-size: var(--text-4xl)` set by hand. */
+		line-height: 1.06;
+		letter-spacing: -0.03em;
+	}
+
+	.how__lede {
+		margin: 0;
+		max-width: 52ch;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* ── Rail ────────────────────────────────────────────────────────────── */
+	.rail {
 		display: grid;
-		gap: 0;
+		gap: clamp(2rem, 4vw, 2.75rem);
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border-top: 1px solid var(--color-line);
 	}
 
-	.step {
+	/*
+		Stacked below the breakpoint: node in a narrow first column, copy beside it,
+		and the rail segment running down from each node to the next.
+	*/
+	.station {
+		position: relative;
 		display: grid;
-		grid-template-columns: 3.25rem 1fr;
+		grid-template-columns: auto 1fr;
 		gap: 0 1.25rem;
 		align-items: start;
-		padding-block: clamp(1.75rem, 3vw, 2.5rem);
-		border-bottom: 1px solid var(--color-line);
-		transition: background-color 0.4s var(--ease-out-quint);
 	}
 
-	.step:hover {
-		background: color-mix(in oklab, var(--color-arc-700) 7%, transparent);
-	}
-
-	.step__index {
-		font-family: var(--font-mono);
-		font-size: var(--text-sm);
-		font-weight: 500;
-		line-height: 1.5;
-		letter-spacing: 0.1em;
-		color: var(--color-arc-500);
-		font-variant-numeric: tabular-nums;
-		padding-top: 0.15rem;
-	}
-
-	.step__body {
+	.station__node {
+		position: relative;
+		z-index: 1;
+		flex: none;
 		display: grid;
-		gap: 0.45rem;
+		place-items: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 50%;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-900) 88%, transparent);
+		backdrop-filter: blur(10px);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #dbeaff 12%, transparent);
+		color: var(--color-bone-300);
+		transition:
+			border-color 0.4s var(--ease-out-quint),
+			color 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint);
 	}
 
-	.step__title {
-		margin: 0;
-		font-size: var(--text-xl);
+	.station__icon {
+		width: 1.5rem;
+		height: 1.5rem;
 	}
 
-	.step__text {
-		margin: 0;
-		max-width: 58ch;
-		color: var(--color-bone-400);
-	}
-
-	.steps__note {
-		margin: 2rem 0 0;
+	/*
+		The digit rides the node's edge rather than sitting inside it — inside, it
+		competes with the icon for a 56px circle and both lose.
+	*/
+	.station__num {
+		position: absolute;
+		inset-block-start: -0.4rem;
+		inset-inline-start: -0.4rem;
+		display: grid;
+		place-items: center;
+		min-width: 1.35rem;
+		height: 1.35rem;
+		padding-inline: 0.3rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line-strong);
+		background: var(--color-ink-950);
 		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		line-height: 1;
 		color: var(--color-bone-500);
 	}
 
-	@media (min-width: 860px) {
-		.step {
-			grid-template-columns: 4rem minmax(0, 22ch) 1fr;
-			gap: 0 clamp(1.5rem, 4vw, 3.5rem);
-			align-items: baseline;
+	/* The rail segment. Vertical while stacked. */
+	.station__rail {
+		position: absolute;
+		inset-block-start: 3.5rem;
+		inset-inline-start: 1.75rem;
+		width: 1px;
+		/* Down to the next node: the gap plus whatever this station's copy runs to. */
+		height: calc(100% - 3.5rem + clamp(2rem, 4vw, 2.75rem));
+		background: linear-gradient(
+			180deg,
+			var(--color-line-strong),
+			color-mix(in oklab, var(--color-arc-500) 30%, transparent)
+		);
+	}
+
+	.station__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding-block-start: 0.4rem;
+	}
+
+	.station__title {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: 1.3;
+	}
+
+	.station__text {
+		margin: 0 auto;
+		max-width: 34ch;
+		font-size: var(--text-sm);
+		line-height: 1.7;
+		color: var(--color-bone-400);
+	}
+
+	/*
+		Arrival. The last node is the only one lit, and it is lit the same way the
+		"after" frame on /results/ is — same accent, same halo — so the light means
+		one thing across the site: this account is live.
+	*/
+	.station--live .station__node {
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 16%, transparent);
+		color: var(--color-arc-300);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbeaff 22%, transparent),
+			0 0 30px -6px color-mix(in oklab, var(--color-arc-400) 75%, transparent);
+	}
+
+	.station--live .station__num {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		color: var(--color-arc-300);
+	}
+
+	.station--live .station__title {
+		color: var(--color-bone-50);
+	}
+
+	/* ── Actions ─────────────────────────────────────────────────────────── */
+	.how__actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		margin-block-start: clamp(3rem, 6vw, 4.5rem);
+	}
+
+
+	@media (min-width: 62rem) {
+		/* Four across, and the rail turns to run through the nodes. */
+		.rail {
+			grid-template-columns: repeat(4, 1fr);
+			gap: clamp(1.25rem, 3vw, 2rem);
 		}
 
-		.step__body {
-			display: contents;
+		.station {
+			grid-template-columns: 1fr;
+			justify-items: center;
+			gap: 1.25rem;
+			text-align: center;
 		}
 
-		.step__text {
-			max-width: 52ch;
+		.station__rail {
+			/*
+				From this node's right edge to the next node's left edge: the column
+				gap plus the width of the copy beside it. `100%` is the station's own
+				width, so subtracting the node and adding the gap lands exactly on the
+				next node.
+			*/
+			inset-block-start: 1.75rem;
+			inset-inline-start: calc(50% + 1.75rem);
+			width: calc(100% - 3.5rem + clamp(1.25rem, 3vw, 2rem));
+			height: 1px;
+			background: linear-gradient(
+				90deg,
+				var(--color-line-strong),
+				color-mix(in oklab, var(--color-arc-500) 30%, transparent)
+			);
+		}
+
+		.station__body {
+			padding-block-start: 0;
 		}
 	}
 </style>

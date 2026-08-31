@@ -1,85 +1,337 @@
 ---
-import Section from '~/components/ui/Section.astro';
-import WorldMap from '~/components/WorldMap.astro';
-import { REGIONS, REACH_HEADLINE, REACH_SUB } from '~/data/reach';
+import { REGIONS, REACH_TITLE, formatCoords } from '~/data/reach';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
 ---
 
-<Section id="reach" eyebrow="Global reach" heading={REACH_HEADLINE} lede={REACH_SUB}>
-	<div class="reach">
-		<div class="reach__map" data-reveal="fade">
-			<WorldMap />
-		</div>
+<section id="reach" class="section section-rule reach" aria-labelledby="reach-heading">
+	{/*
+		Glass needs something behind it or it is just a translucent grey box. This
+		is that something: three wide arc blooms, low enough to read as light in
+		the room rather than as shapes, which the tiles then blur and saturate.
+	*/}
+	<div class="reach__aurora" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
 
-		<ul class="reach__list" data-reveal-stagger>
+	<div class="container-content reach__inner">
+		<header class="reach__head">
+			<p class="eyebrow" data-reveal="fade">{t('reach.eyebrow')}</p>
+
+			{/*
+				The visible line is set in caps and hidden from assistive tech; the
+				real sentence is carried once by the sr-only span. Same reasoning as
+				the hero — some screen readers announce transformed capitals as an
+				initialism, and a headline should not be spelled out.
+			*/}
+			<h2 id="reach-heading" class="reach__title" data-reveal>
+				<span class="sr-only">{t('reach.titleLead')} {t('reach.titleAccent')}</span>
+				<span class="reach__title-visual" aria-hidden="true">
+					{
+						REACH_TITLE.map((part) => (
+							<span class:list={['reach__line', part.accent && 'reach__line--accent']}>
+								{part.text}
+							</span>
+						))
+					}
+				</span>
+			</h2>
+
+			<p class="reach__lede measure-wide" data-reveal>{t('site.positioning')}</p>
+		</header>
+
+		<ul class="reach__grid" data-reveal-stagger>
 			{
-				REGIONS.map((region) => (
-					<li class="reach__item" data-reveal data-reveal-group>
-						<span class="reach__dot" aria-hidden="true" />
-						{region.name}
+				REGIONS.map((region, i) => (
+					<li class="reach__tile" data-reveal data-reveal-group style={`--i:${i}`}>
+						<span class="reach__node" aria-hidden="true" />
+						<span class="reach__name">{region.name}</span>
+						{/* The projection input, shown. It is the same number the map
+						    would have used to plot the node. */}
+						<span class="reach__coord">{formatCoords(region)}</span>
 					</li>
 				))
 			}
-			<li class="reach__item reach__item--more" data-reveal data-reveal-group>
-				<span class="reach__dot reach__dot--empty" aria-hidden="true"></span>
-				And growing
-			</li>
 		</ul>
+
+		<p class="reach__note" data-reveal="fade">
+			<span class="reach__note-rule" aria-hidden="true"></span>
+			{t('reach.note')}
+			<span class="reach__note-rule reach__note-rule--end" aria-hidden="true"></span>
+		</p>
 	</div>
-</Section>
+</section>
 
 <style>
 	.reach {
-		display: grid;
-		gap: clamp(2rem, 4vw, 3rem);
+		/* Its own stacking context, so the aurora can sit under the content
+		   without reaching past the section it belongs to. */
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		background: var(--color-ink-950);
+		/*
+			Tighter than the global --section-y, and deliberately so. That token is
+			sized for a page of stacked bands that each need to be told apart; this
+			one has the reel's own bottom padding above it and the footer's top
+			padding below, so the standard figure stacked into a screen and a half
+			of empty navy. The bottom is the shorter of the two because the footer
+			contributes the most underneath it.
+		*/
+		padding-block: clamp(2.5rem, 4.5vw, 4rem) clamp(2rem, 3.5vw, 3rem);
 	}
 
-	.reach__map {
-		padding: clamp(1rem, 3vw, 2rem);
-		border: 1px solid var(--color-line);
-		border-radius: var(--radius-lg);
-		background: radial-gradient(
-			120% 140% at 50% 0%,
-			color-mix(in oklab, var(--color-arc-700) 10%, transparent),
-			transparent 60%
-		);
+	.reach__aurora {
+		position: absolute;
+		inset: -20% 0;
+		z-index: -1;
+		background:
+			radial-gradient(
+				40% 55% at 16% 26%,
+				color-mix(in oklab, var(--color-arc-600) 30%, transparent),
+				transparent 72%
+			),
+			radial-gradient(
+				34% 48% at 82% 18%,
+				color-mix(in oklab, var(--color-arc-500) 20%, transparent),
+				transparent 74%
+			),
+			radial-gradient(
+				62% 46% at 52% 86%,
+				color-mix(in oklab, var(--color-arc-700) 38%, transparent),
+				transparent 72%
+			);
+		/* Softens the gradient stops into light. Cheap here — one static layer,
+		   painted once, never animated. */
+		filter: blur(28px);
 	}
 
-	.reach__list {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-		gap: 0.75rem 1.5rem;
+	.reach__inner {
+		position: relative;
+	}
+
+	.reach__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: clamp(2.5rem, 5vw, 3.75rem);
+		text-align: center;
+	}
+
+	.reach__title {
 		margin: 0;
+		font-size: var(--text-4xl);
+		line-height: 1.02;
+		letter-spacing: -0.015em;
+	}
+
+	.reach__title-visual {
+		display: block;
+		text-transform: uppercase;
+	}
+
+	/*
+		Block, not inline: the two halves are two lines, and left inline Astro's
+		newline between them collapses to a space that has nowhere to go.
+	*/
+	.reach__line {
+		display: block;
+	}
+
+	.reach__line--accent {
+		color: var(--color-arc-300);
+		text-shadow: 0 0 38px color-mix(in oklab, var(--color-arc-500) 42%, transparent);
+	}
+
+	.reach__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/*
+		Six divides by six, three, two and one — and by nothing else. `auto-fit`
+		hands back four across at tablet widths and orphans the last two on a row
+		of their own, so the counts are named rather than fitted.
+
+		The cap is what stops three-across from becoming three 350px slabs on the
+		way up to the six-across breakpoint.
+	*/
+	.reach__grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: clamp(0.625rem, 1vw, 1rem);
+		width: 100%;
+		max-width: 54rem;
+		margin: 0 auto;
 		padding: 0;
 		list-style: none;
 	}
 
-	.reach__item {
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		padding-block: 0.6rem;
-		border-top: 1px solid var(--color-line);
-		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-		color: var(--color-bone-300);
+	@media (min-width: 30rem) {
+		.reach__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
 
-	.reach__item--more {
+	@media (min-width: 46rem) {
+		.reach__grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	/* Six on one line, but only once a sixth of the container still holds
+	   "North America" without breaking it across two. */
+	@media (min-width: 72rem) {
+		.reach__grid {
+			grid-template-columns: repeat(6, minmax(0, 1fr));
+			max-width: none;
+		}
+	}
+
+	/*
+		The glass, worn by all six so they read as one material:
+
+		  ground   only enough ink to hold the label over whatever light is
+		           behind it — the blur does most of that work
+		  sheen    a wash of cool grey, which is what makes a pane read as glass
+		           rather than as tinted navy. Ink alone only ever goes darker
+		  edge     the lit top edge, at the threshold of visible
+	*/
+	.reach__tile {
+		position: relative;
+		/* A row by default: on one column a stacked card is a lot of height to
+		   spend on two words. It becomes a card at the first breakpoint. */
+		display: flex;
+		align-items: center;
+		/* Wide enough that the node's ring finishes clear of the name — in the
+		   card layout it has the space above and below to expand into. */
+		gap: 0.95rem;
+		padding: 0.9rem 1.1rem;
+		border: 1px solid var(--color-line);
+		border-radius: 0.875rem;
+		background-color: color-mix(in oklab, var(--color-ink-950) 42%, transparent);
+		background-image: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 13%, transparent) 0%,
+			color-mix(in oklab, #a3adbd 4%, transparent) 100%
+		);
+		backdrop-filter: blur(20px) saturate(140%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent),
+			0 24px 48px -34px #000;
+	}
+
+	/* The name takes the slack, which pins the coordinates to the right edge and
+	   gives the column of them an axis to line up on. */
+	.reach__name {
+		margin-inline-end: auto;
+	}
+
+	@media (min-width: 30rem) {
+		.reach__tile {
+			flex-direction: column;
+			gap: 0.7rem;
+			padding: 1.5rem 0.875rem 1.25rem;
+			text-align: center;
+		}
+
+		.reach__name {
+			margin-inline-end: 0;
+		}
+	}
+
+	/* Without a backdrop to sample, translucency reads as washed-out rather than
+	   as glass. Give those engines a solid pane instead. */
+	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+		.reach__tile {
+			background-color: color-mix(in oklab, var(--color-ink-800) 88%, transparent);
+		}
+	}
+
+	.reach__node {
+		position: relative;
+		width: 0.4375rem;
+		height: 0.4375rem;
+		border-radius: 50%;
+		background: var(--color-arc-400);
+		box-shadow: 0 0 14px color-mix(in oklab, var(--color-arc-400) 85%, transparent);
+	}
+
+	/*
+		One ring leaving each node, staggered around the grid so the six read as a
+		network with traffic on it rather than six dots. Ring only — scaling the
+		lit dot itself would make the whole row throb.
+	*/
+	.reach__node::after {
+		content: '';
+		position: absolute;
+		inset: -0.3125rem;
+		border-radius: 50%;
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 55%, transparent);
+		animation: reach-ping 4.2s var(--ease-out-quint) infinite;
+		animation-delay: calc(var(--i, 0) * 0.5s);
+	}
+
+	@keyframes reach-ping {
+		0% {
+			transform: scale(0.55);
+			opacity: 0;
+		}
+
+		18% {
+			opacity: 0.75;
+		}
+
+		70%,
+		100% {
+			transform: scale(2.1);
+			opacity: 0;
+		}
+	}
+
+	.reach__name {
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+		color: var(--color-bone-50);
+	}
+
+	.reach__coord {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		color: var(--color-bone-500);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Hairline, label, hairline — centred, and the rules do the work of saying
+	   the list is open-ended without a seventh tile pretending to be a place. */
+	.reach__note {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.85rem;
+		margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
 		color: var(--color-bone-500);
 	}
 
-	.reach__dot {
-		flex: none;
-		width: 0.375rem;
-		height: 0.375rem;
-		border-radius: 50%;
-		background: var(--color-arc-400);
+	.reach__note-rule {
+		width: clamp(2rem, 8vw, 5rem);
+		height: 1px;
+		background: linear-gradient(90deg, transparent, var(--color-line-strong));
 	}
 
-	.reach__dot--empty {
-		background: none;
-		border: 1px solid var(--color-ink-600);
+	.reach__note-rule--end {
+		transform: scaleX(-1);
 	}
+
 </style>

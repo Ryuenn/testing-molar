@@ -1,0 +1,53 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
+import PageIntro from '~/components/PageIntro.astro';
+import WorkGallery from '~/components/sections/WorkGallery.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+import { LANGUAGE_COUNT } from '~/data/work';
+
+/*
+	The portfolio, and it is deliberately only that: a set of grids, what makes
+	each one distinct, and a way out to the case study. The numbers live on
+	/results/ and this page does not repeat them — the two answer different
+	questions, and a visitor who wants proof of outcome is one nav stop away.
+
+	Nothing here states how many accounts we run. What is on the page is a
+	selection chosen to show the range, so every line is written as "a sample"
+	and no copy is derived from the length of the list — a count rendered from
+	`WORK.length` reads as the total, which is exactly the wrong claim.
+
+	No `noindex` and no STUB_ROUTES entry any more: this page has content, so the
+	placeholder, the meta and the sitemap exclusion all came off together.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.workTitle')}
+	description={t('pages.workDesc', { n: LANGUAGE_COUNT })}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR AI — the content engine for dentistry',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.work'), path: '/our-work/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('nav.work')}
+		title={t('pages.workIntro')}
+		lede={t('pages.workLede', { n: LANGUAGE_COUNT })}
+		crumb={t('nav.work')}
+	/>
+
+	<WorkGallery />
+	<ClosingCta />
+</BaseLayout>

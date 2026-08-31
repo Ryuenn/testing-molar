@@ -1,0 +1,59 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
+import PageIntro from '~/components/PageIntro.astro';
+import GrowthStory from '~/components/sections/GrowthStory.astro';
+import InboundWall from '~/components/sections/InboundWall.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+
+/*
+	Two sections, and they are deliberately not the same argument.
+
+	GrowthStory  what the content did to one account, read off two screenshots of
+	             the same public profile.
+	InboundWall  what other practices said about it, unprompted, in the DMs.
+
+	The first is a number and the second is a judgement, and a reader who
+	discounts one may still be moved by the other — which is the reason for
+	carrying both rather than merging them into a single wall of praise.
+
+	No `noindex` and no STUB_ROUTES entry any more: this page has content, so all
+	three came off together — the placeholder, the meta and the sitemap exclusion.
+
+	There is no aggregateRating or Review JSON-LD here, and there should not be.
+	Google's review snippet guidelines exclude reviews a business collects about
+	itself, and the messages below are exactly that. The page is honest without
+	the markup; with it, it would be a manual action waiting to happen.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.resultsTitle')}
+	description={t('pages.resultsDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR AI — the content engine for dentistry',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.results'), path: '/results/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('nav.results')}
+		title={t('pages.resultsIntro')}
+		lede={t('pages.resultsLede')}
+		crumb={t('nav.results')}
+	/>
+
+	<GrowthStory />
+	<InboundWall />
+	<ClosingCta />
+</BaseLayout>

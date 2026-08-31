@@ -1,0 +1,43 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
+import PageIntro from '~/components/PageIntro.astro';
+import HowItWorks from '~/components/sections/HowItWorks.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+
+/*
+	No `noindex` and no STUB_ROUTES entry any more: this page has content, so the
+	placeholder, the meta and the sitemap exclusion all came off together.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.howTitle')}
+	description={t('pages.howDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR AI — the content engine for dentistry',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.how'), path: '/how-it-works/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('nav.how')}
+		title={t('pages.howIntro')}
+		lede={t('pages.howLede')}
+		crumb={t('nav.how')}
+	/>
+
+	<HowItWorks />
+
+	<ClosingCta />
+</BaseLayout>

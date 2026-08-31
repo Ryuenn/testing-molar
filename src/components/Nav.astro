@@ -1,27 +1,39 @@
 ---
 /**
- * PLACEHOLDER — design supplied separately.
- *
- * The props, slots and DOM contract below are the finished interface: drop the
- * real markup into the marked region and nothing else on the site has to change.
+ * Primary navigation — three groups floating over the page, no bar.
  *
  *   <Nav links={NAV_LINKS} cta={CTA.primary} transparent />
  *
+ * Brand lockup, a centred pill of links, and the right-hand cluster (language
+ * switcher + white CTA). There is no bar behind them — the header is empty air.
+ * Each pill is frosted glass instead: a wash of cool grey over translucent ink
+ * with the page blurred behind it, thickening once the hero has scrolled past.
+ * The material is defined once, as the `--pill-*` custom properties on `.nav`,
+ * and worn by all four so they read as cut from the same sheet.
+ *
  * Slots
- *   brand    logo lockup (defaults to the wordmark below)
+ *   brand    logo lockup (defaults to the mark + wordmark below)
  *   links    full replacement for the generated link list
- *   actions  right-hand cluster (defaults to the CTA button)
+ *   actions  right-hand cluster (defaults to language + CTA + menu toggle)
  *
  * Contract the rest of the site relies on:
- *   - renders a landmark <header> containing <nav aria-label="Primary">
+ *   - renders a landmark <header> containing a labelled <nav>
  *   - `--nav-h` is published on :root; `scroll-padding-top` in global.css and
  *     the hero's `min-height` both read from it
  *   - `data-nav-transparent` is toggled off once the page scrolls past the hero,
  *     driven by the ScrollTrigger in `src/scripts/motion.ts`
+ *
+ * Below 1100px the same link list becomes a dropdown panel behind the toggle
+ * button. One list, restyled — never two copies of the links in the DOM. That
+ * breakpoint is where five links, the language switcher and the CTA stop
+ * fitting on one row: at 1000px the pill closes to within 19px of the switcher,
+ * at 1100px it clears it by 65.
  */
 import { Image } from 'astro:assets';
 import logoMark from '~/assets/brand/logo-mark.png';
-import { NAV_LINKS, CTA } from '~/data/site';
+import { CTA } from '~/data/site';
+import { LOCALES, localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
 
 export interface NavLink {
 	label: string;
@@ -36,9 +48,78 @@ export interface Props {
 	class?: string;
 }
 
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	Built per render rather than imported as a constant: both the label and the
+	href depend on the locale, and a shared constant could only ever carry one of
+	each. `localizePath` is what keeps a German visitor inside German when they
+	click through the nav.
+*/
+const NAV_LINKS = [
+	{ label: t('nav.home'), href: localizePath('/', locale) },
+	{ label: t('nav.work'), href: localizePath('/our-work/', locale) },
+	{ label: t('nav.results'), href: localizePath('/results/', locale) },
+	{ label: t('nav.how'), href: localizePath('/how-it-works/', locale) },
+	{ label: t('nav.pricing'), href: localizePath('/pricing/', locale) },
+	{ label: t('nav.resources'), href: localizePath('/resources/', locale) },
+];
+
+/*
+	The switcher, and it is links now rather than buttons.
+
+	It used to be two buttons that moved `aria-pressed` and changed nothing else.
+	Switching language is a navigation — it changes the URL, and the result has to
+	be shareable, bookmarkable and reachable by a crawler — so it is an anchor.
+	That also means it works with JS disabled, which the old control never did.
+
+	Each chip points at THIS page in the other locale, not at that locale's home
+	page: someone reading the pricing page in English who taps De expects German
+	pricing, not the German front door.
+*/
+const langLinks = LOCALES.map((lang) => ({
+	...lang,
+	/*
+		The 404 is the exception, and it has to be special-cased: it is served at
+		whatever URL the visitor mistyped, so "this page in the other language" is
+		not a thing that exists. Astro also emits it as `404.html` rather than as a
+		directory, so `/404/` is not even a route — the link audit caught it as
+		broken. Both locales' 404s send the switcher to that locale's home instead,
+		which is the only page we can promise is there.
+	*/
+	href: /(^|\/)404\/?$/.test(Astro.url.pathname)
+		? localizePath('/', lang.code)
+		: localizePath(Astro.url.pathname, lang.code),
+	current: lang.code === locale,
+}));
+
+/*
+	Which link is the page you are on.
+
+	`trailingSlash: 'always'`, so both sides normally arrive with one — but a
+	hand-typed or dev-server URL can turn up without, and a link that fails to
+	light up over a missing slash is worse than no highlight at all.
+*/
+const withSlash = (path: string) => (path.endsWith('/') ? path : `${path}/`);
+const here = withSlash(Astro.url.pathname);
+const homeHref = withSlash(localizePath('/', locale));
+
+/*
+	A section lights for its children too — reading /resources/qr-follow-kit/
+	still means you are in Resources. Home is exempt from the prefix test for
+	the obvious reason: every path on the site starts with it, so it would
+	light on every page.
+*/
+const isCurrent = (href: string) => {
+	const target = withSlash(href);
+	if (here === target) return true;
+	return target !== homeHref && here.startsWith(target);
+};
+
 const {
 	links = NAV_LINKS,
-	cta = CTA.primary,
+	cta = { label: t('cta.start'), href: localizePath(CTA.primary.href, locale) },
 	transparent = false,
 	class: className = '',
 } = Astro.props;
@@ -49,7 +130,12 @@ const {
 	data-nav
 	data-nav-transparent={transparent ? '' : undefined}
 >
-	<div class="container-content nav__inner">
+	{/*
+		Deliberately not a .container-content. The nav runs wider than the page's
+		76rem measure so the brand sits out at the window's edge and the actions
+		sit out at the other — see .nav__inner.
+	*/}
+	<div class="nav__inner">
 		<slot name="brand">
 			{/*
 				No aria-label here. An aria-label would override the visible wordmark
@@ -58,7 +144,7 @@ const {
 				voice. The name is built from content instead, with the destination
 				appended for screen readers only.
 			*/}
-			<a href="/" class="nav__brand">
+			<a href={localizePath('/', locale)} class="nav__brand">
 				{/*
 					Decorative: the wordmark beside it already names the company, so
 					announcing the mark as well would just make a screen reader say
@@ -67,24 +153,28 @@ const {
 				<Image
 					src={logoMark}
 					alt=""
-					height={32}
+					height={36}
 					densities={[1, 2]}
 					loading="eager"
 					decoding="sync"
 					class="nav__mark"
 				/>
 				<span class="nav__wordmark">MOLAR <span class="nav__wordmark-ai">AI</span></span>
-				<span class="sr-only">home</span>
+				<span class="sr-only">{t('nav.toHome')}</span>
 			</a>
 		</slot>
 
-		<nav aria-label="Primary" class="nav__nav">
+		<nav aria-label={t('nav.label')} class="nav__nav" id="nav-menu" data-nav-menu>
 			<slot name="links">
 				<ul class="nav__links">
 					{
 						links.map((link) => (
 							<li>
-								<a href={link.href} class="nav__link">
+								<a
+									href={link.href}
+									class="nav__link"
+									aria-current={isCurrent(link.href) ? 'page' : undefined}
+								>
 									{link.label}
 								</a>
 							</li>
@@ -92,15 +182,139 @@ const {
 					}
 				</ul>
 			</slot>
+
+			{/*
+				The narrow-screen home for the language switcher. Its twin lives in
+				the actions cluster; whichever one the breakpoint hides is
+				display:none, so only ever one of them is in the a11y tree.
+			*/}
+			<div class="nav__lang nav__lang--menu" role="group" aria-label={t('nav.language')}>
+				{
+					langLinks.map((lang) => (
+						<a
+							href={lang.href}
+							class="nav__lang-btn"
+							hreflang={lang.htmlLang}
+							lang={lang.htmlLang}
+							aria-current={lang.current ? 'true' : undefined}
+						>
+							<span aria-hidden="true">{lang.label}</span>
+							<span class="sr-only">{lang.name}</span>
+						</a>
+					))
+				}
+			</div>
 		</nav>
 
 		<div class="nav__actions">
 			<slot name="actions">
-				<a href={cta.href} class="btn btn-primary nav__cta">{cta.label}</a>
+				<div class="nav__lang nav__lang--bar" role="group" aria-label={t('nav.language')}>
+					{
+						langLinks.map((lang) => (
+							<a
+								href={lang.href}
+								class="nav__lang-btn"
+								hreflang={lang.htmlLang}
+								lang={lang.htmlLang}
+								aria-current={lang.current ? 'true' : undefined}
+							>
+								{/* The chip shows "En"; a screen reader gets "English". */}
+								<span aria-hidden="true">{lang.label}</span>
+								<span class="sr-only">{lang.name}</span>
+							</a>
+						))
+					}
+				</div>
+
+				<a href={cta.href} class="nav__cta">
+					<span>{cta.label}</span>
+					{/* Decorative twin of the label — the link already reads "Start now". */}
+					<span class="nav__cta-badge" aria-hidden="true">
+						<svg
+							viewBox="0 0 14 14"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.6"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						>
+							<path d="M2.5 7h8M7 3.5 10.5 7 7 10.5" />
+						</svg>
+					</span>
+				</a>
+
+				{/*
+					Only reachable below 1100px, where CSS collapses the link pill into
+					a dropdown. Above that it is display:none and out of the a11y tree,
+					so its aria-expanded can never contradict a permanently open menu.
+				*/}
+				<button
+					type="button"
+					class="nav__toggle"
+					aria-expanded="false"
+					aria-controls="nav-menu"
+					aria-label={t('nav.menu')}
+					data-nav-toggle
+				>
+					<span class="nav__toggle-bars" aria-hidden="true">
+						<span></span>
+						<span></span>
+					</span>
+				</button>
 			</slot>
 		</div>
 	</div>
 </header>
+
+<script>
+	/*
+		Mobile dropdown. `data-nav-open` on the header is the single source of
+		truth — CSS reads it and aria-expanded is mirrored from it, so the two
+		cannot drift apart.
+	*/
+	const nav = document.querySelector<HTMLElement>('[data-nav]');
+	const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+	const menu = document.querySelector<HTMLElement>('[data-nav-menu]');
+
+	if (nav && toggle && menu) {
+		const desktop = window.matchMedia('(min-width: 1100px)');
+
+		const setOpen = (open: boolean) => {
+			nav.toggleAttribute('data-nav-open', open);
+			toggle.setAttribute('aria-expanded', String(open));
+		};
+
+		toggle.addEventListener('click', () => {
+			setOpen(!nav.hasAttribute('data-nav-open'));
+		});
+
+		/* Following a link closes the panel — every target is on the same page. */
+		menu.addEventListener('click', (event) => {
+			if ((event.target as HTMLElement).closest('a')) setOpen(false);
+		});
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key !== 'Escape' || !nav.hasAttribute('data-nav-open')) return;
+			setOpen(false);
+			/* Escape must not strand focus inside a panel that just vanished. */
+			toggle.focus();
+		});
+
+		document.addEventListener('pointerdown', (event) => {
+			if (!nav.hasAttribute('data-nav-open')) return;
+			if (!nav.contains(event.target as Node)) setOpen(false);
+		});
+
+		/*
+			Crossing into the desktop layout un-collapses the links on its own. Drop
+			the state too, or the toggle comes back claiming an open menu.
+		*/
+		desktop.addEventListener('change', (event) => {
+			if (event.matches) setOpen(false);
+		});
+	}
+
+</script>
 
 <style>
 	/* `--nav-h` is declared on :root in global.css — a :root rule inside a scoped
@@ -113,31 +327,101 @@ const {
 		height: var(--nav-h);
 		display: flex;
 		align-items: center;
-		border-bottom: 1px solid var(--color-line);
-		background: color-mix(in oklab, var(--color-ink-950) 88%, transparent);
-		backdrop-filter: blur(14px) saturate(150%);
-		transition:
-			background-color 0.4s var(--ease-out-quint),
-			border-color 0.4s var(--ease-out-quint);
+		/*
+			The header is empty air. The glass is the pill behind the links, not a
+			band across the window — so only the pills should swallow a click, or
+			an invisible full-width strip sits on top of the page at every scroll
+			position.
+		*/
+		pointer-events: none;
+		/*
+			The glass, defined once and worn by every pill so they read as one
+			material. Three parts:
+
+			  --pill-bg     the ground. Only enough ink to keep light copy legible
+			                over moving video; the blur does most of that work.
+			  --pill-sheen  a wash of cool grey. This is what makes the pill read
+			                as grey glass rather than as tinted navy — ink alone
+			                only ever goes darker, and glass catches light.
+			  --pill-edge   the lit top edge, at the threshold of visible.
+		*/
+		--pill-bg: color-mix(in oklab, var(--color-ink-950) 44%, transparent);
+		--pill-sheen: linear-gradient(
+			180deg,
+			color-mix(in oklab, #a3adbd 13%, transparent) 0%,
+			color-mix(in oklab, #a3adbd 5%, transparent) 100%
+		);
+		--pill-edge: inset 0 1px 0 color-mix(in oklab, #e6ecf5 9%, transparent);
+		--pill-blur: blur(18px) saturate(135%);
 	}
 
+	/*
+		Over the hero only the ground thins, so the footage reads through it. The
+		sheen and the blur stay — between them they keep the links legible over
+		moving video without darkening the pill until it reads as a solid chip.
+	*/
 	.nav[data-nav-transparent] {
-		background: transparent;
-		border-bottom-color: transparent;
-		backdrop-filter: none;
+		--pill-bg: color-mix(in oklab, var(--color-ink-950) 24%, transparent);
 	}
 
+	/*
+		Legibility scrim, and only once the hero is behind us — over the hero it
+		is at zero, which is what keeps the header clear.
+
+		It has to hang below the header. Ending it at `bottom: 0` slices whatever
+		is passing underneath clean in half at the 84px mark — a heading cut
+		through the middle, worse than no scrim at all. The extra 3.5rem is where
+		the page fades back in.
+	*/
+	.nav::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 -3.5rem;
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			var(--color-ink-950) 0%,
+			color-mix(in oklab, var(--color-ink-950) 97%, transparent) 44%,
+			color-mix(in oklab, var(--color-ink-950) 84%, transparent) 62%,
+			color-mix(in oklab, var(--color-ink-950) 46%, transparent) 82%,
+			transparent 100%
+		);
+		transition: opacity 0.4s var(--ease-out-quint);
+	}
+
+	.nav[data-nav-transparent]::before {
+		opacity: 0;
+	}
+
+	/*
+		Its own measure, wider than .container-content's 76rem. The page's copy is
+		held to a readable column; the nav is furniture and belongs at the window's
+		edges, which is where the brand and the actions end up. The cap keeps an
+		ultrawide monitor from pushing them a foot apart.
+
+		Symmetric by construction — equal gutters, auto margins — so the centred
+		grid track below still lands on the page's centre line.
+	*/
 	.nav__inner {
+		position: relative;
+		width: 100%;
+		max-width: 108rem;
+		margin-inline: auto;
+		/* The dropdown's `inset-inline: var(--gutter)` resolves against this
+		   padding box; the two have to stay the same value. */
+		padding-inline: var(--gutter);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 2rem;
+		gap: 1rem;
 	}
 
+	/* ── Brand ───────────────────────────────────────────────────────────── */
 	.nav__brand {
+		pointer-events: auto;
 		display: inline-flex;
 		align-items: center;
-		gap: 0.6rem;
+		gap: 0.7rem;
 		text-decoration: none;
 		font-family: var(--font-display);
 		font-weight: 700;
@@ -146,55 +430,434 @@ const {
 		color: var(--color-bone-50);
 	}
 
+	/*
+		No tile behind it. The mark is already a lit object on transparency — box
+		it in frosted glass and it reads as an app icon rather than as a logo. It
+		sits bare, and its own glow is what separates it from the video.
+	*/
 	.nav__mark {
+		flex: none;
 		width: auto;
-		height: 2rem;
-		/* The mark carries its own glow; a little more of it sells the crystal. */
+		height: 2.25rem;
 		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
+		transition: filter 0.24s var(--ease-out-quint);
+	}
+
+	/* Hover feedback moved onto the glow, since there is no longer a border to
+	   pick up. */
+	.nav__brand:hover .nav__mark {
+		filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-arc-400) 70%, transparent));
 	}
 
 	.nav__wordmark-ai {
 		color: var(--color-arc-400);
 	}
 
+	/* ── Links ───────────────────────────────────────────────────────────── */
+	/*
+		`.nav` is `pointer-events: none` so the empty air either side of the pills
+		does not sit on the page and swallow clicks. Every group that should take
+		one has to hand it back, and this is the group that holds the links —
+		without it the pill is inert on desktop and the dropdown is inert on
+		mobile, because both are this same element.
+	*/
 	.nav__nav {
-		display: none;
+		pointer-events: auto;
 	}
 
 	.nav__links {
 		display: flex;
 		align-items: center;
-		gap: clamp(1.25rem, 2.5vw, 2.25rem);
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
 	.nav__link {
+		position: relative;
+		display: flex;
+		align-items: center;
+		height: 2.125rem;
+		padding-inline: 0.8125rem;
+		border-radius: 0.625rem;
 		font-size: var(--text-sm);
+		line-height: 1;
+		white-space: nowrap;
 		color: var(--color-bone-300);
 		text-decoration: none;
-		transition: color 0.24s var(--ease-out-quint);
+		transition:
+			color 0.24s var(--ease-out-quint),
+			background-color 0.24s var(--ease-out-quint);
 	}
 
-	.nav__link:hover {
+	.nav__link:hover,
+	.nav__link:focus-visible {
+		color: var(--color-bone-50);
+		background: color-mix(in oklab, var(--color-bone-50) 10%, transparent);
+	}
+
+	/*
+		The page you are on.
+
+		In the dropdown that is a lit chip, the same language the switcher
+		already speaks two rows below. The underline glow is a desktop thing —
+		down here the link is a full-width row, and a rule spanning the whole
+		panel reads as a divider, not as a mark on the word.
+	*/
+	.nav__link[aria-current] {
+		color: var(--color-bone-50);
+		background: color-mix(in oklab, var(--color-arc-500) 20%, transparent);
+	}
+
+	/* ── Actions ─────────────────────────────────────────────────────────── */
+	.nav__actions {
+		pointer-events: auto;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	/* ── Language switcher ───────────────────────────────────────────────── */
+	.nav__lang {
+		display: flex;
+		align-items: center;
+		gap: 0.1875rem;
+		padding: 0.25rem;
+		border-radius: 0.75rem;
+		border: 1px solid var(--color-line);
+		background-color: var(--pill-bg);
+		background-image: var(--pill-sheen);
+		backdrop-filter: var(--pill-blur);
+		box-shadow: var(--pill-edge);
+		transition: background-color 0.4s var(--ease-out-quint);
+	}
+
+	.nav__lang-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 2.125rem;
+		height: 2.125rem;
+		padding-inline: 0.4375rem;
+		border: 0;
+		border-radius: 0.5rem;
+		background: transparent;
+		color: var(--color-bone-400);
+		font-family: var(--font-display);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		line-height: 1;
+		cursor: pointer;
+		transition:
+			color 0.24s var(--ease-out-quint),
+			background-color 0.24s var(--ease-out-quint);
+	}
+
+	.nav__lang-btn:hover {
+		color: var(--color-bone-100);
+	}
+
+	/* The lit chip. aria-pressed is the state, so there is nothing else to
+	   keep in sync — style the ARIA directly. */
+	.nav__lang-btn[aria-current] {
+		background: color-mix(in oklab, var(--color-bone-50) 15%, transparent);
 		color: var(--color-bone-50);
 	}
 
-	.nav__actions {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
+	/* Its home is the bar; the dropdown copy is revealed at the breakpoint. */
+	.nav__lang--bar {
+		display: none;
 	}
 
+	/* ── CTA ─────────────────────────────────────────────────────────────── */
+	/*
+		The one solid element up here, and deliberately so: over footage that is
+		always moving, weight is what makes the CTA findable.
+	*/
 	.nav__cta {
-		padding-block: 0.6875rem;
-		padding-inline: 1.1rem;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.625rem;
+		height: 2.75rem;
+		padding-inline: 1.125rem 0.375rem;
+		border-radius: 0.75rem;
+		background: var(--color-bone-50);
+		color: var(--color-ink-950);
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
+		box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-arc-400) 60%, transparent);
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			box-shadow 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
 	}
 
-	@media (min-width: 900px) {
+	.nav__cta:hover {
+		background: #fff;
+		transform: translateY(-1px);
+		box-shadow: 0 14px 34px -14px color-mix(in oklab, var(--color-arc-400) 75%, transparent);
+	}
+
+	.nav__cta:active {
+		transform: translateY(0);
+	}
+
+	.nav__cta-badge {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.5rem;
+		background: var(--color-ink-950);
+		color: var(--color-bone-50);
+	}
+
+	.nav__cta-badge svg {
+		width: 0.875rem;
+		transition: transform 0.28s var(--ease-out-quint);
+	}
+
+	.nav__cta:hover .nav__cta-badge svg {
+		transform: translateX(2px);
+	}
+
+	/* ── Menu toggle (below 900px only) ──────────────────────────────────── */
+	.nav__toggle {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		padding: 0;
+		border-radius: 0.625rem;
+		border: 1px solid var(--color-line);
+		background-color: var(--pill-bg);
+		background-image: var(--pill-sheen);
+		backdrop-filter: var(--pill-blur);
+		box-shadow: var(--pill-edge);
+		color: var(--color-bone-50);
+		cursor: pointer;
+		transition:
+			background-color 0.4s var(--ease-out-quint),
+			border-color 0.24s var(--ease-out-quint);
+	}
+
+	.nav__toggle:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+	}
+
+	.nav__toggle-bars {
+		display: grid;
+		gap: 0.3125rem;
+		width: 1.0625rem;
+	}
+
+	.nav__toggle-bars span {
+		height: 1.5px;
+		border-radius: 1px;
+		background: currentColor;
+		transition: transform 0.28s var(--ease-out-quint);
+	}
+
+	.nav[data-nav-open] .nav__toggle-bars span:first-child {
+		transform: translateY(3.25px) rotate(45deg);
+	}
+
+	.nav[data-nav-open] .nav__toggle-bars span:last-child {
+		transform: translateY(-3.25px) rotate(-45deg);
+	}
+
+	/* ── Mobile dropdown ─────────────────────────────────────────────────── */
+	.nav__nav {
+		position: absolute;
+		/*
+			`.nav__inner` is a .container-content, so an absolute child resolves
+			against its padding box. Offsetting by the gutter lands the panel on the
+			content edge, flush with the brand and the CTA.
+		*/
+		inset-inline: var(--gutter);
+		inset-block-start: calc(100% + 0.75rem);
+		display: none;
+		padding: 0.5rem;
+		border-radius: 0.875rem;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-950) 92%, transparent);
+		backdrop-filter: blur(22px) saturate(165%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbe8ff 12%, transparent),
+			0 26px 60px -30px #000;
+	}
+
+	.nav[data-nav-open] .nav__nav {
+		display: block;
+		animation: nav-drop 0.28s var(--ease-out-quint) both;
+	}
+
+	@keyframes nav-drop {
+		from {
+			opacity: 0;
+			transform: translateY(-0.5rem);
+		}
+	}
+
+	.nav__links {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.125rem;
+	}
+
+	.nav__nav .nav__link {
+		height: 2.75rem;
+		font-size: var(--text-base);
+	}
+
+	.nav__lang--menu {
+		/* Sits under the links behind its own rule, the way a settings row does. */
+		margin-block-start: 0.5rem;
+		padding-block-start: 0.5rem;
+		border: 0;
+		border-top: 1px solid var(--color-line);
+		border-radius: 0;
+		background: none;
+	}
+
+	/* ── Desktop: the link list becomes the centred pill ─────────────────── */
+	@media (min-width: 1100px) {
+		.nav__inner {
+			display: grid;
+			/* Equal outer tracks put the pill on the page's centre line, not the
+			   centre of whatever space the brand and CTA leave behind. */
+			grid-template-columns: 1fr auto 1fr;
+			gap: 1.5rem;
+		}
+
+		.nav__actions {
+			justify-self: end;
+		}
+
 		.nav__nav {
+			position: static;
 			display: block;
+			padding: 0;
+			border: 0;
+			border-radius: 0;
+			background: none;
+			backdrop-filter: none;
+			box-shadow: none;
+		}
+
+		/*
+			The glass, and it lives here — on the pill behind the four links, not
+			on a band across the window. The sheen, the blur and the lit edge
+			together are what make a rounded rectangle read as a piece of frosted
+			material instead of a flat translucent panel.
+		*/
+		.nav__links {
+			flex-direction: row;
+			gap: 0.25rem;
+			padding: 0.3125rem;
+			border-radius: 0.875rem;
+			border: 1px solid var(--color-line);
+			background-color: var(--pill-bg);
+			background-image: var(--pill-sheen);
+			backdrop-filter: var(--pill-blur);
+			box-shadow: var(--pill-edge);
+			transition: background-color 0.4s var(--ease-out-quint);
+		}
+
+		.nav__nav .nav__link {
+			height: 2.125rem;
+			font-size: var(--text-sm);
+		}
+
+		/*
+			The page you are on, on the pill: a lit filament under the word and
+			the haze it throws.
+
+			No chip behind it up here. A filled chip inside the pill would read
+			as a second, smaller pill — the pill IS the container, and what it
+			needs is a mark on one word, not a box around it.
+		*/
+		.nav__link[aria-current] {
+			background: none;
+			color: var(--color-bone-50);
+		}
+
+		/*
+			The filament. It fades out at both ends because a rule with hard ends
+			reads as a border; light does not stop, it falls off. Inset by half
+			the link's own padding so it hugs the word rather than the box.
+		*/
+		.nav__link[aria-current]::after {
+			content: '';
+			position: absolute;
+			inset-block-end: -0.25rem;
+			inset-inline: 0.40625rem;
+			height: 2px;
+			border-radius: 2px;
+			background: linear-gradient(
+				90deg,
+				transparent 0%,
+				var(--color-arc-400) 18%,
+				#cfe8ff 50%,
+				var(--color-arc-400) 82%,
+				transparent 100%
+			);
+			box-shadow:
+				0 0 6px color-mix(in oklab, var(--color-arc-400) 85%, transparent),
+				0 0 14px color-mix(in oklab, var(--color-arc-500) 60%, transparent);
+		}
+
+		/*
+			The haze, and it is a separate element because a box-shadow spreads
+			evenly in every direction — this has to rise into the word and spill
+			past the pill's bottom edge, which is what makes it read as emitted
+			light rather than as a thick underline. Centred on the filament: the
+			box hangs equal distances above and below it.
+		*/
+		.nav__link[aria-current]::before {
+			content: '';
+			position: absolute;
+			/*
+				Behind the word. A positioned pseudo-element paints above its
+				parent's text by default, which would leave a blue veil over the
+				label; -1 drops it to the negative layer of the nearest stacking
+				context, which is the pill itself — so the haze lands on the
+				glass and the type stays crisp on top of it.
+			*/
+			z-index: -1;
+			inset-block-end: -1.125rem;
+			inset-inline: -0.125rem;
+			height: 1.75rem;
+			pointer-events: none;
+			background: radial-gradient(
+				50% 50% at 50% 50%,
+				color-mix(in oklab, var(--color-arc-500) 42%, transparent) 0%,
+				color-mix(in oklab, var(--color-arc-500) 14%, transparent) 45%,
+				transparent 72%
+			);
+		}
+
+		/* Hovering the page you are already on should not add a chip on top of
+		   the glow — the glow already says you are here. */
+		.nav__link[aria-current]:hover,
+		.nav__link[aria-current]:focus-visible {
+			background: none;
+		}
+
+		.nav__lang--bar {
+			display: flex;
+		}
+
+		.nav__lang--menu,
+		.nav__toggle {
+			display: none;
 		}
 	}
 </style>

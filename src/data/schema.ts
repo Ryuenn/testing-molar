@@ -1,4 +1,6 @@
 import { SITE } from './site';
+import { DEFAULT_LOCALE, type Locale } from '~/i18n/config';
+import { useTranslations } from '~/i18n/utils';
 import { PLANS, CURRENCY } from './pricing';
 import { FAQ } from './faq';
 
@@ -23,7 +25,7 @@ export const organizationSchema = (): Record<string, unknown> => ({
 	slogan: SITE.tagline,
 	foundingDate: SITE.founded,
 	email: SITE.email,
-	sameAs: [SITE.social.instagram, SITE.social.linkedin, SITE.social.youtube],
+	sameAs: [SITE.social.instagram, SITE.social.tiktok, SITE.social.youtube],
 	contactPoint: [
 		{
 			'@type': 'ContactPoint',
@@ -46,7 +48,8 @@ export const websiteSchema = (): Record<string, unknown> => ({
 });
 
 /** Pricing section — one Product with an AggregateOffer over the three tiers. */
-export const productSchema = (): Record<string, unknown> => {
+export const productSchema = (locale: Locale = DEFAULT_LOCALE): Record<string, unknown> => {
+	const t = useTranslations(locale);
 	const priced = PLANS.filter((p) => p.amount !== null);
 
 	return {
@@ -70,8 +73,8 @@ export const productSchema = (): Record<string, unknown> => {
 			offers: priced.map((plan) => ({
 				'@type': 'Offer',
 				'@id': `${SITE.origin}/#offer-${plan.id}`,
-				name: plan.name,
-				description: plan.blurb,
+				name: t(`pricing.${plan.key}Name` as never),
+				description: t(`pricing.${plan.key}Blurb` as never),
 				url: `${SITE.origin}/#pricing`,
 				price: plan.amount,
 				priceCurrency: CURRENCY,

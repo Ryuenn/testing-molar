@@ -24,6 +24,24 @@ export const REGIONS: Region[] = [
 	{ name: 'Australia', lat: -25, lon: 134, align: 'middle', dy: 22 },
 ];
 
-export const REACH_HEADLINE = 'One platform, six continents.';
-export const REACH_SUB =
-	'North America, South America, Europe, Africa, Asia, Australia — and growing.';
+/**
+ * The headline, split at the colour change rather than written twice. The
+ * second half carries the accent, the same way the hero's does.
+ */
+export const REACH_TITLE = [
+	{ text: 'One platform.', accent: false },
+	{ text: 'Six continents.', accent: true },
+] as const;
+
+/** The same line as one string, for anything that reads rather than looks. */
+export const REACH_TITLE_TEXT = REACH_TITLE.map((part) => part.text).join(' ');
+
+/** Trails the grid. The six are what is served today, not the ceiling. */
+export const REACH_NOTE = 'and growing';
+
+/**
+ * `44°N 100°W` from the coordinates already on each region — the labels are the
+ * real projection input, not decoration typed in beside it.
+ */
+export const formatCoords = ({ lat, lon }: Pick<Region, 'lat' | 'lon'>): string =>
+	`${Math.abs(lat)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon)}°${lon >= 0 ? 'E' : 'W'}`;

@@ -1,5 +1,11 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+import ClosingCta from '~/components/sections/ClosingCta.astro';
 ---
 
 <BaseLayout
@@ -16,17 +22,19 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 	<section class="nf" aria-labelledby="nf-heading">
 		<div class="container-content nf__inner">
 			<p class="eyebrow">404</p>
-			<h1 id="nf-heading" class="nf__title">That page has moved.</h1>
+			<h1 id="nf-heading" class="nf__title">{t('notFound.title')}</h1>
 			<p class="nf__lede">
-				The link is broken or the page is gone. Everything worth reading is one of these.
+				{t('notFound.lede')}
 			</p>
 
 			<p class="nf__actions">
-				<a href="/" class="btn btn-primary">Back to the home page</a>
-				<a href="/resources/" class="btn btn-ghost">Resource library</a>
+				<a href={localizePath('/', locale)} class="btn btn-primary">{t('notFound.home')}</a>
+				<a href={localizePath('/resources/', locale)} class="btn btn-ghost">{t('pages.resourcesTitle')}</a>
 			</p>
 		</div>
 	</section>
+
+	<ClosingCta />
 </BaseLayout>
 
 <style>
