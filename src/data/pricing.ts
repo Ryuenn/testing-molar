@@ -17,6 +17,19 @@ export interface Plan {
 	featureKey: 's' | 'p' | 'e';
 	featureCount: number;
 	/** Not translated: billed in USD wherever the buyer is. */
+	/**
+	 * The displayed price, currency symbol included.
+	 *
+	 * Both of these were once written through a String.replace() whose
+	 * replacement string held the price itself, and `$4` and `$1` were consumed
+	 * as capture-group references — "$497" shipped as "97" and "$1,497" as
+	 * ",497". Starter advertised a price 400 dollars under the real one.
+	 *
+	 * If you ever rewrite these programmatically, pass a function as the
+	 * replacement. A function's return value is used verbatim; a string is
+	 * scanned for $-patterns first. `amount` below is the number to check
+	 * against.
+	 */
 	price: string;
 	/** `true` renders the per-month cadence beside the price. */
 	perMonth: boolean;
@@ -34,7 +47,7 @@ export const PLANS: Plan[] = [
 		key: 'starter',
 		featureKey: 's',
 		featureCount: 8,
-		price: '97',
+		price: '$497',
 		perMonth: true,
 		amount: 497,
 		cta: { href: 'https://buy.stripe.com/cNicN5aUb9le1G470EeAg01' },
@@ -45,7 +58,7 @@ export const PLANS: Plan[] = [
 		key: 'premium',
 		featureKey: 'p',
 		featureCount: 9,
-		price: ',497',
+		price: '$1,497',
 		perMonth: true,
 		amount: 1497,
 		cta: { href: 'https://buy.stripe.com/9B65kD7HZdBuckI5WAeAg02' },
