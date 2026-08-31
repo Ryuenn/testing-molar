@@ -164,8 +164,8 @@ const scriptStrings = JSON.stringify({
 								data-language={item.language}
 								data-month={item.month}
 								data-video={item.video}
-								data-caption={item.caption}
-								data-script={item.script}
+								data-summary={item.summary}
+								data-explainer={item.explainer}
 								data-code={item.code}
 								aria-haspopup="dialog"
 							>
@@ -272,14 +272,13 @@ const scriptStrings = JSON.stringify({
 				<h2 id="lib-dialog-title" class="lib-dialog__title" data-dialog-title></h2>
 				<p class="lib-dialog__meta" data-dialog-meta></p>
 
-				<section class="lib-dialog__field" data-caption-field hidden>
-					<h3 class="lib-dialog__field-label">{t('library.caption')}</h3>
-					<p class="lib-dialog__caption" data-dialog-caption></p>
+				<section class="lib-dialog__field" data-summary-field hidden>
+					<p class="lib-dialog__caption" data-dialog-summary></p>
 				</section>
 
-				<section class="lib-dialog__field" data-script-field hidden>
-					<h3 class="lib-dialog__field-label">{t('library.script')}</h3>
-					<div class="lib-dialog__script" data-dialog-script></div>
+				<section class="lib-dialog__field" data-explainer-field hidden>
+					<h3 class="lib-dialog__field-label">{t('library.about')}</h3>
+					<div class="lib-dialog__script" data-dialog-explainer></div>
 				</section>
 
 				{/* Shown only when neither field is filled — an empty right-hand
@@ -384,10 +383,10 @@ const scriptStrings = JSON.stringify({
 		const fallbackLink = dialog.querySelector<HTMLAnchorElement>('[data-fallback-link]')!;
 		const closer = dialog.querySelector<HTMLButtonElement>('[data-close]')!;
 		const panel = dialog.querySelector<HTMLElement>('.lib-dialog__panel')!;
-		const captionField = dialog.querySelector<HTMLElement>('[data-caption-field]')!;
-		const captionText = dialog.querySelector<HTMLElement>('[data-dialog-caption]')!;
-		const scriptField = dialog.querySelector<HTMLElement>('[data-script-field]')!;
-		const scriptBody = dialog.querySelector<HTMLElement>('[data-dialog-script]')!;
+		const summaryField = dialog.querySelector<HTMLElement>('[data-summary-field]')!;
+		const summaryText = dialog.querySelector<HTMLElement>('[data-dialog-summary]')!;
+		const explainerField = dialog.querySelector<HTMLElement>('[data-explainer-field]')!;
+		const explainerBody = dialog.querySelector<HTMLElement>('[data-dialog-explainer]')!;
 		const empty = dialog.querySelector<HTMLElement>('[data-dialog-empty]')!;
 
 		/** Whatever opened it, so focus has somewhere honest to go back to. */
@@ -427,17 +426,17 @@ const scriptStrings = JSON.stringify({
 				.filter(Boolean)
 				.join(' · ');
 
-			const caption = (data.caption ?? '').trim();
-			captionField.hidden = !caption;
-			captionText.textContent = caption;
+			const summary = (data.summary ?? '').trim();
+			summaryField.hidden = !summary;
+			summaryText.textContent = summary;
 
-			const script = (data.script ?? '').trim();
-			scriptField.hidden = !script;
-			scriptBody.replaceChildren(
+			const explainer = (data.explainer ?? '').trim();
+			explainerField.hidden = !explainer;
+			explainerBody.replaceChildren(
 				/* Blank-line separated, so it can be pasted out of Softr unchanged.
 				   Built as real paragraphs rather than dropped in as innerHTML —
 				   this is content, and content does not get to inject markup. */
-				...script
+				...explainer
 					.split(/\n\s*\n/)
 					.map((para) => para.trim())
 					.filter(Boolean)
@@ -448,7 +447,7 @@ const scriptStrings = JSON.stringify({
 					}),
 			);
 
-			empty.hidden = Boolean(caption || script);
+			empty.hidden = Boolean(summary || explainer);
 			panel.scrollTop = 0;
 
 			fallback.hidden = true;
