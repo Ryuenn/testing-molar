@@ -2,7 +2,8 @@
 import { Image } from 'astro:assets';
 import logoMark from '~/assets/brand/logo-mark.png';
 import StepIcon from '~/components/ui/StepIcon.astro';
-import { CTA } from '~/data/site';
+import { CTA, SITE } from '~/data/site';
+import SocialIcon from '~/components/ui/SocialIcon.astro';
 import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
@@ -48,6 +49,14 @@ const TITLE_TEXT = TITLE_PARTS.map((part) => part.text).join(' ');
  * what it actually means, so a card carries the step and its answer rather than
  * a label on its own.
  */
+/* The same three the footer lists, from the same source — one place to add a
+   fourth account, not two. */
+const SOCIAL = [
+	{ label: 'Instagram', href: SITE.social.instagram, icon: 'instagram' },
+	{ label: 'TikTok', href: SITE.social.tiktok, icon: 'tiktok' },
+	{ label: 'YouTube', href: SITE.social.youtube, icon: 'youtube' },
+] as const;
+
 const FLOW = [
 	{ title: t('hero.step1'), sub: t('hero.step1sub'), icon: 'bell' },
 	{ title: t('hero.step2'), sub: t('hero.step2sub'), icon: 'link' },
@@ -84,6 +93,34 @@ const FLOW = [
 		<div class="hero__vignette" aria-hidden="true"></div>
 		<div class="grain" aria-hidden="true"></div>
 	</div>
+
+	{/*
+		The follow rail, pinned to the left edge rather than placed in the flow.
+		It is a secondary invitation — the two buttons in the middle are what the
+		hero is actually asking for — and an aside belongs in the margin.
+
+		Last in the DOM on purpose: every [data-hero-in="tail"] element shares one
+		staggered tween, in document order, so putting the rail here lands the
+		three marks one after another once the buttons have settled rather than
+		competing with them.
+	*/}
+	<ul class="hero__social" aria-label="Follow MOLAR AI">
+		{
+			SOCIAL.map((link) => (
+				<li data-hero-in="tail">
+					{/*
+						External, so rel="noopener". No noreferrer — these are the
+						company's own accounts and the referrer is wanted in their
+						analytics.
+					*/}
+					<a href={link.href} class="hero__social-link" target="_blank" rel="noopener">
+						<SocialIcon name={link.icon} class="hero__social-icon" />
+						<span class="sr-only">{link.label} {t('footer.newTab')}</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
 
 	<div class="container-content hero__inner">
 		<p class="eyebrow hero__eyebrow" data-hero-in="lead">{t('site.tagline')}</p>
@@ -578,6 +615,76 @@ const FLOW = [
 		around its rim, shared with the resource CTA on how-it-works so the two
 		cannot drift apart. Only the logo mark inside it is sized here.
 	*/
+	/*
+		The follow rail. Absolute against the hero rather than inside
+		.hero__inner, so it sits out at the window's edge instead of on the
+		content measure — the same reasoning the nav uses for the brand lockup.
+
+		Hidden below 68rem: there is no margin left to put it in, and the footer
+		carries the same three links on every page anyway, so nothing is lost.
+	*/
+	.hero__social {
+		display: none;
+	}
+
+	@media (min-width: 68rem) {
+		.hero__social {
+			position: absolute;
+			z-index: 2;
+			inset-inline-start: clamp(1.25rem, 3vw, 2.5rem);
+			inset-block-start: 50%;
+			transform: translateY(-50%);
+			display: flex;
+			flex-direction: column;
+			gap: 0.5rem;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+	}
+
+	/*
+		The tile is the hit area, and deliberately larger than the mark it holds:
+		2.75rem clears the minimum a pointer target should meet, which the 20px
+		glyph on its own would not. Same dimensions as the footer's, so the two
+		read as the same control in two places.
+	*/
+	.hero__social-link {
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 0.7rem;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
+		backdrop-filter: blur(14px) saturate(140%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
+		color: var(--color-bone-300);
+		transition:
+			color 0.24s var(--ease-out-quint),
+			border-color 0.24s var(--ease-out-quint),
+			background-color 0.24s var(--ease-out-quint),
+			transform 0.24s var(--ease-out-quint);
+	}
+
+	.hero__social-link:hover {
+		color: var(--color-bone-50);
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 22%, transparent);
+		transform: translateX(3px);
+	}
+
+	.hero__social-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero__social-link:hover {
+			transform: none;
+		}
+	}
+
 	.hero__proof {
 		display: flex;
 		flex-wrap: wrap;
