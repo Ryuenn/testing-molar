@@ -2,6 +2,10 @@
 import { reelClips } from '~/data/reel';
 
 const CLIPS = reelClips();
+
+/* Read out to a screen reader in place of the strip, which stays hidden — see
+   the note below. Only the clips whose number we actually know. */
+const COUNTS = CLIPS.map((clip) => clip.views).filter(Boolean);
 ---
 
 {/*
@@ -15,6 +19,7 @@ const CLIPS = reelClips();
 	<p class="sr-only">
 		A sample of the patient education videos MOLAR AI produces for dental practices, playing on a
 		continuous loop.
+		{COUNTS.length > 0 && ` View counts across these accounts: ${COUNTS.join(', ')}.`}
 	</p>
 
 	<div class="reel__viewport" data-reel aria-hidden="true">
@@ -28,12 +33,28 @@ const CLIPS = reelClips();
 				reduced motion gets a real static strip for free.
 			*/}
 			{
-				CLIPS.map((src, i) => (
+				CLIPS.map((clip, i) => (
 					<div
 						class="reel__item"
 						data-reel-item
 						style={`--reel-x:calc((var(--reel-w) + var(--reel-gap)) * ${i})`}
 					>
+						{/*
+							What the clip did, on the clip. The number used to run in a
+							marquee of its own below the strip, where it was a row of
+							figures attached to nothing — the whole value of a view count
+							is which video earned it.
+
+							Rendered only where the number is known. An unknown is not a
+							zero, and a badge reading "—" is worse than no badge.
+						*/}
+						{clip.views && (
+							<span class="reel__views">
+								<span class="reel__count">{clip.views}</span>
+								<span class="reel__unit">views</span>
+							</span>
+						)}
+
 						{/*
 							No `autoplay` attribute. It would override `preload="none"` and
 							pull all of this footage down alongside the hero video on first
@@ -43,7 +64,7 @@ const CLIPS = reelClips();
 						<video
 							class="reel__video"
 							data-reel-video
-							src={src}
+							src={clip.src}
 							muted
 							loop
 							playsinline
@@ -116,6 +137,46 @@ const CLIPS = reelClips();
 
 		position: relative;
 		height: var(--reel-h);
+	}
+
+	/*
+		The view count, sitting on the clip's bottom-left corner. Absolute inside
+		the item, which is already a positioning context for the loop's transform.
+
+		Frosted rather than solid: these sit over footage that is always moving,
+		and a flat chip reads as a sticker stuck on top of the video while a
+		blurred one reads as part of it.
+	*/
+	.reel__views {
+		position: absolute;
+		z-index: 1;
+		inset-block-end: 0.625rem;
+		inset-inline-start: 0.625rem;
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.3125rem;
+		padding: 0.3125rem 0.5rem;
+		border: 1px solid var(--color-line);
+		border-radius: 0.4375rem;
+		background: color-mix(in oklab, var(--color-ink-950) 62%, transparent);
+		backdrop-filter: blur(10px) saturate(140%);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent);
+	}
+
+	.reel__count {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 700;
+		line-height: 1;
+		color: var(--color-bone-50);
+	}
+
+	.reel__unit {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-arc-300);
 	}
 
 	.reel__item {

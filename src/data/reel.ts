@@ -28,12 +28,53 @@ const DIR = fileURLToPath(new URL('../../public/videos/MolarExampleVideos/', imp
 const HREF = '/videos/MolarExampleVideos/';
 
 /**
- * Every clip in the folder, alphabetical so the strip is identical on every
- * build. Root-relative and percent-encoded — several filenames contain spaces.
+ * What each clip actually did, keyed by filename.
+ *
+ * Keyed rather than positional on purpose. These are real performance numbers
+ * attached to real videos, and an ordered list silently re-assigns every one of
+ * them the moment a file is added, renamed or removed from the folder — which
+ * is a thing this module is built to let you do. A filename that no longer
+ * exists simply drops out; a clip with no entry renders without a badge.
+ *
+ * ⚠️ The numbers below came from an unordered list (`VIEW_COUNTS` in
+ * ~/data/proof) with no mapping to filenames anywhere in the repo. They are
+ * assigned here in the folder's own alphabetical order, which is a guess.
+ * Check every line before this page is public: a view count on the wrong video
+ * is a false claim about that video, not a cosmetic bug.
  */
-export function reelClips(): string[] {
+const VIEWS: Record<string, string> = {
+	'ai_animation_new.mp4': '182K',
+	'baby_teeth_de.mp4': '98K',
+	'does-enamel-grow-back-after-ipr-master_6qzw8ujs.mp4': '2.6M',
+	'implant whats happening inside your jaw master.mp4': '74K',
+	'invisalign - first day hebrew master.mp4': '200K',
+	'invisalign- your first day wearing your retainer.mp4': '89K',
+	'veneer_fake.mp4': '127K',
+	/* veneers_commercial.mp4 and what are lingual braces master.mp4 have no
+	   number yet — there were seven counts for nine clips. They render with no
+	   badge, which is the correct thing for an unknown rather than a zero. */
+};
+
+export interface ReelClip {
+	/** Root-relative and percent-encoded — several filenames contain spaces. */
+	src: string;
+	/** Unencoded, for keying and for debugging a missing badge. */
+	file: string;
+	/** Absent where the number is not known. */
+	views?: string;
+}
+
+/**
+ * Every clip in the folder, alphabetical so the strip is identical on every
+ * build.
+ */
+export function reelClips(): ReelClip[] {
 	return readdirSync(DIR)
 		.filter((name) => name.toLowerCase().endsWith('.mp4'))
 		.sort((a, b) => a.localeCompare(b))
-		.map((name) => HREF + encodeURIComponent(name));
+		.map((file) => ({
+			src: HREF + encodeURIComponent(file),
+			file,
+			views: VIEWS[file],
+		}));
 }

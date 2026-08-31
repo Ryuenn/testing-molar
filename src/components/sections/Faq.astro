@@ -15,6 +15,7 @@ import { FAQ } from '~/data/faq';
 
 <Section
 	id="faq"
+	class="faq-band"
 	eyebrow="FAQ"
 	heading="Questions practices actually ask."
 	lede="If something is not here, email team@molarai.studio and a person will answer."
@@ -41,6 +42,9 @@ import { FAQ } from '~/data/faq';
 </Section>
 
 <style>
+	/* The section's own light lives in global.css as `.faq-band` — a scoped
+	   rule here is dropped, because the class is passed to Section rather than
+	   written into this component's own template. */
 	.faq {
 		border-top: 1px solid var(--color-line);
 	}

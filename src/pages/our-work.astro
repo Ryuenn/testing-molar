@@ -4,6 +4,7 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 import PageIntro from '~/components/PageIntro.astro';
 import WorkGallery from '~/components/sections/WorkGallery.astro';
 import ClosingCta from '~/components/sections/ClosingCta.astro';
+import Faq from '~/components/sections/Faq.astro';
 import { breadcrumbSchema } from '~/data/schema';
 import { LANGUAGE_COUNT } from '~/data/work';
 
@@ -49,5 +50,6 @@ const t = useTranslations(locale);
 	/>
 
 	<WorkGallery />
+	<Faq />
 	<ClosingCta />
 </BaseLayout>

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import logoMark from '~/assets/brand/logo-mark.png';
 import StepIcon from '~/components/ui/StepIcon.astro';
 import { CTA } from '~/data/site';
+import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -197,6 +198,20 @@ const FLOW = [
 				<span>{t('cta.heroResources')}</span>
 			</a>
 		</div>
+
+		{/*
+			The proof, under the asks rather than in its own band further down.
+			It answers the question the two buttons raise — "does this work?" —
+			at the moment it gets raised, and it costs the hero one line to do it.
+
+			One sentence, not a stat block: the number and what it counts read as
+			a single phrase, so it is marked up as one <p> with the number given
+			weight rather than as a figure with a caption.
+		*/}
+		<p class="hero__proof" data-hero-in="tail">
+			<span class="hero__proof-number">{PROOF_HEADLINE}</span>
+			<span class="hero__proof-label">{PROOF_SUB}</span>
+		</p>
 	</div>
 </section>
 
@@ -563,6 +578,29 @@ const FLOW = [
 		around its rim, shared with the resource CTA on how-it-works so the two
 		cannot drift apart. Only the logo mark inside it is sized here.
 	*/
+	.hero__proof {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		gap: 0.5rem;
+		margin: clamp(1.25rem, 3vh, 2rem) 0 0;
+		text-align: center;
+	}
+
+	.hero__proof-number {
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-50);
+	}
+
+	.hero__proof-label {
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
 	.hero__cta-mark {
 		width: auto;
 		height: 1.375rem;

@@ -4,6 +4,7 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 import PageIntro from '~/components/PageIntro.astro';
 import HowItWorks from '~/components/sections/HowItWorks.astro';
 import ClosingCta from '~/components/sections/ClosingCta.astro';
+import Faq from '~/components/sections/Faq.astro';
 import { breadcrumbSchema } from '~/data/schema';
 
 /*
@@ -39,5 +40,6 @@ const t = useTranslations(locale);
 
 	<HowItWorks />
 
+	<Faq />
 	<ClosingCta />
 </BaseLayout>

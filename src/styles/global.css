@@ -349,6 +349,70 @@
 		pointer-events: none;
 	}
 
+	/*
+		The light behind the questions.
+
+		Two opposed blooms rather than one centred wash: one high on the left,
+		behind the heading, and a larger cooler one low on the right. A single
+		symmetrical glow under a long list reads as a spotlight and pulls the eye
+		to the middle of the accordion, which is nowhere in particular. On a
+		diagonal the section has a direction — you enter at the heading and leave
+		at the last question.
+
+		Both are kept well under the intensity of the title bands. This is a
+		reading section: the copy has to stay the brightest thing in it, so these
+		are wide, heavily blurred and low-opacity, and they sit behind everything
+		on a negative z-index.
+
+		Here rather than in Faq.astro because the class is handed to Section as a
+		prop: it never appears in Faq's own template, so a scoped rule for it is
+		discarded before it reaches the stylesheet.
+	*/
+	.faq-band {
+		/* .section already sets position: relative. */
+		isolation: isolate;
+		overflow: clip;
+	}
+
+	.faq-band::before,
+	.faq-band::after {
+		content: '';
+		position: absolute;
+		z-index: -1;
+		border-radius: 50%;
+		pointer-events: none;
+	}
+
+	/* High left, behind the heading. */
+	.faq-band::before {
+		inset-block-start: -12%;
+		inset-inline-start: -14%;
+		width: min(52rem, 62%);
+		height: 60%;
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--color-arc-500) 20%, transparent),
+			color-mix(in oklab, var(--color-arc-700) 12%, transparent) 45%,
+			transparent 72%
+		);
+		filter: blur(70px);
+	}
+
+	/* Low right, larger and cooler — the counterweight. */
+	.faq-band::after {
+		inset-block-end: -22%;
+		inset-inline-end: -16%;
+		width: min(62rem, 70%);
+		height: 72%;
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--color-arc-600) 22%, transparent),
+			color-mix(in oklab, var(--color-arc-700) 13%, transparent) 45%,
+			transparent 74%
+		);
+		filter: blur(80px);
+	}
+
 	.eyebrow {
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
