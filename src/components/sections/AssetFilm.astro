@@ -42,7 +42,7 @@ const TITLE = t('film.title');
 const BODY = t('film.body');
 ---
 
-<section id="film" class="film section-rule" aria-labelledby="film-heading">
+<section id="film" class="film section-rule lit-band" aria-labelledby="film-heading">
 	<div class="container-content film__inner">
 		{/*
 			Set in caps and hidden from assistive tech, with the real sentence
@@ -218,10 +218,15 @@ const BODY = t('film.body');
 		--thumb-w: 1432;
 		--thumb-h: 1098;
 
-		position: relative;
+		/*
+			Positioning, isolation, clipping and the ground all come from
+			`.lit-band` in global.css, which this section wears — the same
+			flashlight the title bands use. Nothing here may set `background`:
+			a scoped rule carries this component's cid attribute and outranks a
+			plain class selector, so re-declaring the ground would paint flat
+			black straight over the gradient.
+		*/
 		padding-block: clamp(3rem, 5.5vw, 5rem);
-		background: var(--color-ink-950);
-		overflow: clip;
 	}
 
 	.film__inner {
