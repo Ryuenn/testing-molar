@@ -18,8 +18,9 @@
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import logoIcon from '~/assets/brand/logo-icon.png';
-import { CTA, SITE } from '~/data/site';
+import logoIcon from '~/assets/brand/logo-molar.png';
+import { CTA, EDUCATION_CHECKOUT, SITE } from '~/data/site';
+import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
 import SocialIcon from '~/components/ui/SocialIcon.astro';
 import Glyph from '~/components/ui/Glyph.astro';
 import { PROOF_HEADLINE, PROOF_SUB, PRACTICE_COUNT } from '~/data/proof';
@@ -40,10 +41,27 @@ const VIDEO = {
 	// a quarter the weight of the JPEG and supported everywhere that matters. The
 	// CSS fallback below negotiates AVIF/WebP/JPEG properly via image-set().
 	poster: '/images/hero-poster.webp',
-	// The delivered footage: 1280x720 H.264, 10s, ~2.7 MB, moov ahead of mdat so
-	// it starts on the first chunk instead of waiting for the whole file. One cut
-	// serves every width — see the crop note on .hero__video below.
-	mp4: '/videos/Blue_structure_Hero.mp4',
+	// The footage behind the fold. One cut serves every width — see the crop note
+	// on .hero__video below.
+	//
+	// It has to earn its place: `Blue_structure_Hero.mp4` was handsome and meant
+	// nothing, moving wallpaper behind a headline, which is the note this
+	// replaced it on. Whatever runs here should be the product in the room it is
+	// sold for.
+	//
+	// The web cut of `Premium_Hero.mp4`, not the master.
+	//
+	// The delivered file was 1920x1080 at 14.4 Mbps — a mastering bitrate, ten
+	// times what a loop behind a headline needs — plus an AAC track this element
+	// is muted and never plays. Re-encoded at CRF 23 with the audio stripped and
+	// `faststart` so playback begins on the first chunk: 20.9MB → 3.85MB, at a
+	// measured mean difference of 0.64% per channel.
+	//
+	//   ffmpeg -i Premium_Hero.mp4 -an -c:v libx264 -crf 23 -preset slow \
+	//     -pix_fmt yuv420p -movflags +faststart Premium_Hero-web.mp4
+	//
+	// Any replacement footage wants the same treatment before it goes in here.
+	mp4: '/videos/Premium_Hero-web.mp4',
 };
 
 /**
@@ -292,12 +310,16 @@ const STATS = [
 
 			<div class="hero__actions" data-hero-in="tail">
 				{/*
-					"Explore MOLAR" is an in-page jump rather than a page load, and that
-					is the whole idea of it: the visitor who is not ready to look at a
-					price is asking to be shown the thing, and the thing is the section
-					immediately below. Lenis intercepts it — see motion.ts.
+					/molar-complete/, not the `#ecosystem` jump this used to make.
+
+					That jump was written when the ecosystem diagram sat immediately
+					below the hero — "show me the thing" landing on the thing. The home
+					page leads with MOLAR TV now and the diagram is six sections down, so
+					the anchor scrolled past the whole argument to reach a summary of it.
+					The page that carries the ecosystem at full length is a better answer
+					to "explore" than a scroll position on this one.
 				*/}
-				<a href="#ecosystem" class="hero__btn hero__btn--solid">
+				<a href={localizePath('/molar-complete/', locale)} class="hero__btn hero__btn--solid">
 					<span>{t('cta.explore')}</span>
 					{/* The tile, and it needs no disc behind it — it is its own rounded
 					    ground. Decorative: the label is the link's accessible name. */}
@@ -337,6 +359,25 @@ const STATS = [
 					</svg>
 				</a>
 			</div>
+
+			{/*
+				The offer, under the buttons.
+
+				The reaction this page is aiming for is "I need this, and it is free
+				for thirty days and only $97" — and that could not happen when the
+				figure first appeared four screens down in the plan grid. It is one
+				line, it names the number, and it links to the checkout that honours
+				it rather than to another page about it.
+
+				`EDUCATION_PRICE` and `EDUCATION_TRIAL_DAYS`, not literals: the same
+				two constants /patient-education/ and the plan card read, so the
+				headline offer cannot drift from the one being charged.
+			*/}
+			<p class="hero__offer" data-hero-in="tail">
+				<a href={EDUCATION_CHECKOUT} class="hero__offer-link" rel="noopener">
+					{t('edu.trialLong', { n: EDUCATION_TRIAL_DAYS, price: EDUCATION_PRICE })}
+				</a>
+			</p>
 
 			{/*
 				The trust bar the strategy asks for, at the foot of the copy column
@@ -680,6 +721,40 @@ const STATS = [
 		flex-wrap: wrap;
 		gap: 0.75rem;
 		margin-top: clamp(0.25rem, 1.2vh, 0.75rem);
+	}
+
+	/*
+		The offer, under the buttons rather than beside them. It is not a third
+		ask competing with the two above — it is the reason to press either, so it
+		sits below at label weight and lets the number do the work.
+	*/
+	.hero__offer {
+		margin: clamp(0.6rem, 1.6vh, 1rem) 0 0;
+		font-size: var(--text-sm);
+		color: var(--color-bone-300);
+	}
+
+	.hero__offer-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.45rem 0.85rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--color-ink-950) 62%, transparent);
+		font-family: var(--font-display);
+		font-weight: 600;
+		text-decoration: none;
+		color: var(--color-bone-50);
+		transition:
+			border-color 0.24s var(--ease-out-quint),
+			background-color 0.24s var(--ease-out-quint);
+	}
+
+	.hero__offer-link:hover,
+	.hero__offer-link:focus-visible {
+		border-color: color-mix(in oklab, var(--color-arc-300) 70%, transparent);
+		background: color-mix(in oklab, var(--color-ink-950) 80%, transparent);
 	}
 
 	/*

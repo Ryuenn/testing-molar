@@ -2,21 +2,27 @@
 /**
  * Section 02 — client trust, immediately under the hero.
  *
- * The strategy asks for a logo wall. We now have three real marks, pulled from
- * the practices' own sites — Physimed, Zahnzauber and Carewell. The other four
- * publish no logo file we can source, and an invented mark is the one thing
- * that would sink this section, so those render the way the whole row used to:
- * the practice named, with the market or language it publishes in, read off its
- * own feed in `~/data/work`.
+ * The strategy asks for a logo wall, and it is one now: sixteen real marks from
+ * `~/data/clients`, every one supplied by the practice.
  *
- * Every mark is knocked back to a single bone silhouette. Three brand palettes
- * — warm sand, antique gold, blue-and-chartreuse — dropped onto a navy band at
- * their native colours would read as three stray images rather than one row,
- * and the four named practices beside them would look like holes. Monochrome is
- * what makes a mixed wall a wall.
+ * It used to be driven by `~/data/work` — the six practices whose grids the site
+ * publishes — which meant two marks and four practices rendered as names in
+ * type, because those four had no logo we could source. A row that is two thirds
+ * text is not a logo wall.
  *
- * To add one: drop `src/assets/clients/<slug>.{svg,png}` and it appears. The
- * glob is keyed by the same slug as the grids, so nothing else has to change.
+ * Every mark is knocked back to a single bone silhouette. Sixteen brand palettes
+ * dropped onto a navy band at their native colours would read as sixteen stray
+ * screenshots rather than one row; monochrome is what makes a mixed wall a wall.
+ *
+ * Two things produce that silhouette and both are wanted. The SHAPE is the
+ * file's alpha channel, cut by `scripts/generate-client-logos.mjs` — the CSS
+ * filter below cannot do it, because artwork delivered on an opaque white ground
+ * inverts to a solid white block rather than a silhouette. The COLOUR is still
+ * the filter, which costs nothing on art that is already white and normalises
+ * anything dropped in later that is not.
+ *
+ * To add one: drop the logo in `public/ClientsLogos/`, run `npm run
+ * client-logos`, and add a line to `~/data/clients`.
  *
  * The three figures beside it are the only ones on this page, and each is
  * carried by something else on the site: the view count by the reel badges,
@@ -26,7 +32,7 @@
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import { WORK, type WorkAccount } from '~/data/work';
+import { CLIENT_LOGOS } from '~/data/clients';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -41,21 +47,25 @@ const t = useTranslations(locale);
 const TRACKS = [0, 1];
 
 /*
-	Client marks, matched to accounts by slug the way the grids are. Eager
-	because these are build-time `ImageMetadata` records for <Image>. Unlike the
-	grids this lookup returns undefined rather than throwing: a missing grid is a
-	hole in a page that is showing work, a missing logo is a practice that simply
-	has not published one.
+	The marks. Eager, because these are build-time `ImageMetadata` records for
+	<Image>.
+
+	A practice listed in `~/data/clients` with no file behind it is dropped rather
+	than rendered as a gap — the roster and the folder are edited separately, and
+	a name in one without art in the other should cost a slot in the row, not a
+	hole in it.
 */
 const logoFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/clients/*.{svg,png}', {
 	eager: true,
 });
 
-const logoFor = (account: WorkAccount): ImageMetadata | undefined =>
-	(
-		logoFiles[`../../assets/clients/${account.slug}.svg`] ??
-		logoFiles[`../../assets/clients/${account.slug}.png`]
-	)?.default;
+const CLIENTS = CLIENT_LOGOS.map((client) => ({
+	name: client.name,
+	logo: (
+		logoFiles[`../../assets/clients/${client.slug}.svg`] ??
+		logoFiles[`../../assets/clients/${client.slug}.png`]
+	)?.default,
+})).filter((client): client is { name: string; logo: ImageMetadata } => Boolean(client.logo));
 ---
 
 <section class="trust" aria-labelledby="trust-heading">
@@ -70,38 +80,30 @@ const logoFor = (account: WorkAccount): ImageMetadata | undefined =>
 					{track === 0 && (
 						<span class="sr-only">
 							A sample of the dental practices MOLAR publishes for:{' '}
-							{WORK.map((account) => account.practice).join(', ')}.
+							{CLIENTS.map((client) => client.name).join(', ')}.
 						</span>
 					)}
-					{WORK.map((account) => {
-						const logo = logoFor(account);
-						return (
-							<a
-								class:list={['trust__client', logo && 'trust__client--logo']}
-								href={localizePath('/our-work/', locale)}
-								tabindex={track === 1 ? -1 : undefined}
-							>
-								{logo ? (
-									/*
-										Decorative: the practice name is already in the sr-only line
-										at the head of the track, and an alt on both copies of the
-										marquee would read the whole roster out twice.
-									*/
-									<Image
-										class="trust__client-logo"
-										src={logo}
-										alt=""
-										height={36}
-										densities={[1, 2]}
-										loading="lazy"
-									/>
-								) : (
-									<span class="trust__client-name">{account.practice}</span>
-								)}
-								<span class="trust__client-meta">{account.place ?? account.language}</span>
-							</a>
-						);
-					})}
+					{CLIENTS.map((client) => (
+						<a
+							class="trust__client trust__client--logo"
+							href={localizePath('/our-work/', locale)}
+							tabindex={track === 1 ? -1 : undefined}
+						>
+							{/*
+								Decorative: the practice name is already in the sr-only line at
+								the head of the track, and an alt on both copies of the marquee
+								would read the whole roster out twice.
+							*/}
+							<Image
+								class="trust__client-logo"
+								src={client.logo}
+								alt=""
+								height={36}
+								densities={[1, 2]}
+								loading="lazy"
+							/>
+						</a>
+					))}
 				</div>
 			))
 		}

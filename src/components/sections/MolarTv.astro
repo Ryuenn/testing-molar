@@ -22,7 +22,7 @@
  */
 import Glyph from '~/components/ui/Glyph.astro';
 import { TV_FEATURES, TV_PLAYLIST, TV_LOOP } from '~/data/tv';
-import { CTA } from '~/data/site';
+import { EDUCATION_CHECKOUT } from '~/data/site';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -39,7 +39,10 @@ const t = useTranslations(locale);
 
 const cap = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
 
-const PLAYLIST = TV_PLAYLIST.map((entry) => t(`tv.play${cap(entry)}` as 'tv.playEducation'));
+const PLAYLIST = TV_PLAYLIST.map((entry) => ({
+	icon: entry.icon,
+	label: t(`tv.play${cap(entry.key)}` as 'tv.playTrusted'),
+}));
 
 const FEATURES = TV_FEATURES.map((feature) => ({
 	icon: feature.icon,
@@ -79,9 +82,12 @@ const href = localizePath('/resources/video-library/', locale);
 					<h2 id="tv-heading" class="tv__title" data-reveal>
 						{t('tv.heading')}
 					</h2>
-					<p class="tv__lede measure-wide" data-reveal>
-						{t('tv.lede')}
-					</p>
+					{/*
+						No lede. The heading says what this is and the picture below says
+						the rest — a paragraph explaining that a waiting-room screen exists
+						and is currently playing something else was telling a reader what
+						they can already see.
+					*/}
 				</header>
 			)
 		}
@@ -139,22 +145,61 @@ const href = localizePath('/resources/video-library/', locale);
 					{
 						PLAYLIST.map((entry) => (
 							<li class="tv__track">
-								<span class="tv__bars" aria-hidden="true">
-									<span /><span /><span />
+								<span class="tv__track-icon" aria-hidden="true">
+									<Glyph name={entry.icon} />
 								</span>
-								{entry}
+								{entry.label}
 							</li>
 						))
 					}
 				</ul>
 
-				<blockquote class="tv__key">
-					<p>{t('tv.key1')}</p>
-					<p>{t('tv.key2')}</p>
-				</blockquote>
+				{/*
+					The asks, in the side column rather than at the foot of the section.
+
+					They used to sit below the feature row, four hundred pixels under the
+					thing that makes the case — so the picture argued, then two rows of
+					copy intervened, and only then was there something to press. Beside
+					the playlist they are level with the screen.
+
+					The pull-quote that was here is gone with them: it restated the
+					heading in longer words, which is the definition of the fluff this
+					pass is removing.
+				*/}
+				<div class="tv__actions" data-reveal>
+					{/*
+						The offer first, the look second.
+
+						This used to be "See MOLAR TV" over "Talk to MOLAR" — a button
+						naming the section it was already in, and a second one asking for a
+						meeting. Neither was a step toward buying anything, and this section
+						is the front of the funnel now.
+
+						What plays on a MOLAR TV screen IS the library, and the library is
+						the $97 subscription with a free month. So the primary ask is that
+						trial, priced in the label, going straight to the checkout that
+						honours it; the secondary shows the catalogue for anyone who wants
+						to look before they start.
+					*/}
+					<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+						{t('tv.ctaTrial')}
+						<span aria-hidden="true">→</span>
+					</a>
+					<a class="btn btn-ghost" href={href}>{t('tv.cta')}</a>
+				</div>
 			</div>
 		</div>
 
+		{/*
+			Six tiles, icon over label, and no sentence under any of them.
+
+			Each carried an explanatory line — "On every frame, not a corner
+			watermark" — which turned a row of marks into two rows of prose and made
+			this the wordiest part of a section whose whole argument is a picture.
+			The names alone say it: your logo, your colours, your branding. The
+			`featSub` strings are still in the dictionary if a line is ever wanted
+			back on one of them.
+		*/}
 		<ul class="tv__features" data-reveal-stagger>
 			{
 				FEATURES.map((feature) => (
@@ -162,24 +207,11 @@ const href = localizePath('/resources/video-library/', locale);
 						<span class="tvf__icon" aria-hidden="true">
 							<Glyph name={feature.icon} />
 						</span>
-						<span class="tvf__body">
-							<span class="tvf__name">{feature.name}</span>
-							<span class="tvf__sub">{feature.sub}</span>
-						</span>
+						<span class="tvf__name">{feature.name}</span>
 					</li>
 				))
 			}
 		</ul>
-
-		<div class="tv__actions" data-reveal>
-			<a class="btn btn-primary" href={href}>{t('tv.cta')} <span aria-hidden="true">→</span></a>
-			{/* Quoted rather than bought — there is no checkout for this offer, so
-			    the second ask is a conversation. */}
-			<a class="btn btn-ghost" href={CTA.sales.href} target="_blank" rel="noopener">
-				{t('cta.talk')}
-				<span class="sr-only">{t('footer.newTab')}</span>
-			</a>
-		</div>
 	</div>
 </section>
 
@@ -189,6 +221,16 @@ const href = localizePath('/resources/video-library/', locale);
 		isolation: isolate;
 		overflow: clip;
 		background: linear-gradient(180deg, var(--color-ink-950), var(--color-ink-900) 60%, var(--color-ink-950));
+		/*
+			Well under the shared `--section-y`, and mostly at the top.
+
+			This is the first section after the hero on the home page now, and the
+			hero closes on its own figure band — so a full section rhythm above the
+			eyebrow is 144px of empty ground between two things that belong together.
+			The screen below carries its own glow and its own breathing room, which is
+			the rest of the reason this does not need the standard measure.
+		*/
+		padding-block: clamp(2rem, 4vw, 3.5rem) clamp(3rem, 6vw, 5rem);
 	}
 
 	/* The light the screen throws into the room. Centred on the screen itself
@@ -226,12 +268,6 @@ const href = localizePath('/resources/video-library/', locale);
 	.tv__title {
 		margin: 0;
 		font-size: var(--text-3xl);
-	}
-
-	.tv__lede {
-		margin: 0;
-		font-size: var(--text-lg);
-		color: var(--color-bone-300);
 	}
 
 	.tv__stage {
@@ -354,7 +390,7 @@ const href = localizePath('/resources/video-library/', locale);
 		clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
 	}
 
-	/* ── Playlist and pull-quote ─────────────────────────────────────────── */
+	/* ── Playlist and asks ──────────────────────────────────────────────── */
 	.tv__side {
 		display: grid;
 		gap: clamp(1.25rem, 2.5vw, 1.75rem);
@@ -381,110 +417,103 @@ const href = localizePath('/resources/video-library/', locale);
 		color: var(--color-bone-100);
 	}
 
-	/* Three bars at three heights. Static — an equaliser that animates on five
-	   rows at once is a distraction beside a screen that is already moving. */
-	.tv__bars {
-		display: flex;
-		align-items: end;
-		gap: 2px;
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-
-	.tv__bars span {
-		flex: 1;
-		border-radius: 1px;
-		background: var(--color-arc-400);
-	}
-
-	.tv__bars span:nth-child(1) {
-		height: 45%;
-	}
-
-	.tv__bars span:nth-child(2) {
-		height: 100%;
-	}
-
-	.tv__bars span:nth-child(3) {
-		height: 68%;
-	}
-
-	.tv__key {
+	/*
+		One glyph per row, sized to the label beside it. It replaced a shared
+		equaliser mark that every row wore — which made the column read as five
+		instances of one thing rather than as six kinds of content, and the kinds
+		are what the section is claiming.
+	*/
+	.tv__track-icon {
 		display: grid;
-		gap: 0.75rem;
-		margin: 0;
-		padding-inline-start: 1.125rem;
-		border-inline-start: 2px solid color-mix(in oklab, var(--color-arc-400) 55%, transparent);
-	}
-
-	.tv__key p {
-		margin: 0;
-		font-family: var(--font-display);
-		font-size: var(--text-lg);
-		font-weight: 500;
-		line-height: 1.45;
-		color: var(--color-bone-100);
-	}
-
-	.tv__key p + p {
-		font-family: var(--font-sans);
-		font-size: var(--text-sm);
-		font-weight: 400;
-		color: var(--color-bone-400);
+		place-items: center;
+		flex: none;
+		width: 1.125rem;
+		height: 1.125rem;
+		color: var(--color-arc-400);
 	}
 
 	/* ── Features ────────────────────────────────────────────────────────── */
 	.tv__features {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
 		gap: clamp(0.75rem, 2vw, 1.25rem);
 		margin: clamp(2.5rem, 5vw, 4rem) 0 0;
 		padding: 0;
 		list-style: none;
 	}
 
+	/*
+		A tile rather than a row: the mark over its label, centred, in a card of its
+		own. With the explanatory line gone there is nothing to align a left-hand
+		icon against, and six short labels in a row read as a set of capabilities
+		where six left-aligned pairs read as an unfinished list.
+
+		Lit rather than flat: an arc-tinted edge, a bloom bled up from the floor of
+		the tile, and the glyph itself glowing.
+
+		The bloom is a radial on the background rather than a second element or a
+		box-shadow — one paint, no extra node, and it sits under the glyph where a
+		light behind a mark would actually fall.
+	*/
 	.tvf {
-		display: flex;
-		align-items: start;
-		gap: 0.75rem;
+		position: relative;
+		display: grid;
+		justify-items: center;
+		gap: 0.625rem;
+		padding: clamp(0.875rem, 2vw, 1.25rem) 0.75rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 24%, transparent);
+		border-radius: 0.75rem;
+		background:
+			radial-gradient(
+				120% 88% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-500) 18%, transparent) 0%,
+				transparent 68%
+			),
+			color-mix(in oklab, var(--color-ink-900) 62%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe4ff 14%, transparent),
+			0 0 24px -8px color-mix(in oklab, var(--color-arc-500) 45%, transparent);
+		text-align: center;
+		transition:
+			border-color 0.3s var(--ease-out-quint),
+			box-shadow 0.3s var(--ease-out-quint);
 	}
 
+	.tvf:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 48%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe4ff 22%, transparent),
+			0 0 34px -6px color-mix(in oklab, var(--color-arc-400) 65%, transparent);
+	}
+
+	/* The glyph carries its own light. `drop-shadow` rather than `box-shadow`,
+	   because it follows the strokes of the mark instead of its bounding box. */
 	.tvf__icon {
-		flex: none;
 		display: grid;
 		place-items: center;
-		width: 2.25rem;
-		height: 2.25rem;
-		padding: 0.5rem;
-		border-radius: 0.5rem;
-		border: 1px solid var(--color-line);
-		background: color-mix(in oklab, var(--color-ink-800) 70%, transparent);
-		color: var(--color-arc-300);
+		width: 1.75rem;
+		height: 1.75rem;
+		color: var(--color-arc-200);
+		filter: drop-shadow(0 0 8px color-mix(in oklab, var(--color-arc-400) 75%, transparent));
+		transition: filter 0.3s var(--ease-out-quint);
 	}
 
-	.tvf__body {
-		display: grid;
-		gap: 0.1875rem;
+	.tvf:hover .tvf__icon {
+		filter: drop-shadow(0 0 13px color-mix(in oklab, var(--color-arc-300) 90%, transparent));
 	}
 
 	.tvf__name {
 		font-family: var(--font-display);
 		font-size: var(--text-sm);
 		font-weight: 600;
+		line-height: 1.3;
 		color: var(--color-bone-50);
-	}
-
-	.tvf__sub {
-		font-size: var(--text-sm);
-		line-height: 1.55;
-		color: var(--color-bone-400);
 	}
 
 	.tv__actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.625rem;
-		margin-block-start: clamp(2rem, 4vw, 3rem);
 	}
 
 	/*

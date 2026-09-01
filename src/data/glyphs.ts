@@ -32,4 +32,5 @@ export type GlyphName =
 	| 'chart'
 	| 'clock'
 	| 'shield'
-	| 'map';
+	| 'map'
+	| 'tag';

@@ -21,7 +21,14 @@ import sharp from 'sharp';
 import { mkdir, stat } from 'node:fs/promises';
 
 const ICON_MASTER = 'src/assets/brand/logo-molar.png';
-const MASTER = process.env.BRAND_ICON_MASTER || 'src/assets/brand/logo-icon.png';
+/*
+	The tooth, back where it was.
+
+	`logo-icon.png` — the rounded tile with the chevron — held this for a while and
+	is now unused. The tooth is the mark the brand is known by; the wordmark still
+	carries the chevron in its own A, which is where that shape belongs.
+*/
+const MASTER = process.env.BRAND_ICON_MASTER || ICON_MASTER;
 const PUBLIC = 'public';
 
 /** Page ground. Icons that cannot be transparent sit on this. */

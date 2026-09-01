@@ -19,7 +19,9 @@
     "og": "node scripts/generate-og.mjs",
     "section-bg": "node scripts/generate-section-bg.mjs",
     "brand": "npm run icons && npm run og",
-    "astro": "astro"
+    "astro": "astro",
+    "client-logos": "node scripts/generate-client-logos.mjs",
+    "showcase": "node scripts/generate-showcase.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",

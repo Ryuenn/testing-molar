@@ -251,6 +251,16 @@ const { name, class: className } = Astro.props;
 			</>
 		)
 	}
+
+	{/* A price tag, for an offer. The dot is the eyelet. */}
+	{
+		name === 'tag' && (
+			<>
+				<path d="M4 11.4V5.4A1.4 1.4 0 0 1 5.4 4h6l8.2 8.2a1.4 1.4 0 0 1 0 2l-6 6a1.4 1.4 0 0 1-2 0L4 11.4Z" />
+				<circle cx="8.4" cy="8.4" r="1.2" />
+			</>
+		)
+	}
 </svg>
 
 <style>

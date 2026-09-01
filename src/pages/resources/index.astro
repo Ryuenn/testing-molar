@@ -2,9 +2,10 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import ResourceCard from '~/components/ResourceCard.astro';
-import StepIcon from '~/components/ui/StepIcon.astro';
 import ClosingCta from '~/components/sections/ClosingCta.astro';
 import { RESOURCE_CATEGORIES } from '~/data/resources';
+import { EDUCATION_CHECKOUT } from '~/data/site';
+import { EDUCATION_PRICE } from '~/data/education';
 import { breadcrumbSchema } from '~/data/schema';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
@@ -89,23 +90,43 @@ const scriptStrings = JSON.stringify({
 				different kind of thing and behaves differently when clicked, so it sits
 				outside rather than pretending to be the thirteenth document.
 			*/}
-			<a class="lib-promo" href={localizePath('/resources/video-library/', locale)}>
-				{/* The mark, so the row says "video" before the sentence does. */}
-				<span class="lib-promo__mark" aria-hidden="true">
-					<StepIcon name="video" />
-				</span>
+			<div class="lib-promo">
+				<div class="lib-promo__head">
+					<p class="lib-promo__brand">
+						MOLAR<span class="lib-promo__brand-ai">.AI</span> {t('library.hubTitle')}
+					</p>
+					<p class="lib-promo__badge">
+						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+							<rect x="3.5" y="7" width="9" height="6" rx="1.4"></rect>
+							<path d="M5.75 7V5.25a2.25 2.25 0 0 1 4.5 0V7" stroke-linecap="round"></path>
+						</svg>
+						{t('library.hubAccess')}
+					</p>
+				</div>
 
-				<span class="lib-promo__text">
-					<span class="lib-promo__title">{t('library.hubTitle')}</span>
-					<span class="lib-promo__blurb">{t('library.hubBlurb')}</span>
-				</span>
-				<span class="lib-promo__cta">
-					{t('library.hubCta')}
-					<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-						<path d="M2.5 7h8M7 3.5 10.5 7 7 10.5" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-				</span>
-			</a>
+				<p class="lib-promo__blurb">{t('library.hubBlurb')}</p>
+
+				{/*
+					Two doors, and both are needed.
+
+					The library is gated, so the obvious button is "subscribe" — but a
+					practice that already pays has a password and was being sent to a
+					pricing page to buy something they own. The second button is for them:
+					it goes to the library, hits the password screen, and they are in.
+
+					Order is by audience size rather than by preference: most people
+					reading this have not subscribed.
+				*/}
+				<div class="lib-promo__actions">
+					<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+						{t('library.hubUnlock')}
+						<span class="lib-promo__price">{EDUCATION_PRICE}/{t('edu.perMonth').replace('/', '')}</span>
+					</a>
+					<a class="btn btn-quiet" href={localizePath('/resources/video-library/', locale)}>
+						{t('library.hubCta')}
+					</a>
+				</div>
+			</div>
 
 			<div class="filters" data-filters data-strings={scriptStrings}>
 				{/*
@@ -557,9 +578,16 @@ const scriptStrings = JSON.stringify({
 		filter: blur(30px);
 	}
 
+	/*
+		Full page measure, not the 58rem it used to take.
+
+		That cap was a reading width, correct when this was a stacked list of rows
+		you scanned down a single column. The grid wants the room: at 58rem four
+		cards cannot fit, so the layout silently fell back to three and left the
+		right-hand quarter of the section empty.
+	*/
 	.library__inner {
 		position: relative;
-		max-width: 58rem;
 	}
 
 	.filters {
@@ -762,113 +790,141 @@ const scriptStrings = JSON.stringify({
 	}
 
 	/* ── The content library's doorway ───────────────────────────────────── */
+	/*
+		A panel rather than a row.
+
+		It was a single-line link — mark, title, blurb, arrow — sitting above the
+		filter bar, which read as the thirteenth document rather than as the one
+		paid thing on a page of free ones. Given its own lit panel it reads as what
+		it is, and it has room for the two doors below.
+	*/
 	.lib-promo {
+		display: grid;
+		gap: 0.85rem;
+		margin: 0 0 clamp(1.5rem, 3vw, 2.25rem);
+		padding: clamp(1.1rem, 2.4vw, 1.6rem);
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
+		border-radius: 1rem;
+		background:
+			radial-gradient(
+				120% 140% at 0% 0%,
+				color-mix(in oklab, var(--color-arc-500) 22%, transparent) 0%,
+				transparent 62%
+			),
+			color-mix(in oklab, var(--color-ink-900) 72%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe4ff 16%, transparent),
+			0 30px 70px -50px #000;
+	}
+
+	.lib-promo__head {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-		padding: 1.125rem 1.25rem;
-		border: 1px solid color-mix(in oklab, var(--color-arc-400) 30%, transparent);
-		border-radius: 0.875rem;
-		background-color: color-mix(in oklab, var(--color-arc-700) 22%, transparent);
-		background-image: linear-gradient(
-			180deg,
-			color-mix(in oklab, #a3adbd 10%, transparent),
-			color-mix(in oklab, #a3adbd 2%, transparent)
-		);
-		backdrop-filter: blur(14px) saturate(140%);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 14%, transparent);
-		text-decoration: none;
-		color: inherit;
-		transition:
-			border-color 0.28s var(--ease-out-quint),
-			transform 0.28s var(--ease-out-quint);
+		gap: 0.75rem;
 	}
 
-	.lib-promo:hover {
-		border-color: color-mix(in oklab, var(--color-arc-400) 60%, transparent);
-		transform: translateY(-2px);
-	}
-
-	.lib-promo__mark {
-		flex: none;
-		display: grid;
-		place-items: center;
-		width: 2.75rem;
-		height: 2.75rem;
-		border-radius: 0.75rem;
-		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
-		background: color-mix(in oklab, var(--color-arc-600) 24%, transparent);
-		color: var(--color-arc-200);
-		/* Two passes, tight then wide: the glyph is a hairline stroke and one
-		   large blur only smears it. */
-		filter:
-			drop-shadow(0 0 4px color-mix(in oklab, var(--color-arc-300) 45%, transparent))
-			drop-shadow(0 0 14px color-mix(in oklab, var(--color-arc-500) 35%, transparent));
-	}
-
-	.lib-promo__mark :global(svg) {
-		width: 1.5rem;
-		height: 1.5rem;
-	}
-
-	.lib-promo__text {
-		display: grid;
-		gap: 0.25rem;
-		/* Lets the blurb wrap instead of shoving the CTA off the row. */
-		flex: 1 1 22rem;
-		min-width: 0;
-	}
-
-	.lib-promo__title {
+	/* Set rather than drawn, same as the nav — see the note there. */
+	.lib-promo__brand {
+		margin: 0;
 		font-family: var(--font-display);
-		font-size: var(--text-base);
-		font-weight: 600;
+		font-size: var(--text-xl);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		line-height: 1.15;
 		color: var(--color-bone-50);
 	}
 
+	.lib-promo__brand-ai {
+		color: var(--color-arc-400);
+	}
+
+	/* Says the price is a gate before either button does. */
+	.lib-promo__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin: 0;
+		padding: 0.3rem 0.65rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 40%, transparent);
+		border-radius: 999px;
+		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-arc-200);
+	}
+
+	.lib-promo__badge svg {
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
 	.lib-promo__blurb {
+		margin: 0;
+		max-width: 60ch;
 		font-size: var(--text-sm);
+		line-height: 1.55;
 		color: var(--color-bone-300);
 	}
 
-	.lib-promo__cta {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex: none;
-		color: var(--color-arc-300);
+	.lib-promo__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.625rem;
+	}
+
+	/* Inside the button, after the label — the figure is part of the offer, not
+	   a caption under it. */
+	.lib-promo__price {
+		padding-inline-start: 0.5rem;
+		margin-inline-start: 0.5rem;
+		border-inline-start: 1px solid color-mix(in oklab, currentColor 30%, transparent);
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
-		letter-spacing: 0.1em;
-		text-transform: uppercase;
-	}
-
-	.lib-promo__cta svg {
-		width: 0.875rem;
-		transition: transform 0.28s var(--ease-out-quint);
-	}
-
-	.lib-promo:hover .lib-promo__cta svg {
-		transform: translateX(3px);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.lib-promo:hover {
-			transform: none;
-		}
+		letter-spacing: 0.06em;
+		opacity: 0.85;
 	}
 
 	/*
-		A list, not a grid. See the note in ResourceCard — the rows carry their own
-		hairline, so there is nothing to space them with here.
+		A grid, not a list. The cards carry their own border now, so this only has
+		to place them — and `align-items: stretch` is what keeps every card in a row
+		the same height when one blurb runs two lines and its neighbour runs one.
+
+		A fixed count per breakpoint rather than `auto-fill`. Auto-fill derives the
+		count from a minimum card width, which means the number of columns depends
+		on how wide the container happens to be — and when that container was capped
+		at 58rem it silently resolved to three however much room the page had. Naming
+		the count makes four at desktop width a fact rather than an outcome.
+
+		Filtering to two results is still fine: two cards occupy two of the four
+		tracks at their normal width rather than stretching to fill the row.
 	*/
 	.library__grid {
 		display: grid;
-		gap: 0;
-		border-top: 1px solid var(--color-line);
+		grid-template-columns: 1fr;
+		gap: clamp(0.75rem, 1.6vw, 1.125rem);
+		align-items: stretch;
+	}
+
+	@media (min-width: 34rem) {
+		.library__grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 52rem) {
+		.library__grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 68rem) {
+		.library__grid {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
 	}
 
 	.library__empty {

@@ -83,7 +83,6 @@ const story = (slug: string, products: readonly ProductId[], resultKey?: 'physim
 export const CUSTOMER_STORIES: readonly CustomerStory[] = [
 	story('physimed-dentaire', ['social', 'education'], 'physimed'),
 	story('zeidman-orthodontics', ['social']),
-	story('carewell-dental', ['social']),
 ];
 
 /** The proven figure, so the copy and the exhibit on /results/ cannot drift. */

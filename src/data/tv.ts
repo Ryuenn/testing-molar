@@ -14,8 +14,23 @@
  */
 import type { GlyphName } from './glyphs';
 
-/** What plays on the loop. Suffixes into `tv.play*`. */
-export const TV_PLAYLIST = ['education', 'tips', 'practice', 'branded', 'animation'] as const;
+/**
+ * What plays on the loop.
+ *
+ * Each carries its own glyph now. They used to share one animated bars mark,
+ * which made the column read as five instances of the same thing rather than as
+ * six kinds of content — and the kinds are the argument.
+ *
+ * `key` suffixes into `tv.play*` for the label.
+ */
+export const TV_PLAYLIST = [
+	{ key: 'trusted', icon: 'shield' },
+	{ key: 'clinical', icon: 'film' },
+	{ key: 'testimonials', icon: 'people' },
+	{ key: 'animations', icon: 'tooth' },
+	{ key: 'practice', icon: 'docs' },
+	{ key: 'offers', icon: 'tag' },
+] as const satisfies readonly { key: string; icon: GlyphName }[];
 
 export interface TvFeature {
 	/** Suffix into `tv.feat*`. */

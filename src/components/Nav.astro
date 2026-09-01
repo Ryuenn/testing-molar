@@ -44,7 +44,7 @@
  * button. One list, restyled — never two copies of the links in the DOM.
  */
 import { Image } from 'astro:assets';
-import logoWordmark from '~/assets/brand/logo-wordmark.png';
+import logoTooth from '~/assets/brand/logo-molar.png';
 import Glyph from '~/components/ui/Glyph.astro';
 import { CTA, NAV_LINKS } from '~/data/site';
 import { LOCALES, localizePath } from '~/i18n/config';
@@ -174,19 +174,34 @@ const isCurrent = (link: (typeof links)[number]) =>
 			*/}
 			<a href={localizePath('/', locale)} class="nav__brand">
 				{/*
-					The lockup IS the wordmark now, so it carries the company name and
-					the sr-only line below carries the destination. Decorative here
-					would leave the link unnamed.
+					The tooth, ahead of the wordmark. Decorative: the wordmark beside it
+					already names the company, and an alt here would have a screen reader
+					say "MOLAR MOLAR".
 				*/}
 				<Image
-					src={logoWordmark}
-					alt="MOLAR"
-					height={22}
+					src={logoTooth}
+					alt=""
+					height={30}
 					densities={[1, 2]}
 					loading="eager"
 					decoding="sync"
-					class="nav__mark"
+					class="nav__tooth"
 				/>
+
+				{/*
+					Live text, not the wordmark PNG.
+
+					The image was a raster of the same five letters: soft at every size
+					the nav is not, carrying visible compression artefacts around the
+					glyph edges, and an extra request for something the page already has
+					the typeface for. As text it is sharp at any zoom, recolours with the
+					theme, and IS the link's accessible name — which is why the
+					`.nav__brand` carries no aria-label.
+
+					`.AI` is a span rather than a second element so it stays part of one
+					selectable, copyable string; only its colour differs.
+				*/}
+				<span class="nav__wordmark">MOLAR<span class="nav__wordmark-ai">.AI</span></span>
 				<span class="sr-only">{t('nav.toHome')}</span>
 			</a>
 		</slot>
@@ -595,18 +610,54 @@ const isCurrent = (link: (typeof links)[number]) =>
 		object whose height was its whole size; this is a 7.2:1 wordmark, and at
 		2.25rem it would run 260px wide and crowd the links.
 	*/
-	.nav__mark {
+	/*
+		The wordmark, set rather than drawn. `.nav__brand` already carries the
+		display face and the weight; this is the size and the tracking that make it
+		read as a mark instead of as a nav link.
+	*/
+	.nav__wordmark {
+		font-size: 1.375rem;
+		font-weight: 700;
+		letter-spacing: 0.01em;
+		line-height: 1;
+		white-space: nowrap;
+		color: var(--color-bone-50);
+	}
+
+	/* The one difference between the two halves. Arc-400 rather than the brighter
+	   300: it sits beside white at the same weight, and 300 reads as a highlight
+	   rather than as part of the same word. */
+	.nav__wordmark-ai {
+		color: var(--color-arc-400);
+		transition: color 0.24s var(--ease-out-quint);
+	}
+
+	/*
+		The tooth, ahead of the wordmark.
+
+		Taller than the wordmark rather than matched to it: this is a near-square
+		object whose height IS its size, and at the wordmark's 1.375rem it would
+		read as a smaller thing than the letters beside it. It carries its own glow
+		already, so it takes a lighter drop-shadow than the wordmark does.
+	*/
+	.nav__tooth {
 		flex: none;
 		width: auto;
-		height: 1.375rem;
-		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
+		height: 1.875rem;
+		filter: drop-shadow(0 0 12px color-mix(in oklab, var(--color-arc-500) 55%, transparent));
 		transition: filter 0.24s var(--ease-out-quint);
 	}
 
 	/* Hover feedback lives on the glow, since there is no longer a border to
 	   pick up. */
-	.nav__brand:hover .nav__mark {
-		filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-arc-400) 70%, transparent));
+	.nav__brand:hover .nav__tooth {
+		filter: drop-shadow(0 0 18px color-mix(in oklab, var(--color-arc-400) 80%, transparent));
+	}
+
+	/* The lettering answers in colour rather than in glow — a drop-shadow on live
+	   text at this size reads as a smudge. */
+	.nav__brand:hover .nav__wordmark-ai {
+		color: var(--color-arc-300);
 	}
 
 	/* ── Links ───────────────────────────────────────────────────────────── */

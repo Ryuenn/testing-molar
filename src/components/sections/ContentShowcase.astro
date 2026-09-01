@@ -11,7 +11,8 @@
  * scrolled — see the note in `~/data/showcase`. A gallery whose tiles link to
  * descriptions of themselves is a menu, not a gallery.
  */
-import Glyph from '~/components/ui/Glyph.astro';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import VideoReel from '~/components/sections/VideoReel.astro';
 import { SHOWCASE } from '~/data/showcase';
 import { localizePath } from '~/i18n/config';
@@ -20,12 +21,25 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
+/*
+	The artwork, cut from delivered work by `scripts/generate-showcase.mjs` — one
+	16:9 still per category, keyed by the same `key` the copy is. Eager, because
+	these are build-time `ImageMetadata` records for <Image>.
+
+	A category with no still would render as an empty tile, so it is dropped
+	instead: the data file and the asset folder are edited separately, and a name
+	in one without art in the other should cost a cell rather than leave a hole.
+*/
+const artFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/showcase/*.webp', {
+	eager: true,
+});
+
 const CATEGORIES = SHOWCASE.map((category) => ({
-	icon: category.icon,
+	key: category.key,
 	name: t(`showcase.${category.key}Name` as 'showcase.reelsName'),
-	body: t(`showcase.${category.key}Body` as 'showcase.reelsBody'),
 	href: localizePath(category.href, locale),
-}));
+	art: artFiles[`../../assets/showcase/${category.key}.webp`]?.default,
+})).filter((c): c is typeof c & { art: ImageMetadata } => Boolean(c.art));
 ---
 
 <section id="showcase" class="section section-rule show" aria-labelledby="show-heading">
@@ -37,26 +51,44 @@ const CATEGORIES = SHOWCASE.map((category) => ({
 		</header>
 
 		{/*
-			A scroll rail on narrow screens and a grid on wide ones — one list,
-			restyled at the breakpoint, never two copies in the DOM. `scroll-x`
-			from global.css brings the thin scrollbar; the snap points are local,
-			because they only make sense while the rail is a rail.
+			A bento wall: every category is a picture of itself with its name over
+			it, and the two that carry the argument best — reels and carousels — take
+			the larger cells.
+
+			It was a row of cards with a small icon and a sentence each, which made
+			the section that exists to SHOW the work into six paragraphs describing
+			it. The names are the only words left; anything a sentence would have
+			added, the picture says faster.
+
+			The size of each cell is set in CSS off the category key rather than
+			carried in the data, because it is a property of this layout and not of
+			the category — the same seven appear as a plain list elsewhere.
 		*/}
-		<ul class="show__cats scroll-x" data-reveal-stagger>
+		<div class="show__panel">
+			<ul class="show__wall" data-reveal-stagger>
 			{
 				CATEGORIES.map((category) => (
-					<li data-reveal data-reveal-group>
-						<a class="cat panel panel-hover" href={category.href}>
-							<span class="cat__icon" aria-hidden="true">
-								<Glyph name={category.icon} />
-							</span>
-							<span class="cat__name">{category.name}</span>
-							<span class="cat__body">{category.body}</span>
+					<li class:list={['shot', `shot--${category.key}`]} data-reveal data-reveal-group>
+						<a class="shot__link" href={category.href}>
+							{/*
+								Decorative: the name below is in the same link, so an alt here
+								would have a screen reader read every tile twice.
+							*/}
+							<Image
+								class="shot__art"
+								src={category.art}
+								alt=""
+								widths={[400, 800, 1200]}
+								sizes="(min-width: 62rem) 40vw, 90vw"
+								loading="lazy"
+							/>
+							<span class="shot__name">{category.name}</span>
 						</a>
 					</li>
 				))
 			}
-		</ul>
+			</ul>
+		</div>
 	</div>
 
 	<VideoReel />
@@ -69,6 +101,16 @@ const CATEGORIES = SHOWCASE.map((category) => ({
 </section>
 
 <style>
+	/*
+		Tighter than the shared `--section-y` at the top. The logo marquee above
+		this is a strip rather than a section and closes on its own tight padding,
+		so a full section rhythm between the two left the eyebrow starting a long
+		way down empty ground.
+	*/
+	.show {
+		padding-block-start: clamp(2rem, 4vw, 3.5rem);
+	}
+
 	.show__head {
 		display: flex;
 		flex-direction: column;
@@ -87,50 +129,116 @@ const CATEGORIES = SHOWCASE.map((category) => ({
 		color: var(--color-bone-300);
 	}
 
-	.show__cats {
-		display: grid;
-		grid-auto-flow: column;
-		grid-auto-columns: minmax(14rem, 1fr);
-		gap: 0.75rem;
+	/*
+		The panel the wall sits in — one sheet of glass, not seven.
+
+		A backdrop-filter is expensive and this site has paid for that before, so
+		there is exactly one on this page and it is here. It can afford to be: the
+		ground behind it is the static page wash rather than a playing video, so
+		the blur is sampled from something that does not change.
+	*/
+	.show__panel {
+		padding: clamp(0.75rem, 1.8vw, 1.25rem);
 		margin: 0 0 clamp(2rem, 4vw, 3rem);
-		/* Room for the scrollbar the rail gets on a phone, so the last card is
-		   not sitting on top of it. */
-		padding: 0 0 0.75rem;
+		border: 1px solid var(--color-line);
+		border-radius: clamp(1rem, 1.6vw, 1.5rem);
+		background: color-mix(in oklab, var(--color-ink-900) 42%, transparent);
+		backdrop-filter: blur(18px) saturate(130%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbe8ff 9%, transparent),
+			0 40px 90px -60px #000;
+	}
+
+	/*
+		Three columns, and the spans are chosen so seven tiles fill nine cells with
+		no hole: Reels is one column by two rows, Carousels is two by one, and the
+		remaining five are single cells. Four columns cannot do that — seven tiles
+		into eight or twelve cells always leaves one short.
+
+		Reels being the tall cell is the point of the layout rather than a
+		decoration: the clips ARE portrait, so it is the one tile that shows a whole
+		frame instead of a slice of one.
+	*/
+	.show__wall {
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-auto-rows: 9rem;
+		gap: clamp(0.5rem, 1vw, 0.75rem);
+		margin: 0;
+		padding: 0;
 		list-style: none;
-		scroll-snap-type: x mandatory;
 	}
 
-	.show__cats > li {
-		scroll-snap-align: start;
+	.shot--reels {
+		grid-row: span 2;
 	}
 
-	.cat {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+	@media (min-width: 46rem) {
+		.show__wall {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-auto-rows: 11rem;
+		}
+
+		.shot--carousels {
+			grid-column: span 2;
+		}
+	}
+
+	@media (min-width: 68rem) {
+		.show__wall {
+			grid-auto-rows: 13rem;
+		}
+	}
+
+	.shot {
+		position: relative;
+		overflow: clip;
+		border-radius: clamp(0.625rem, 1vw, 0.875rem);
+		background: var(--color-ink-950);
+	}
+
+	.shot__link {
+		display: block;
+		width: 100%;
 		height: 100%;
-		padding: 1.125rem 1rem 1.25rem;
 		text-decoration: none;
 	}
 
-	.cat__icon {
-		width: 1.25rem;
-		height: 1.25rem;
-		color: var(--color-arc-300);
+	/* Each still is already cut to its cell, so this is a fit rather than a crop
+	   — see scripts/generate-showcase.mjs. */
+	.shot__art {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.5s var(--ease-out-quint);
 	}
 
-	.cat__name {
+	.shot__link:hover .shot__art,
+	.shot__link:focus-visible .shot__art {
+		transform: scale(1.04);
+	}
+
+	/*
+		The name, over the picture, on a scrim of its own rather than over the whole
+		tile: these are photographs of teeth and screens, and a label in white over
+		an unscrimmed one is unreadable about half the time.
+	*/
+	.shot__name {
+		position: absolute;
+		inset-inline: 0;
+		inset-block-end: 0;
+		padding: 2.25rem 0.85rem 0.7rem;
 		font-family: var(--font-display);
-		font-size: var(--text-base);
-		font-weight: 600;
-		line-height: 1.25;
-		color: var(--color-bone-50);
-	}
-
-	.cat__body {
 		font-size: var(--text-sm);
-		line-height: 1.55;
-		color: var(--color-bone-400);
+		font-weight: 600;
+		line-height: 1.2;
+		color: var(--color-bone-50);
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			color-mix(in oklab, var(--color-ink-950) 62%, transparent) 46%,
+			color-mix(in oklab, var(--color-ink-950) 90%, transparent) 100%
+		);
 	}
 
 	.show__more {
@@ -139,33 +247,4 @@ const CATEGORIES = SHOWCASE.map((category) => ({
 		margin: clamp(2rem, 4vw, 3rem) 0 0;
 	}
 
-	/*
-		Wide enough for all seven to sit still. Below this the rail scrolls, which
-		is the honest behaviour for seven cards on a phone — a 7-row stack pushes
-		the reel a screen and a half down the page.
-	*/
-	@media (min-width: 76rem) {
-		.show__cats {
-			grid-auto-flow: row;
-			grid-template-columns: repeat(4, minmax(0, 1fr));
-			grid-auto-columns: auto;
-			padding-bottom: 0;
-			overflow: visible;
-			scroll-snap-type: none;
-		}
-
-		/*
-			Seven cards into a four-column grid leaves a hole on the second row.
-			The first card takes two columns instead, which makes eight cells out
-			of seven cards and closes it — and Reels is the right one to widen,
-			since it is what most of the reel below actually is.
-
-			If an eighth category is ever added, delete this rule: eight cards fill
-			the grid on their own and the wide first card would then push the last
-			one onto a row of its own.
-		*/
-		.show__cats > li:first-child {
-			grid-column: span 2;
-		}
-	}
 </style>

@@ -7,53 +7,55 @@ import TrustBand from '~/components/sections/TrustBand.astro';
 import Ecosystem from '~/components/sections/Ecosystem.astro';
 import SocialPlans from '~/components/sections/SocialPlans.astro';
 import ContentShowcase from '~/components/sections/ContentShowcase.astro';
-import ClientProof from '~/components/sections/ClientProof.astro';
-import GlobalReach from '~/components/sections/GlobalReach.astro';
-import GeoBand from '~/components/sections/GeoBand.astro';
 import EducationLibrary from '~/components/sections/EducationLibrary.astro';
 import MolarTv from '~/components/sections/MolarTv.astro';
-import PatientJourney from '~/components/sections/PatientJourney.astro';
 import CustomerStories from '~/components/sections/CustomerStories.astro';
 import Testimonials from '~/components/sections/Testimonials.astro';
-import ResourceHub from '~/components/sections/ResourceHub.astro';
-import WhyMolar from '~/components/sections/WhyMolar.astro';
 import Faq from '~/components/sections/Faq.astro';
-import ProductSelector from '~/components/sections/ProductSelector.astro';
 import FinalCta from '~/components/sections/FinalCta.astro';
 
 import { faqSchema, productSchema } from '~/data/schema';
 
 /*
-	The home page is the hub of the funnel, in the order the master strategy
-	sets out: state the category, prove it, offer the three ways in, then walk
-	the whole ecosystem product by product and close.
+	The home page leads with MOLAR TV.
 
-	Every section below is a stop a visitor can be routed to. Four of them are
-	the products — social, education, TV, complete — and each has a page of its
-	own; the sections here are the argument for clicking through, not a
-	replacement for the page.
+	The order used to follow the master strategy's own list — social media first,
+	the waiting-room screen ten sections later. That is backwards as a sales
+	argument. The screen is already on the wall, already switched on and already
+	playing something worthless; MOLAR TV is the easiest yes on the site, and the
+	library is the second. Social media is the upgrade once a practice is already
+	publishing, not the way in.
 
-	Two things are on this page that the strategy's section list does not name,
-	and both are deliberate:
+	Five sections came off in the same pass, all of them re-telling the ecosystem
+	the diagram already draws:
 
-	  Faq         it already existed, it is linked from the Resources menu as
-	              /#faq, and netlify.toml redirects /faq to that fragment. The
-	              FAQPage structured data below is generated from the same array
-	              the section renders, so the two cannot drift.
-	  productSchema  the social plans are now on this page, with their prices
-	              visible, so Product/Offer markup describes something a visitor
-	              can actually see. That was not true of the old home page,
-	              which is why the schema used to live only on /pricing/.
+	  PatientJourney   the journey in six steps, which `Ecosystem` draws in one
+	  WhyMolar         six blocks of prose making the case a fourth time
+	  ProductSelector  a "pick your product" grid under a page that has already
+	                   shown every product
+	  ResourceHub      a wall of links off the page, at the point a visitor
+	                   should be closer to checking out rather than further
+	  GlobalReach /
+	  GeoBand          two adjacent bands on the same languages-and-markets fact
+	  ClientProof      grids of published posts, immediately above CustomerStories
+	                   doing the same. Its own header says it exists BECAUSE the
+	                   strategy wanted a logo wall and there was no art for one —
+	                   and there is now, sixteen real marks in `TrustBand`. So the
+	                   breadth argument is made once, in logos, and the depth
+	                   argument once, in `CustomerStories`, which carries the
+	                   measured results this never did.
 
-	What is NOT here: the agency comparison, the testimonial film, and the
-	three-doors `ChoosePath` band. The comparison is a pricing argument and runs
-	on /pricing/; the film runs on /social-media/, where the claim it makes
-	belongs; and ChoosePath was a second price list stacked directly on top of
-	the real one — two grids of figures back to back, the first of them a
-	summary of the second. The page states its prices once, in `SocialPlans`,
-	and `ProductSelector` further down still asks the three-doors question at the
-	point where a visitor is choosing. ChoosePath itself still runs on
-	/molar-complete/, where nothing else carries a price.
+	They all still exist and still run on their own pages. Nothing was deleted —
+	the home page just stopped saying everything four times.
+
+	Two things here the strategy's section list does not name, both deliberate:
+
+	  Faq         it is linked from the Resources menu as /#faq, and netlify.toml
+	              redirects /faq to that fragment. The FAQPage structured data
+	              below is generated from the same array the section renders, so
+	              the two cannot drift.
+	  productSchema  the plans are on this page with their prices visible, so
+	              Product/Offer markup describes something a visitor can see.
 */
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -72,22 +74,31 @@ const t = useTranslations(locale);
 	transparentNav
 	schema={[productSchema(locale), faqSchema()]}
 >
+	{/*
+		Order is the argument, and the argument changed.
+
+		It used to open on social media and reach the waiting-room screen ten
+		sections later. That is backwards: the screen is the thing a practice
+		already owns and is already wasting, MOLAR TV is what should be playing on
+		it, and it is the easiest yes on this page. Social is the upgrade once the
+		content is already running.
+
+		So: the hook, then proof it is real, then the two products you start with,
+		then the ecosystem ONCE, then the price, then who says so.
+
+		The ecosystem used to be told four times over — the diagram, the journey,
+		the six blocks and the selector. `Ecosystem` is the one that draws it, and
+		it is the one that stays.
+	*/}
 	<Hero />
+	<MolarTv />
 	<TrustBand />
+	<ContentShowcase />
+	<EducationLibrary />
 	<Ecosystem />
 	<SocialPlans />
-	<ContentShowcase />
-	<ClientProof />
-	<GlobalReach />
-	<GeoBand />
-	<EducationLibrary />
-	<MolarTv />
-	<PatientJourney />
 	<CustomerStories />
 	<Testimonials />
-	<ResourceHub />
-	<WhyMolar />
 	<Faq />
-	<ProductSelector />
 	<FinalCta />
 </BaseLayout>

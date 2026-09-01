@@ -1,20 +1,41 @@
 ---
 /**
- * One resource, as a row in the library list.
+ * One resource, as a card.
  *
- * A row rather than a card, and deliberately: the library is something you scan
- * down looking for a title, not a gallery you browse. A grid of glass cards
- * gives every entry equal visual weight and forces the eye to zig-zag; a list
- * puts the titles in one column so twenty of them read in one pass, and it
- * leaves room for the whole blurb instead of a card-sized crop of it.
+ * It was a row: category, title, one clipped line of blurb, an arrow, a
+ * hairline. That is a table of contents, and twenty-one of them stacked read as
+ * a document rather than as a library — which is the note this rebuild answers.
  *
- * The hairline is the only chrome. Everything else — the category above the
- * title, the arrow at the end — is there to say "this is a link to a page",
- * which a card had to spend a border and a shadow to say.
+ * There is no artwork to card them with. These are PDFs, and rendering a real
+ * first page needs a rasteriser this project does not carry (Chrome's headless
+ * screenshot returns a blank frame for a PDF, so that shortcut is out). The
+ * cover is drawn instead — the category's glyph on a tinted wash, with the
+ * format and page count stamped where a document carries its filing detail.
+ *
+ * If real covers ever exist, the cover block is the only thing to replace.
  */
 import type { CollectionEntry } from 'astro:content';
+import Glyph from '~/components/ui/Glyph.astro';
+import type { GlyphName } from '~/data/glyphs';
+import type { ResourceCategory } from '~/data/resources';
 import { localizePath } from '~/i18n/config';
 import { getLocale } from '~/i18n/utils';
+
+/**
+ * A mark per category, so a wall of these reads as sorted at a glance rather
+ * than as twenty-one identical rectangles.
+ *
+ * Keyed by the category union, so adding a category to `RESOURCE_CATEGORIES`
+ * without a glyph here fails the build rather than rendering an empty square.
+ */
+const CATEGORY_GLYPH: Record<ResourceCategory, GlyphName> = {
+	'AI Workflows': 'spark',
+	'Patient Education': 'book',
+	'Practice Growth': 'chart',
+	'Social Media': 'share',
+	'Treatment Guides': 'tooth',
+	Operations: 'layers',
+};
 
 const locale = getLocale(Astro);
 
@@ -43,53 +64,109 @@ const href = localizePath(`/resources/${entry.id}/`, locale);
 	data-pages={data.pages}
 	data-updated={data.updated.toISOString().slice(0, 10)}
 >
+	{/*
+		The cover. There is no artwork for these — they are PDFs, and rendering a
+		real first page needs a PDF rasteriser this project does not carry — so the
+		card draws one: the category's own glyph over a wash tinted by category,
+		with the format and length stamped in the corner the way a document's
+		filing detail would be.
+
+		It is decoration and says so. Everything in it is repeated in the text
+		below, which is why the whole block is hidden from assistive tech.
+	*/}
+	<span class="row__cover" aria-hidden="true">
+		<span class="row__glyph"><Glyph name={CATEGORY_GLYPH[data.category]} /></span>
+		<span class="row__stamp">{data.format} · {data.pages} pp</span>
+	</span>
+
 	<div class="row__text">
 		<p class="row__cat">{data.category}</p>
 
 		<Heading class="row__title">
-			{/* Whole row is the target; the link stays the accessible name. */}
+			{/* Whole card is the target; the link stays the accessible name. */}
 			<a href={href} class="row__link">
 				{data.title}
-				<span class="row__cover" aria-hidden="true"></span>
+				<span class="row__hit" aria-hidden="true"></span>
 			</a>
 		</Heading>
 
 		<p class="row__blurb">{data.blurb}</p>
 	</div>
-
-	<span class="row__arrow" aria-hidden="true">
-		<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-			<path d="M2.5 8h11M9.5 4 13.5 8l-4 4" stroke-linecap="round" stroke-linejoin="round"></path>
-		</svg>
-	</span>
 </article>
 
 <style>
 	/*
-		Border on the bottom of every row rather than between them. `:last-child`
-		would be the tidier rule, but the hub hides rows as you filter and a hidden
-		last child still answers `:last-child` — the rule would strip the hairline
-		off a row that is no longer at the end.
+		A card, not a row in a list.
+
+		These were hairline-separated rows of text — category, title, one truncated
+		line of blurb, an arrow — which is a table of contents rather than a
+		library. Twenty-one of them stacked read as a document nobody wants to
+		scroll. As cards with a drawn cover they read as things you could pick up.
 	*/
 	.row {
 		position: relative;
-		display: grid;
-		grid-template-columns: 1fr auto;
-		align-items: center;
-		gap: 1.5rem;
-		padding-block: clamp(1.25rem, 2.5vw, 1.6rem);
-		border-bottom: 1px solid var(--color-line);
-		transition: border-color 0.28s var(--ease-out-quint);
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		overflow: clip;
+		border: 1px solid var(--color-line);
+		border-radius: 0.875rem;
+		background: color-mix(in oklab, var(--color-ink-900) 58%, transparent);
+		transition:
+			border-color 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
 	}
 
 	.row:hover {
-		border-color: var(--color-line-strong);
+		border-color: color-mix(in oklab, var(--color-arc-400) 42%, transparent);
+		transform: translateY(-2px);
+	}
+
+	/*
+		The drawn cover. A fixed ratio rather than a height, so a card is the same
+		shape at every column width and the grid stays even.
+	*/
+	.row__cover {
+		position: relative;
+		display: grid;
+		place-items: center;
+		aspect-ratio: 16 / 9;
+		border-block-end: 1px solid var(--color-line);
+		background:
+			radial-gradient(
+				90% 120% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-500) 20%, transparent) 0%,
+				transparent 70%
+			),
+			var(--color-ink-950);
+	}
+
+	.row__glyph {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		color: var(--color-arc-300);
+		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 60%, transparent));
+	}
+
+	/* The filing detail, in the corner a document would carry it. */
+	.row__stamp {
+		position: absolute;
+		inset-block-end: 0.5rem;
+		inset-inline-end: 0.625rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
 	}
 
 	.row__text {
 		display: grid;
+		align-content: start;
 		gap: 0.4rem;
-		min-width: 0;
+		padding: 0.9rem 1rem 1.1rem;
 	}
 
 	.row__cat {
@@ -118,51 +195,27 @@ const href = localizePath(`/resources/${entry.id}/`, locale);
 		color: var(--color-arc-200);
 	}
 
-	/* Expands the hit area to the whole row without nesting interactive elements. */
-	.row__cover {
+	/* Expands the hit area to the whole card without nesting interactive
+	   elements inside one another. */
+	.row__hit {
 		position: absolute;
 		inset: 0;
 	}
 
 	/*
-		One line, clipped. The blurb is a scent to help you pick, not something to
-		read here — two rows of it per entry would double the list's height and cost
-		you the scan the list exists to give.
+		Two lines, clamped. A card has the width for the blurb to be read rather
+		than glimpsed, but not the height for a long one to push its neighbours out
+		of alignment — every card in a row is as tall as the tallest.
 	*/
 	.row__blurb {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
 		margin: 0;
 		overflow: hidden;
 		font-size: var(--text-sm);
+		line-height: 1.5;
 		color: var(--color-bone-400);
-		text-overflow: ellipsis;
-		white-space: nowrap;
 	}
 
-	.row__arrow {
-		flex: none;
-		display: grid;
-		place-items: center;
-		width: 1.5rem;
-		height: 1.5rem;
-		color: var(--color-bone-500);
-		transition:
-			color 0.28s var(--ease-out-quint),
-			transform 0.28s var(--ease-out-quint);
-	}
-
-	.row:hover .row__arrow {
-		color: var(--color-arc-300);
-		transform: translateX(4px);
-	}
-
-	.row__arrow svg {
-		width: 100%;
-		height: 100%;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.row:hover .row__arrow {
-			transform: none;
-		}
-	}
 </style>

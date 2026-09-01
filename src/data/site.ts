@@ -129,21 +129,19 @@ export const NAV_LINKS: readonly NavEntry[] = [
 	{
 		key: 'resources',
 		href: '/resources/',
-		menu: [
-			{ key: 'menuHub', href: '/resources/', icon: 'docs' },
-			{ key: 'menuLibrary', href: '/resources/video-library/', icon: 'film' },
-			/*
-				Deep links into the hub's own category filter, which reads
-				`?category=` off the URL on load — see src/pages/resources/index.astro.
-				The values have to match `RESOURCE_CATEGORIES` in ~/data/resources
-				exactly or the chip lights nothing.
-			*/
-			{ key: 'menuPatientGuides', href: '/resources/?category=Patient+Education', icon: 'tooth' },
-			{ key: 'menuMarketing', href: '/resources/?category=Social+Media', icon: 'palette' },
-			{ key: 'menuTemplates', href: '/resources/?category=Operations', icon: 'layers' },
-			{ key: 'menuFaq', href: '/#faq', icon: 'chat' },
-		],
-		menuFoot: { key: 'menuAllResources', href: '/resources/' },
+		/*
+			No panel. This stop is a plain link to the hub.
+
+			It used to open a mega panel of six rows, four of which landed on
+			/resources/ — the hub itself plus three deep links into its own category
+			filter — while the parent link and the panel's own foot both went there
+			too. Trimming it to the two destinations that differed left a two-row
+			panel, which is a panel not worth opening.
+
+			Both of those still have a home: the video library is promoted at the top
+			of the hub with its own access controls, and the FAQ is a section of the
+			home page reachable from the footer and from /#faq.
+		*/
 	},
 	{ key: 'pricing', href: '/pricing/' },
 ] as const;

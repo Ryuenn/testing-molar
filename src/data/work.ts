@@ -132,19 +132,7 @@ export const WORK: readonly WorkAccount[] = [
 			{ hex: '#2E6B63', name: 'Deep teal' },
 		],
 	},
-	{
-		slug: 'carewell-dental',
-		practice: 'Carewell Dental and Facial Aesthetics',
-		specialty: 'Dentistry and facial aesthetics',
-		language: 'English',
-		languageCode: 'en',
-		note: 'Navy and chartreuse under a magazine masthead — rules, datelines and all. The boldest grid of the seven, and the only one that reads as editorial rather than clinical.',
-		palette: [
-			{ hex: '#1B2A4A', name: 'Navy' },
-			{ hex: '#C4D82E', name: 'Chartreuse' },
-			{ hex: '#F5F1E8', name: 'Paper' },
-		],
-	},
+
 ];
 
 /** The one that runs large at the top of the page. */
