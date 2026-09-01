@@ -110,6 +110,16 @@ const SURFACES = TOUCHPOINTS.map((point) => ({
 		isolation: isolate;
 		overflow: clip;
 		background: url('/images/molar-world.webp') 50% 100% / cover no-repeat;
+		/*
+			Roughly half the shared `--section-y`, both ends.
+
+			That token is tuned for sections that sit on the page's own ground,
+			where the space around the content reads as breathing room. This one
+			paints a picture, so the same gap reads as an empty band — sky above the
+			eyebrow, dark ground below the last line — and the still's own falloff
+			at both edges is already doing the work the padding was there for.
+		*/
+		padding-block: clamp(2.5rem, 4.5vw, 4.5rem);
 	}
 
 	.eco::before {

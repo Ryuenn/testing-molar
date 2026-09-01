@@ -142,15 +142,22 @@ const buyIsExternal = !buyHref.startsWith('/');
 
 					<div class="hit__stage">
 						{/*
-							`preload="metadata"` gets the first frame without pulling the
-							file; no `autoplay`, so nothing moves until the visitor asks.
-							`controls` because a video the reader can start is the honest
-							version of a play button that does nothing.
+							The first frame, without pulling the file — but not until this
+							section is worth painting. `preload="metadata"` reaches into
+							every clip the moment the page loads, and the three on this
+							section come to 73MB between them; on a landing page that is
+							bandwidth spent on a section most visitors never scroll to.
+
+							`data-preload` is the value the script below applies once the
+							section is close. No `autoplay`, so nothing moves until the
+							visitor asks; `controls` because a video the reader can start is
+							the honest version of a play button that does nothing.
 						*/}
 						<video
 							class="hit__video"
 							src={result.video}
-							preload="metadata"
+							preload="none"
+							data-preload="metadata"
 							playsinline
 							controls
 							disablepictureinpicture
@@ -171,7 +178,7 @@ const buyIsExternal = !buyHref.startsWith('/');
 							related.map((entry) => (
 								<li class="rel__item">
 									<span class="rel__thumb">
-										<video src={entry.video} preload="metadata" muted playsinline tabindex="-1" aria-hidden="true" />
+										<video src={entry.video} preload="none" data-preload="metadata" muted playsinline tabindex="-1" aria-hidden="true" />
 										<span class="rel__play" aria-hidden="true">
 											<Glyph name="play" />
 										</span>
@@ -251,6 +258,50 @@ const buyIsExternal = !buyHref.startsWith('/');
 		}
 	</div>
 </section>
+
+<script>
+	/*
+		Hands each clip back the `preload` it wants, once the section is within a
+		screen of the viewport.
+
+		The markup ships `preload="none"` so the browser reaches into nothing on
+		load; this restores `metadata` in time for the poster frame to be painted
+		before anyone reads this far. Net effect is the section looks exactly as it
+		did, and a visitor who never scrolls to it pays nothing for it.
+
+		No observer support, or no JS at all: the clips keep `preload="none"` and
+		show their first frame the moment someone presses play. Later than before,
+		never broken.
+	*/
+	const deferred = document.querySelectorAll<HTMLVideoElement>('video[data-preload]');
+
+	if (deferred.length) {
+		const wake = (video: HTMLVideoElement) => {
+			video.preload = (video.dataset.preload ?? 'metadata') as HTMLVideoElement['preload'];
+			video.removeAttribute('data-preload');
+			video.load();
+		};
+
+		if (!('IntersectionObserver' in window)) {
+			for (const video of deferred) wake(video);
+		} else {
+			const observer = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						if (!entry.isIntersecting) continue;
+						wake(entry.target as HTMLVideoElement);
+						observer.unobserve(entry.target);
+					}
+				},
+				/* A screen's worth of warning, so the frame is there by the time the
+				   section is. */
+				{ rootMargin: '100% 0px' },
+			);
+
+			for (const video of deferred) observer.observe(video);
+		}
+	}
+</script>
 
 <style>
 	.lib {

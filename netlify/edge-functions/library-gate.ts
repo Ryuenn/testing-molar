@@ -32,8 +32,20 @@ import type { Config, Context } from '@netlify/edge-functions';
 
 const COOKIE = 'molar_library';
 
-/** A week. Long enough that a client is not re-prompted mid-review. */
-const MAX_AGE = 60 * 60 * 24 * 7;
+/**
+ * How long a signature stays good for.
+ *
+ * The cookie itself carries no `Max-Age`, which makes it a session cookie: the
+ * browser drops it when it closes, and the next visit starts at the form again.
+ * That is the ask — a password handed to a client should not still be letting
+ * them in a week later from a machine they have walked away from.
+ *
+ * This is the backstop underneath it, not the main control. A session cookie
+ * still lives as long as the browser stays open, and browsers set to reopen
+ * their tabs can carry one across a restart; the signed expiry is what puts a
+ * ceiling on both. Half a day is long enough for any single sitting.
+ */
+const MAX_AGE = 60 * 60 * 12;
 
 export default async (request: Request, context: Context) => {
 	/*
@@ -65,7 +77,10 @@ export default async (request: Request, context: Context) => {
 			status: 303,
 			headers: {
 				Location: url.pathname,
-				'Set-Cookie': `${COOKIE}=${await mint(password)}; Path=/; Max-Age=${MAX_AGE}; HttpOnly; Secure; SameSite=Lax`,
+				/* No `Max-Age` and no `Expires` — that is what makes it a session
+				   cookie. Adding either is what would let someone back in tomorrow
+				   without the password. */
+				'Set-Cookie': `${COOKIE}=${await mint(password)}; Path=/; HttpOnly; Secure; SameSite=Lax`,
 				'Cache-Control': 'no-store',
 			},
 		});
