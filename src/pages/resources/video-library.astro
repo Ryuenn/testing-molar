@@ -167,6 +167,7 @@ const scriptStrings = JSON.stringify({
 								data-language={item.language}
 								data-month={item.month}
 								data-video={item.video}
+								data-vimeo={item.vimeo}
 								data-summary={item.summary}
 								data-explainer={item.explainer}
 								data-code={item.code}
@@ -184,18 +185,38 @@ const scriptStrings = JSON.stringify({
 									</span>
 
 									{/*
-										`#t=0.1` is the poster. A media fragment makes the browser
-										seek to that frame and paint it, which costs a range
-										request instead of a still we would have to generate,
-										commit, and keep in sync with the clip.
+										Two kinds of item, two ways to show a still.
+
+										Local clips seek their own: `#t=0.1` is a media fragment
+										that makes the browser paint that frame, which costs a
+										range request instead of a poster we would have to
+										generate, commit, and keep in sync with the clip.
+
+										Hosted ones have no local file to seek, so they take
+										Vimeo's own thumbnail. Lazy, because sixty-odd of them on
+										one page is the difference between a grid that paints
+										immediately and one that waits on images nobody has
+										scrolled to yet.
 									*/}
-									<video
-										class="lib-card__video"
-										src={item.video + '#t=0.1'}
-										preload="metadata"
-										muted
-										playsinline
-									/>
+									{item.video ? (
+										<video
+											class="lib-card__video"
+											src={item.video + '#t=0.1'}
+											preload="metadata"
+											muted
+											playsinline
+										/>
+									) : (
+										<img
+											class="lib-card__video"
+											src={item.poster}
+											alt=""
+											loading="lazy"
+											decoding="async"
+											width="360"
+											height="640"
+										/>
+									)}
 
 									<span class="lib-card__badge">{item.type}</span>
 
@@ -251,6 +272,25 @@ const scriptStrings = JSON.stringify({
 			<div class="lib-dialog__stage">
 				<video class="lib-dialog__video" data-dialog-video controls playsinline preload="metadata"
 				></video>
+
+				{/*
+					The hosted player. A second element rather than one that switches
+					`src` between a file and an embed: they are different elements with
+					different controls, and swapping the tag under one name is how you
+					end up with a <video> wearing an iframe's attributes.
+
+					No `src` in the markup. An iframe carrying a Vimeo URL would load a
+					player on page load, and the whole point of one dialog for the grid
+					is that it costs one player rather than sixty-seven.
+				*/}
+				<iframe
+					class="lib-dialog__embed"
+					data-dialog-embed
+					title=""
+					hidden
+					allow="autoplay; fullscreen; picture-in-picture"
+					allowfullscreen
+					referrerpolicy="strict-origin-when-cross-origin"></iframe>
 
 				{/*
 					The escape hatch, and the reason the modal is safe to reach for: it
@@ -379,6 +419,7 @@ const scriptStrings = JSON.stringify({
 
 		// ── The modal ──────────────────────────────────────────────────────────
 		const video = dialog.querySelector<HTMLVideoElement>('[data-dialog-video]')!;
+		const embed = dialog.querySelector<HTMLIFrameElement>('[data-dialog-embed]')!;
 		const title = dialog.querySelector<HTMLElement>('[data-dialog-title]')!;
 		const meta = dialog.querySelector<HTMLElement>('[data-dialog-meta]')!;
 		const fallback = dialog.querySelector<HTMLElement>('[data-fallback]')!;
@@ -454,17 +495,35 @@ const scriptStrings = JSON.stringify({
 			panel.scrollTop = 0;
 
 			fallback.hidden = true;
+
+			/* Both torn down first, whichever is about to be used. Leaving the other
+			   one loaded means a hosted clip keeps playing behind a local one. */
 			video.hidden = true;
 			video.removeAttribute('src');
+			embed.hidden = true;
+			embed.removeAttribute('src');
 
-			video.hidden = false;
-			video.src = data.video ?? '';
-			video.load();
+			if (data.vimeo) {
+				embed.hidden = false;
+				embed.title = data.title ?? '';
+				/*
+					`autoplay` because the visitor clicked a card to watch something —
+					the click is the gesture that permits it. `dnt` keeps Vimeo from
+					setting tracking cookies on our visitors, which is ours to decide
+					and not something a video needs.
+				*/
+				embed.src = `https://player.vimeo.com/video/${encodeURIComponent(data.vimeo)}?autoplay=1&dnt=1&title=0&byline=0&portrait=0`;
+			} else {
+				video.hidden = false;
+				video.src = data.video ?? '';
+				video.load();
+			}
 
 			dialog.showModal();
 			lock(true);
-			/* Inside the click, so it is allowed to play. */
-			void video.play().catch(() => {});
+			/* Inside the click, so it is allowed to play. The hosted player starts
+			   itself from `autoplay=1` above. */
+			if (!data.vimeo) void video.play().catch(() => {});
 		};
 
 		for (const card of cards) {
@@ -487,6 +546,12 @@ const scriptStrings = JSON.stringify({
 			video.pause();
 			video.removeAttribute('src');
 			video.load();
+			/* Same reasoning for the hosted player, and it is not optional there:
+			   an iframe left with its `src` set keeps playing — and keeps its audio
+			   going — behind a closed dialog. Dropping the attribute unloads the
+			   document inside it. */
+			embed.hidden = true;
+			embed.removeAttribute('src');
 			fallbackLink.hidden = false;
 			lock(false);
 			opener?.focus();
@@ -1105,6 +1170,15 @@ const scriptStrings = JSON.stringify({
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	/* The hosted player fills the same stage. `contain` has no meaning on an
+	   iframe — the player letterboxes the clip inside itself — so this only has
+	   to hand it the box and get out of the way. */
+	.lib-dialog__embed {
+		width: 100%;
+		height: 100%;
+		border: 0;
 	}
 
 	.lib-dialog__fallback {
