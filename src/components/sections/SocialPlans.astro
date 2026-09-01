@@ -31,6 +31,34 @@ const t = useTranslations(locale);
 </section>
 
 <style>
+	/*
+		The band paints the plans field, heading and all.
+
+		Same arrangement as PageIntro's `ground="plans"` on /pricing/ and
+		/social-media/, and for the same reason: the heading and the grid are
+		siblings, so a picture on the grid alone starts halfway down and leaves the
+		heading on the page's own ground — which reads as two sections rather than
+		one. `--plans-ground` is what the grid reads to switch off the copy it
+		would otherwise paint inside this one.
+
+		Padding: `.section` gives this `--section-y` at both ends, and both ends
+		were wrong. The top ran to 144px of empty sky before the eyebrow. The
+		bottom stacked on the grid's own closing padding, so the picture ran on for
+		the better part of 200px below the footnote — the grid's padding is the one
+		that belongs to the content, this one is just the wrapper.
+
+		`border-top` goes with it: a hairline across the top of a picture is a seam,
+		and the still's own dark upper edge does that job already.
+	*/
+	.plans-band {
+		position: relative;
+		isolation: isolate;
+		background: url('/images/section-bg.webp') 50% 50% / 100% 100% no-repeat;
+		--plans-ground: none;
+		padding-block: clamp(2.5rem, 5vw, 4rem) 0;
+		border-top: 0;
+	}
+
 	.plans-band__head {
 		display: flex;
 		flex-direction: column;

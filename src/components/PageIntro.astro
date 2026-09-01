@@ -144,7 +144,13 @@ const { eyebrow, title, lede, crumb, ground = 'banner' } = Astro.props;
 		position: relative;
 		isolation: isolate;
 		overflow: clip;
-		padding-block: calc(var(--nav-h, 5.25rem) + clamp(2.5rem, 6vw, 4.5rem))
+		/*
+			`--nav-h` is the part that has to be there — the nav is fixed and out of
+			flow, so without it the breadcrumb sits underneath it. Everything past
+			that is breathing room, and it was set generously enough that the eyebrow
+			started a long way down an otherwise empty screen. Halved.
+		*/
+		padding-block: calc(var(--nav-h, 5.25rem) + clamp(1.25rem, 3vw, 2.25rem))
 			clamp(2.5rem, 5vw, 4rem);
 		background:
 			radial-gradient(
