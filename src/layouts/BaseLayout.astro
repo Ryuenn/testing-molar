@@ -60,6 +60,13 @@ const alternates = LOCALES.map((l) => ({
 const xDefault = new URL(localizePath(Astro.url.pathname, DEFAULT_LOCALE), SITE.origin).href;
 
 const graph = [organizationSchema(), websiteSchema(), ...schema];
+
+/**
+ * Cache-buster on the favicon links below. Bump it when the icons change —
+ * their filenames are stable, and a browser that has one will not go looking
+ * for another.
+ */
+const ICON_VERSION = 2;
 ---
 
 <!doctype html>
@@ -75,10 +82,16 @@ const graph = [organizationSchema(), websiteSchema(), ...schema];
 			scripts/generate-icons.mjs. The .ico carries 16/32/48 for browsers that
 			still ask for it by convention; the PNG is there for everything that
 			would rather have a bigger one.
+
+			`?v=` because the filenames are stable and browsers keep favicons in a
+			cache of their own that pays no attention to `must-revalidate` — a
+			replaced icon can sit unnoticed in a tab for days. The query is part of
+			the cache key, so bumping it is what actually ships a new mark. Bump it
+			whenever `npm run icons` produces a different one.
 		*/}
-		<link rel="icon" href="/favicon.ico" sizes="32x32" />
-		<link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
-		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="icon" href={`/favicon.ico?v=${ICON_VERSION}`} sizes="32x32" />
+		<link rel="icon" href={`/favicon-96.png?v=${ICON_VERSION}`} type="image/png" sizes="96x96" />
+		<link rel="apple-touch-icon" href={`/apple-touch-icon.png?v=${ICON_VERSION}`} />
 		<link rel="manifest" href="/site.webmanifest" />
 		<link rel="sitemap" href="/sitemap-index.xml" />
 
