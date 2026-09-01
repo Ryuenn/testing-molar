@@ -32,6 +32,16 @@
 	disablepictureinpicture
 	disableRemotePlayback></video>
 
+{/*
+	The scrim, over the footage.
+
+	A separate element rather than a pseudo-element on the video, because a
+	<video> is a replaced element and does not render ::before or ::after. Both
+	sit at `z-index: -1`; this one comes second in the DOM, which is what puts it
+	on top of the footage and still under everything the band renders.
+*/}
+<div class="plans-field__scrim" aria-hidden="true"></div>
+
 <style>
 	/*
 		Behind the content, out of the flow, and untouchable. `z-index: -1` puts it
@@ -50,13 +60,38 @@
 	}
 
 	/*
+		Deliberately light. The footage is the point; this only has to take the top
+		off it so white type has something to sit on and the cards stay the
+		brightest thing in the band.
+
+		Weighted to the top, where the heading and lede are, easing to a flat wash
+		by the time it reaches the grid — the cards paint their own near-opaque ink
+		and do not need help.
+	*/
+	.plans-field__scrim {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			rgb(0 0 0 / 0.55) 0%,
+			rgb(0 0 0 / 0.38) 26%,
+			rgb(0 0 0 / 0.28) 55%,
+			rgb(0 0 0 / 0.34) 100%
+		);
+	}
+
+	/*
 		A moving ground behind a price list is decoration, and decoration is the
 		first thing to drop for someone who has asked for less motion. The band
 		keeps its own dark ground underneath, so removing this leaves a flat
-		section rather than a hole.
+		section rather than a hole — and the scrim goes with it, since there is
+		nothing left to take the top off.
 	*/
 	@media (prefers-reduced-motion: reduce) {
-		.plans-field {
+		.plans-field,
+		.plans-field__scrim {
 			display: none;
 		}
 	}
