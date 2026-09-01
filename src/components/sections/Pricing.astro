@@ -139,39 +139,22 @@ const { head = true } = Astro.props;
 
 <style>
 	/*
-		The ground: `public/images/section-bg.png` — a lit floor running back to a
-		horizon, hexagon walls either side.
+		No ground of its own — see `PlansField`, which every caller renders on the
+		band around this grid.
 
-		Straight onto the section, which is the whole point of the file. The master
-		(`public/images/section_bg_2_new.png`) is near-black navy, a shade off the
-		page ground it sits on, so it used to be carried by its own
-		absolutely-positioned layer wearing a `filter` lift and a `mask-image`
-		feather. Both are baked into the file now — see
-		`scripts/generate-section-bg.mjs`, re-run it to retune — which leaves no
-		filtered compositing layer to re-rasterise and no extra element.
-
-		The lift is deliberately small (1.7×, no added saturation). It only has to
-		separate the band from the page ground; past that the field goes electric
-		blue and stops looking like the still it came from.
-
-		Stretched to the box rather than `cover`, which makes the master's SHAPE
-		load-bearing: this band is roughly 5:4, and art much wider than that gets
-		squashed vertically — hexagons drawn round come out as ovals, which reads
-		as blur rather than as distortion. Match the master to the box before
-		reaching for a sharper encode.
-
-		`--plans-ground` lets an ancestor turn this off by setting it to `none`.
-		PageIntro's `ground="plans"` does exactly that: it paints the same picture
-		across its heading and this grid together, and a second copy in here would
-		put the still's blooms in the band twice. Unset everywhere else, so the
-		grid brings its own ground wherever it is dropped.
+		It used to paint a still here, stretched `100% 100%` to the section, with a
+		`--plans-ground` custom property so an ancestor painting the same picture
+		could switch this copy off. Both are gone: the field is a video now, a video
+		cannot be a CSS background, and the element that carries it belongs on the
+		band that spans the heading and this grid together rather than on the grid
+		alone. Nothing here is transparent-by-accident as a result — the band
+		underneath paints ink, and this section simply lets it through.
 	*/
 	.plans {
 		position: relative;
 		isolation: isolate;
 		overflow: clip;
 		padding-block: clamp(2.5rem, 4.5vw, 4rem) clamp(3rem, 5vw, 4.5rem);
-		background: var(--plans-ground, url('/images/section-bg.png')) 50% 50% / 100% 100% no-repeat;
 	}
 
 	/*

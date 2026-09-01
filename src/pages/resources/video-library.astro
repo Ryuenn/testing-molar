@@ -505,7 +505,17 @@ const scriptStrings = JSON.stringify({
 		const summaryText = dialog.querySelector<HTMLElement>('[data-dialog-summary]')!;
 		const explainerField = dialog.querySelector<HTMLElement>('[data-explainer-field]')!;
 		const explainerBody = dialog.querySelector<HTMLElement>('[data-dialog-explainer]')!;
-		const empty = dialog.querySelector<HTMLElement>('[data-dialog-empty]')!;
+		/*
+			`dialogEmpty`, not `empty`. There is already an `empty` in scope — the
+			grid's no-results line — and a second `const` of that name shadowed it
+			for the whole block, which meant `apply()` had been toggling the DIALOG's
+			empty state rather than the grid's the entire time. It went unnoticed
+			because `apply()` only ever ran from an event handler, by which point
+			both bindings existed. Calling it once on load put it in front of this
+			declaration and turned a silent wrong-element bug into a ReferenceError
+			that killed everything below it.
+		*/
+		const dialogEmpty = dialog.querySelector<HTMLElement>('[data-dialog-empty]')!;
 
 		/** Whatever opened it, so focus has somewhere honest to go back to. */
 		let opener: HTMLButtonElement | null = null;
@@ -565,7 +575,7 @@ const scriptStrings = JSON.stringify({
 					}),
 			);
 
-			empty.hidden = Boolean(summary || explainer);
+			dialogEmpty.hidden = Boolean(summary || explainer);
 			panel.scrollTop = 0;
 
 			fallback.hidden = true;

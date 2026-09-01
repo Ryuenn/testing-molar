@@ -38,6 +38,7 @@ export interface Props {
 	ground?: 'banner' | 'plans';
 }
 
+import PlansField from '~/components/ui/PlansField.astro';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -53,6 +54,7 @@ const { eyebrow, title, lede, crumb, ground = 'banner' } = Astro.props;
 	below are laid out exactly as they were before it existed.
 */}
 <div class:list={['band', ground === 'plans' && 'band--plans']}>
+	{ground === 'plans' && <PlansField />}
 	<section class="intro" aria-labelledby="page-heading">
 		<div class="container-content">
 			<nav aria-label="Breadcrumb" class="crumbs">
@@ -94,25 +96,21 @@ const { eyebrow, title, lede, crumb, ground = 'banner' } = Astro.props;
 	}
 
 	/*
-		The plans field — `public/images/section-bg.png`, the same picture the
-		grid paints — stretched across the heading AND the slot below it, so the
-		two read as one section instead of two bands meeting at a seam.
+		The plans field runs across the heading AND the slot below it, so the two
+		read as one section instead of two bands meeting at a seam. It has to be
+		here rather than on either child, because those two are siblings.
 
-		It has to be painted HERE rather than on either child, because the two are
-		siblings: a copy on each would put the still's top and bottom blooms in the
-		band twice.
-
-		`--plans-ground` is the handshake with that grid. Pricing's own background
-		reads it, so the copy it would otherwise paint inside this one is switched
-		off by inheritance — one flag on this component rather than two that have
-		to agree.
+		`PlansField` is the video; this rule only has to be the box it fills —
+		positioned, so its `inset: 0` has something to measure against, and
+		isolated, so its negative z-index cannot slip behind the page's own ground.
+		The dark colour is what shows under reduced motion, where the video is not
+		rendered at all.
 	*/
 	.band--plans {
 		display: block;
 		position: relative;
 		isolation: isolate;
-		background: url('/images/section-bg.png') 50% 50% / 100% 100% no-repeat;
-		--plans-ground: none;
+		background-color: var(--color-ink-950);
 	}
 
 	/*

@@ -11,6 +11,7 @@
  * the strategy's, which is about the practice rather than about the price
  * list. Pricing's own heading ("Pick your level") still runs on /pricing/.
  */
+import PlansField from '~/components/ui/PlansField.astro';
 import Pricing from '~/components/sections/Pricing.astro';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -19,6 +20,7 @@ const t = useTranslations(locale);
 ---
 
 <section id="social" class="section section-rule plans-band" aria-labelledby="social-heading">
+	<PlansField />
 	<div class="container-content">
 		<header class="plans-band__head">
 			<p class="eyebrow" data-reveal="fade">{t('social.eyebrow')}</p>
@@ -36,25 +38,27 @@ const t = useTranslations(locale);
 
 		Same arrangement as PageIntro's `ground="plans"` on /pricing/ and
 		/social-media/, and for the same reason: the heading and the grid are
-		siblings, so a picture on the grid alone starts halfway down and leaves the
-		heading on the page's own ground — which reads as two sections rather than
-		one. `--plans-ground` is what the grid reads to switch off the copy it
-		would otherwise paint inside this one.
+		siblings, so a ground on the grid alone starts halfway down and leaves the
+		heading on the page's own — which reads as two sections rather than one.
+
+		`PlansField` is the video; this rule is the box it fills. Positioned so its
+		`inset: 0` has something to measure against, isolated so its negative
+		z-index stays inside the section, and dark underneath for reduced motion,
+		where the video is not rendered at all.
 
 		Padding: `.section` gives this `--section-y` at both ends, and both ends
 		were wrong. The top ran to 144px of empty sky before the eyebrow. The
-		bottom stacked on the grid's own closing padding, so the picture ran on for
+		bottom stacked on the grid's own closing padding, so the ground ran on for
 		the better part of 200px below the footnote — the grid's padding is the one
 		that belongs to the content, this one is just the wrapper.
 
-		`border-top` goes with it: a hairline across the top of a picture is a seam,
-		and the still's own dark upper edge does that job already.
+		`border-top` goes with it: a hairline across the top of a moving picture is
+		a seam, and the footage's own dark upper edge does that job already.
 	*/
 	.plans-band {
 		position: relative;
 		isolation: isolate;
-		background: url('/images/section-bg.png') 50% 50% / 100% 100% no-repeat;
-		--plans-ground: none;
+		background-color: var(--color-ink-950);
 		padding-block: clamp(2.5rem, 5vw, 4rem) 0;
 		border-top: 0;
 	}

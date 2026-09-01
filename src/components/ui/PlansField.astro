@@ -1,0 +1,63 @@
+---
+/**
+ * The moving ground behind the plans.
+ *
+ * `public/videos/pricing_animate.mp4`, sitting behind whatever it is dropped
+ * into — the heading and the grid together on /pricing/ and /social-media/, the
+ * band on the home page. Two places render it, which is why it is a component:
+ * the markup and the rules below have to stay identical in both or the two
+ * surfaces drift apart.
+ *
+ * It replaces a still that was a CSS `background` with `100% 100%`, which
+ * stretched the picture to the box and distorted it — hexagons drawn round came
+ * out as ovals. A video cannot be a CSS background at all, so this is a real
+ * element, and `object-fit: cover` is what a background image would have called
+ * `cover`: fill the box, keep the aspect, crop the overflow. Nothing here
+ * stretches at any viewport.
+ *
+ * The parent must be a positioned, isolated stacking context — both callers are.
+ */
+---
+
+<video
+	class="plans-field"
+	src="/videos/pricing_animate.mp4"
+	autoplay
+	muted
+	loop
+	playsinline
+	preload="metadata"
+	aria-hidden="true"
+	tabindex="-1"
+	disablepictureinpicture
+	disableRemotePlayback></video>
+
+<style>
+	/*
+		Behind the content, out of the flow, and untouchable. `z-index: -1` puts it
+		under everything the band renders without needing a z-index on any of it —
+		the parent's `isolation: isolate` is what keeps that negative index from
+		escaping the section.
+	*/
+	.plans-field {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		pointer-events: none;
+	}
+
+	/*
+		A moving ground behind a price list is decoration, and decoration is the
+		first thing to drop for someone who has asked for less motion. The band
+		keeps its own dark ground underneath, so removing this leaves a flat
+		section rather than a hole.
+	*/
+	@media (prefers-reduced-motion: reduce) {
+		.plans-field {
+			display: none;
+		}
+	}
+</style>
