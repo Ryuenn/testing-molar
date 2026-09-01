@@ -15,6 +15,7 @@ import { breadcrumbSchema, faqSchema } from '~/data/schema';
 import { EDUCATION_FAQ } from '~/data/faq-education';
 import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
 import { EDUCATION_CHECKOUT } from '~/data/site';
+import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 /*
@@ -82,6 +83,26 @@ const buyHref = EDUCATION_CHECKOUT;
 			<p class="offer">
 				{t('edu.trialLong', { n: EDUCATION_TRIAL_DAYS, price: EDUCATION_PRICE })}
 			</p>
+
+			{/*
+				Two asks, in the order a visitor is ready for them: start the free
+				month, or go and look at what is in the library first.
+
+				The second is the one this page was missing. Everything below argues
+				that the catalogue is worth having without ever offering to show it,
+				and the catalogue is now a real page — gated, so the click lands on
+				the password screen for anyone who has not subscribed, which is the
+				honest version of "see what you get".
+			*/}
+			<div class="offer-actions">
+				<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+					{t('edu.trialCta')}
+					<span aria-hidden="true">&rarr;</span>
+				</a>
+				<a class="btn btn-quiet" href={localizePath('/resources/video-library/', locale)}>
+					{t('edu.browseCta')}
+				</a>
+			</div>
 		</div>
 	</PageIntro>
 
@@ -119,6 +140,15 @@ const buyHref = EDUCATION_CHECKOUT;
 	/* Directly under the lit band, before the first section's own padding. */
 	.offer-row {
 		padding-block-start: clamp(1.5rem, 3vw, 2.25rem);
+	}
+
+	/* Wraps rather than shrinks — two buttons squeezed onto one line at 380px is
+	   two buttons nobody can read. */
+	.offer-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-block-start: clamp(1.1rem, 2.5vw, 1.6rem);
 	}
 
 	/*

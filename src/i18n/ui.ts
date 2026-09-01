@@ -595,6 +595,8 @@ const en = {
 		/* The offer, as it is actually sold. See ~/data/education. */
 		trial: 'First month free',
 		trialLong: 'Free for {n} days. Then {price}/month. Cancel anytime.',
+		trialCta: 'Start the free month',
+		browseCta: 'Browse the library',
 		billedFrom: 'billed monthly, from month two',
 		annual: 'Or {price} a year — about {monthly}/month, a saving of {saving}.',
 		annualNote: 'Annual is billed in full today and has no free month. It adds a waiting-room loop branded with your logo, colours and practice name.',
@@ -1374,6 +1376,8 @@ const de: Dict = {
 
 		trial: 'Erster Monat gratis',
 		trialLong: '{n} Tage kostenlos. Danach {price}/Monat. Jederzeit kündbar.',
+		trialCta: 'Gratismonat starten',
+		browseCta: 'Bibliothek ansehen',
 		billedFrom: 'monatliche Abrechnung ab dem zweiten Monat',
 		annual: 'Oder {price} pro Jahr — rund {monthly}/Monat, eine Ersparnis von {saving}.',
 		annualNote: 'Der Jahrestarif wird sofort in voller Höhe abgerechnet und enthält keinen Gratismonat. Dafür ist ein Wartezimmer-Loop mit Ihrem Logo, Ihren Farben und Ihrem Praxisnamen enthalten.',
