@@ -92,7 +92,15 @@ export interface NavMenuItem {
 export interface NavEntry {
 	/** Key into `nav.*`. */
 	key: string;
-	href: string;
+	/**
+	 * Omit on a stop that only opens a panel.
+	 *
+	 * Without it the label renders as plain text rather than a link, and the
+	 * chevron beside it is the only control — which is right when every
+	 * destination worth having is already in the panel and the parent would only
+	 * duplicate one of them.
+	 */
+	href?: string;
 	/** Present on a stop that opens a panel. */
 	menu?: readonly NavMenuItem[];
 	/** Optional link along the foot of the panel. */
@@ -103,8 +111,12 @@ export const NAV_LINKS: readonly NavEntry[] = [
 	{ key: 'home', href: '/' },
 	{
 		key: 'products',
-		/* The panel's own parent page: the ecosystem in one place. */
-		href: '/molar-complete/',
+		/*
+			No `href` on purpose. It used to point at /molar-complete/, which is also
+			the fourth item in its own panel — so the parent was a second way to the
+			same page, and clicking the word that opens a menu took you off the page
+			instead. The panel is the whole of what Products means.
+		*/
 		menu: [
 			{ key: 'menuSocial', href: '/social-media/', icon: 'share' },
 			{ key: 'menuEducation', href: '/patient-education/', icon: 'book' },

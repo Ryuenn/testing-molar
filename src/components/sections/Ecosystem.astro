@@ -110,7 +110,26 @@ const SURFACES = TOUCHPOINTS.map((point) => ({
 		   diagram, and the diagram has to stay the brightest thing in it. */
 		isolation: isolate;
 		overflow: clip;
-		background: url('/images/molar-world.png') 50% 100% / cover no-repeat;
+		/*
+			Two layers, and the order is paint order — the scrim is listed first, so
+			it sits over the still.
+
+			The still's horizon is the brightest thing in the section and `cover`
+			moves it as the viewport changes, so at some widths it lands directly
+			under the heading and lede. Grey-blue body copy on a white-blue glow is
+			not readable at any size. The scrim is heaviest at the top, where the
+			copy is, and gone by the time it reaches the diagram — which has to stay
+			the brightest thing here.
+		*/
+		background:
+			linear-gradient(
+				180deg,
+				color-mix(in oklab, var(--color-ink-950) 74%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 52%, transparent) 34%,
+				color-mix(in oklab, var(--color-ink-950) 18%, transparent) 56%,
+				transparent 72%
+			),
+			url('/images/molar-world.png') 50% 100% / cover no-repeat;
 		/*
 			Roughly half the shared `--section-y`, both ends.
 
@@ -160,7 +179,10 @@ const SURFACES = TOUCHPOINTS.map((point) => ({
 	.eco__lede {
 		margin: 0 auto;
 		font-size: var(--text-lg);
-		color: var(--color-bone-300);
+		/* A step brighter than the site's usual lede grey. This one is read over a
+		   picture rather than over flat ink, and `bone-300` has nowhere near the
+		   contrast for that even with the scrim above doing its part. */
+		color: var(--color-bone-100);
 	}
 
 	/* ── The diagram ─────────────────────────────────────────────────────── */

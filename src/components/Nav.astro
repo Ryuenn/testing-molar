@@ -70,7 +70,9 @@ const { transparent = false, class: className = '' } = Astro.props;
 const links = NAV_LINKS.map((entry) => ({
 	key: entry.key,
 	label: t(`nav.${entry.key}` as 'nav.home'),
-	href: localizePath(entry.href, locale),
+	/* Undefined stays undefined — a menu-only stop has no destination to
+	   localise, and the markup below branches on exactly that. */
+	href: entry.href ? localizePath(entry.href, locale) : undefined,
 	menu: entry.menu?.map((item) => ({
 		icon: item.icon,
 		label: t(`nav.${item.key}` as 'nav.menuSocial'),
@@ -143,8 +145,11 @@ const matches = (href: string) => {
 	return target !== homeHref && here.startsWith(target);
 };
 
+/* A menu-only stop has no href of its own, so it lights for its children alone
+   — which is the behaviour the section already had, minus the parent page. */
 const isCurrent = (link: (typeof links)[number]) =>
-	matches(link.href) || (link.menu?.some((item) => matches(item.href)) ?? false);
+	(link.href ? matches(link.href) : false) ||
+	(link.menu?.some((item) => matches(item.href)) ?? false);
 
 ---
 
@@ -193,13 +198,24 @@ const isCurrent = (link: (typeof links)[number]) =>
 						links.map((link) => (
 							<li class:list={['nav__item', link.menu && 'nav__item--menu']} data-nav-item>
 								<div class="nav__row">
-									<a
-										href={link.href}
-										class="nav__link"
-										aria-current={isCurrent(link) ? 'page' : undefined}
-									>
-										{link.label}
-									</a>
+									{/*
+										A link only where there is somewhere to go. A menu-only stop
+										renders its label as plain text — the chevron beside it is
+										the control, and on desktop the panel opens on hover and on
+										focus-within anyway, so nothing is lost by the word itself
+										not being clickable.
+									*/}
+									{link.href ? (
+										<a
+											href={link.href}
+											class="nav__link"
+											aria-current={isCurrent(link) ? 'page' : undefined}
+										>
+											{link.label}
+										</a>
+									) : (
+										<span class="nav__link nav__link--static">{link.label}</span>
+									)}
 
 									{link.menu && (
 										<button
@@ -643,6 +659,20 @@ const isCurrent = (link: (typeof links)[number]) =>
 	.nav__link:focus-visible {
 		color: var(--color-bone-50);
 		background: color-mix(in oklab, var(--color-bone-50) 10%, transparent);
+	}
+
+	/*
+		The menu-only label. It keeps the link's type and spacing so the bar still
+		reads as one row, but nothing that promises a click: no pointer, and no
+		selection to catch when someone is really reaching for the chevron.
+
+		It still lifts on hover, because the panel opens on hovering this whole
+		item — a label that stayed inert while a menu appeared under it would look
+		broken rather than deliberate.
+	*/
+	.nav__link--static {
+		cursor: default;
+		user-select: none;
 	}
 
 	/*
