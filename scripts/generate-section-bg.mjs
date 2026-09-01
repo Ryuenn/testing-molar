@@ -3,32 +3,33 @@
  *
  *   node scripts/generate-section-bg.mjs
  *
- * Master: `public/images/section_bg.png` — hex lattice with a blue bloom along
- * the top and bottom edges. Delivered art, and near-black: it measures a mean
- * of roughly RGB (5,16,40), all but the same value as the page ground it sits
- * on, so it has to be lifted before it renders as anything at all.
+ * Master: `public/images/section_bg_2.png` — a lit floor running back to a
+ * horizon, hexagon walls either side. Delivered art, and near-black: it measures
+ * a mean of roughly RGB (2,13,34), all but the same value as the page ground it
+ * sits on, so it has to be lifted before it renders as anything at all.
  *
- * That lift used to be `filter: brightness(3.4)` on a full-width layer, and the
- * feather that keeps its edges off a hard line used to be a `mask-image` on the
- * same layer. Both are baked in here instead:
+ * That lift used to be a `filter` on a full-width layer, and the feather that
+ * keeps its edges off a hard line used to be a `mask-image` on the same layer.
+ * Both are baked in here instead:
  *
- *   linear(3.4, 0)   the same per-channel multiply CSS `brightness()` does
- *   saturation       matches the old `saturate(1.15)`
- *   alpha ramp       transparent → opaque over the first and last 5%, so the
- *                    band feathers into the page's own wash rather than ending
- *                    on a seam. Shallow on purpose: the blooms sit ON the top
- *                    and bottom edges, and a deep fade erases the part of the
- *                    picture worth showing
+ *   linear(b, 0)     the same per-channel multiply CSS `brightness()` does
+ *   saturation       the companion to CSS `saturate()`
+ *   alpha ramp       opaque to transparent over the last few percent, so the
+ *                    band runs out into the section below rather than ending on
+ *                    a seam. Bottom only — see FEATHER_TOP
  *
  * What that buys, beyond the CSS being one `background` line: the section stops
  * carrying a filtered, masked compositing layer, and the download drops from a
- * 1.1MB PNG to a WebP a tenth of that.
+ * 1.4MB PNG to a WebP a fraction of that.
+ *
+ * The output keeps the name `section-bg.webp` whichever master it is built from,
+ * so swapping the art is this one constant and no CSS at all.
  *
  * Uses the `sharp` that Astro already depends on, same as the icon scripts.
  */
 import sharp from 'sharp';
 
-const MASTER = process.env.SECTION_BG_MASTER || 'public/images/section_bg.png';
+const MASTER = process.env.SECTION_BG_MASTER || 'public/images/section_bg_2.png';
 const OUT = 'public/images/section-bg.webp';
 
 /** Wide enough for a 1440pt band on a 2× display, once it is stretched. */
@@ -36,7 +37,7 @@ const WIDTH = 1600;
 
 /** The lift. Tuned by eye against the cards that sit on top: enough to read the
  * lattice and both blooms, not so much that the field competes with them. */
-const BRIGHTNESS = 1.5;
+const BRIGHTNESS = 1.7;
 const SATURATION = 1;
 
 /*

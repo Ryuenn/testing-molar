@@ -220,9 +220,12 @@ const { head = true } = Astro.props;
 	}
 
 	/*
-		Three across once there is room for them, one column below. Nothing in
-		between: at two across the third card is orphaned on its own row, and the
-		featured one stops being the middle of anything.
+		Four across at the top, two in the middle, one below.
+
+		Two is allowed now in a way it was not with three cards: four splits into
+		an even 2×2 with nothing orphaned, and the ladder still reads across then
+		down. The old rule — no intermediate step — was about three cards leaving
+		one alone on its own row, which four does not do.
 	*/
 	.plans__grid {
 		display: grid;
@@ -232,14 +235,20 @@ const { head = true } = Astro.props;
 		padding: 0;
 		list-style: none;
 		/* Stretch, not start: the cards are equal height and `flex: 1` on the
-		   feature list pushes all three buttons onto the same baseline however
+		   feature list pushes all four buttons onto the same baseline however
 		   uneven the lists above them are. */
 		align-items: stretch;
 	}
 
-	@media (min-width: 62rem) {
+	@media (min-width: 46rem) {
 		.plans__grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 72rem) {
+		.plans__grid {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 

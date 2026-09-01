@@ -1,4 +1,5 @@
-import { SALES_CALL } from './site';
+import { EDUCATION_CHECKOUT, SALES_CALL } from './site';
+import { EDUCATION_PRICE } from './education';
 
 /**
  * The plans, matching molarai.studio exactly — names, prices, feature copy and
@@ -10,11 +11,11 @@ import { SALES_CALL } from './site';
  * charges the wrong amount look identical from here.
  */
 export interface Plan {
-	id: 'starter' | 'premium' | 'enterprise';
+	id: 'education' | 'starter' | 'premium' | 'enterprise';
 	/** Prefix into `pricing.*`: name, summary, blurb, cta, note. */
-	key: 'starter' | 'premium' | 'enterprise';
-	/** Feature key prefix, numbered from 1 — 's1'…'s8', 'p1'…'p9', 'e1'…'e9'. */
-	featureKey: 's' | 'p' | 'e';
+	key: 'education' | 'starter' | 'premium' | 'enterprise';
+	/** Feature key prefix, numbered from 1 — 'l1'…'l8', 's1'…'s8', 'p1'…'p9', 'e1'…'e9'. */
+	featureKey: 'l' | 's' | 'p' | 'e';
 	featureCount: number;
 	/** Not translated: billed in USD wherever the buyer is. */
 	/**
@@ -42,6 +43,26 @@ export interface Plan {
 export const CURRENCY = 'USD';
 
 export const PLANS: Plan[] = [
+	/*
+		First, and cheapest — the row reads left to right as a ladder, and a $97
+		entry point standing in front of $497 is what makes the ladder legible.
+
+		It is the one plan here that is not social media management. `EDUCATION_PRICE`
+		rather than a literal, because /patient-education/ states the same figure
+		from the same constant and two prices for one product is the failure mode
+		this file exists to prevent.
+	*/
+	{
+		id: 'education',
+		key: 'education',
+		featureKey: 'l',
+		featureCount: 8,
+		price: EDUCATION_PRICE,
+		perMonth: true,
+		amount: 97,
+		cta: { href: EDUCATION_CHECKOUT },
+		featured: false,
+	},
 	{
 		id: 'starter',
 		key: 'starter',

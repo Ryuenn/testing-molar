@@ -64,8 +64,19 @@ export default async (request: Request, context: Context) => {
 	const url = new URL(request.url);
 
 	if (request.method === 'POST') {
-		const form = await request.formData();
-		const supplied = String(form.get('password') ?? '').trim();
+		/*
+			`formData()` throws on a request that carries no form body — a POST with
+			an empty body, a JSON content-type, a crawler poking at the URL. Unguarded
+			it took the whole function down with a 500, which is both a worse answer
+			than "wrong password" and a louder signal that something is here.
+		*/
+		let supplied = '';
+		try {
+			const form = await request.formData();
+			supplied = String(form.get('password') ?? '').trim();
+		} catch {
+			return page(url.pathname, true);
+		}
 
 		if (!timingSafeEqual(supplied, password)) {
 			return page(url.pathname, true);

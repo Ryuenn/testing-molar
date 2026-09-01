@@ -23,7 +23,6 @@
 import Glyph from '~/components/ui/Glyph.astro';
 import { TV_FEATURES, TV_PLAYLIST, TV_LOOP } from '~/data/tv';
 import { CTA } from '~/data/site';
-import { productById } from '~/data/products';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -48,7 +47,17 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 	sub: t(`tv.feat${cap(feature.key)}Sub` as 'tv.featLogoSub'),
 }));
 
-const href = localizePath(productById('tv').href, locale);
+/*
+	The library, not the product page.
+
+	`productById('tv').href` is /molar-tv/, which is where this used to go — and
+	on /molar-tv/ itself, where this section also renders, that was a button
+	linking to the page you are already on. Sending it to the catalogue gives it
+	somewhere to go from both places, and the catalogue is gated, so the click
+	lands on the password page for anyone without access rather than on a pitch
+	they have already read.
+*/
+const href = localizePath('/resources/video-library/', locale);
 ---
 
 <section
