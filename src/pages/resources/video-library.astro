@@ -57,6 +57,7 @@ const FILTERS = [
    this component's `t`. Templates, not fragments. */
 const scriptStrings = JSON.stringify({
 	showing: t('library.showing'),
+	loadMore: t('library.loadMore'),
 	videoFailed: t('library.videoFailed'),
 	openTab: t('library.openTab'),
 });
@@ -255,6 +256,17 @@ const scriptStrings = JSON.stringify({
 				}
 			</ul>
 
+			{/*
+				Paging is client-side and subtractive: every card is rendered above,
+				and the script hides all but the first pageful. That way the grid is
+				complete without JS — a catalogue that needs a button pressed to show
+				its contents is worse than a long page — and the button costs nothing
+				but a class toggle when it is pressed.
+			*/}
+			<div class="library__more" data-more-wrap hidden>
+				<button type="button" class="btn btn-quiet" data-more></button>
+			</div>
+
 			<p class="library__empty" data-empty hidden>
 				<span>{t('library.nothing')}</span>
 				<button type="button" class="btn btn-quiet" data-reset>{t('library.clearFilters')}</button>
@@ -364,9 +376,11 @@ const scriptStrings = JSON.stringify({
 	const search = document.querySelector<HTMLInputElement>('[data-search]');
 	const searchForm = document.querySelector<HTMLFormElement>('[data-search-form]');
 	const reset = document.querySelector<HTMLButtonElement>('[data-reset]');
+	const more = document.querySelector<HTMLButtonElement>('[data-more]');
+	const moreWrap = document.querySelector<HTMLElement>('[data-more-wrap]');
 	const dialog = document.querySelector<HTMLDialogElement>('[data-dialog]');
 
-	if (root && grid && status && empty && search && dialog) {
+	if (root && grid && status && empty && search && dialog && more && moreWrap) {
 		const S = JSON.parse(root.dataset.strings || '{}') as Record<string, string>;
 
 		/** `{n}` / `{total}`. Escaped properly — a bare `{(w+)}` matches nothing. */
@@ -384,8 +398,24 @@ const scriptStrings = JSON.stringify({
 				.join(' ')
 				.toLowerCase();
 
+		// ── Paging ─────────────────────────────────────────────────────────────
+		/*
+			Seventy-five cards is seventy-five poster images and seventy-five card
+			bodies laid out at once, which is what makes the grid stutter on the way
+			down. Eight is two rows at the widest breakpoint and a sensible first
+			screen at every other one.
+
+			`shown` is a count of MATCHING cards, not of cards — so narrowing to a
+			language with five entries shows all five and hides the button, which is
+			the behaviour asked for and falls out of counting matches rather than
+			needing a case of its own.
+		*/
+		const PAGE = 8;
+		let shown = PAGE;
+
 		const apply = () => {
 			const query = search.value.trim().toLowerCase();
+			let matched = 0;
 			let visible = 0;
 
 			for (const card of cards) {
@@ -394,26 +424,60 @@ const scriptStrings = JSON.stringify({
 					return card.dataset[select.dataset.facet as string] === select.value;
 				});
 				const match = facetsMatch && (!query || haystack(card).includes(query));
+				if (match) matched++;
+
+				/* Matching but past the current page is hidden the same way a
+				   non-match is — one mechanism, so the two can never disagree about
+				   what is on screen. */
+				const onPage = match && matched <= shown;
+				if (onPage) visible++;
+
 				/* The <li> carries the hiding, not the button — hiding the button
 				   alone would leave the grid holding an empty cell. */
-				(card.parentElement as HTMLElement).hidden = !match;
-				if (match) visible++;
+				(card.parentElement as HTMLElement).hidden = !onPage;
 			}
 
-			status.textContent = fill(S.showing, { n: visible, total: cards.length });
-			empty.hidden = visible > 0;
+			/* Counted against the matching set rather than the catalogue: with a
+			   filter on, "8 of 75" would be answering a question nobody asked. */
+			status.textContent = fill(S.showing, { n: visible, total: matched });
+			empty.hidden = matched > 0;
+
+			const remaining = matched - visible;
+			moreWrap.hidden = remaining <= 0;
+			more.textContent = fill(S.loadMore, { n: Math.min(remaining, PAGE) });
 		};
 
-		search.addEventListener('input', apply);
+		const onScreen = () => cards.filter((card) => !(card.parentElement as HTMLElement).hidden);
+
+		more.addEventListener('click', () => {
+			/* Counted before the page grows, so it indexes the first card of what is
+			   about to arrive. */
+			const first = onScreen().length;
+			shown += PAGE;
+			apply();
+			/* Focus lands on that card, so the keyboard follows the eye and a screen
+			   reader is told something happened. */
+			onScreen()[first]?.focus();
+		});
+
+		/* Any change to the narrowing starts the page count over — otherwise
+		   clearing a filter after pressing Load more leaves you deep into a list
+		   you have not scrolled. */
+		const narrow = () => {
+			shown = PAGE;
+			apply();
+		};
+
+		search.addEventListener('input', narrow);
 		/* Nothing is posted — filtering happens on input. The handler exists only
 		   so Enter does not navigate. */
 		searchForm?.addEventListener('submit', (event) => event.preventDefault());
-		for (const select of selects) select.addEventListener('change', apply);
+		for (const select of selects) select.addEventListener('change', narrow);
 
 		reset?.addEventListener('click', () => {
 			search.value = '';
 			for (const select of selects) select.value = '';
-			apply();
+			narrow();
 			search.focus();
 		});
 
@@ -854,6 +918,14 @@ const scriptStrings = JSON.stringify({
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	/* Centred under the grid, and only ever visible with JS running — without it
+	   the whole catalogue is already on the page and there is nothing to load. */
+	.library__more {
+		display: flex;
+		justify-content: center;
+		margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
 	}
 
 	.library__empty {
