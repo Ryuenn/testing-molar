@@ -139,26 +139,26 @@ const { head = true } = Astro.props;
 
 <style>
 	/*
-		The ground: `public/images/section-bg.webp` — hex lattice with a blue
-		bloom along the top and bottom edges.
+		The ground: `public/images/section-bg.png` — a lit floor running back to a
+		horizon, hexagon walls either side.
 
-		Straight onto the section, which is the whole point of the file. The
-		master (`public/images/section_bg.png`) is near-black navy, a shade off
-		the page ground it sits on, so it used to be carried by its own
+		Straight onto the section, which is the whole point of the file. The master
+		(`public/images/section_bg_2_new.png`) is near-black navy, a shade off the
+		page ground it sits on, so it used to be carried by its own
 		absolutely-positioned layer wearing a `filter` lift and a `mask-image`
-		feather. Both are baked into the WebP now — see
+		feather. Both are baked into the file now — see
 		`scripts/generate-section-bg.mjs`, re-run it to retune — which leaves no
-		filtered compositing layer to re-rasterise, no extra element, and an 18KB
-		download in place of a 1.1MB one.
+		filtered compositing layer to re-rasterise and no extra element.
 
-		The lift is deliberately small (1.5×, no added saturation). It only has to
+		The lift is deliberately small (1.7×, no added saturation). It only has to
 		separate the band from the page ground; past that the field goes electric
 		blue and stops looking like the still it came from.
 
-		Stretched to the box rather than `cover`: the still is at its darkest
-		through the middle, so `cover` on a section this shape crops to exactly
-		the part of it that looks like nothing. Soft gradient, no hard detail —
-		it takes the stretch without showing it.
+		Stretched to the box rather than `cover`, which makes the master's SHAPE
+		load-bearing: this band is roughly 5:4, and art much wider than that gets
+		squashed vertically — hexagons drawn round come out as ovals, which reads
+		as blur rather than as distortion. Match the master to the box before
+		reaching for a sharper encode.
 
 		`--plans-ground` lets an ancestor turn this off by setting it to `none`.
 		PageIntro's `ground="plans"` does exactly that: it paints the same picture
@@ -171,7 +171,7 @@ const { head = true } = Astro.props;
 		isolation: isolate;
 		overflow: clip;
 		padding-block: clamp(2.5rem, 4.5vw, 4rem) clamp(3rem, 5vw, 4.5rem);
-		background: var(--plans-ground, url('/images/section-bg.webp')) 50% 50% / 100% 100% no-repeat;
+		background: var(--plans-ground, url('/images/section-bg.png')) 50% 50% / 100% 100% no-repeat;
 	}
 
 	/*
@@ -194,6 +194,30 @@ const { head = true } = Astro.props;
 
 	.plans__inner {
 		position: relative;
+	}
+
+	/*
+		Wider than the page's own measure, but only where there are four cards.
+
+		`--container-content` is 76rem, which is the right width for a column of
+		prose and the wrong one for four plans side by side: minus the gaps and each
+		card's own padding it leaves about 215px of text per card, and at that width
+		"Search by treatment or by the question a patient asks" takes four lines. The
+		cards then grow tall and thin and the section runs on for a screen and a
+		half.
+
+		At 88rem each card gets nearer 300px, most of those lines pull back to two,
+		and the row loses a third of its height without a single font size changing.
+
+		It has to go on `.plans__inner` rather than on the grid: the grid is inside
+		it, and a child cannot be wider than a parent that caps it. The heading and
+		footnote widen with it, which is harmless — the title carries its own `18ch`
+		measure and both are centred.
+	*/
+	@media (min-width: 72rem) {
+		.plans__inner {
+			max-width: 88rem;
+		}
 	}
 
 	.plans__head {

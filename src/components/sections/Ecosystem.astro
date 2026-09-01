@@ -96,9 +96,10 @@ const SURFACES = TOUCHPOINTS.map((point) => ({
 
 <style>
 	/*
-		`public/images/molar_world.png`, converted to `molar-world.webp` (1.4MB →
-		23KB) with a fade baked into its bottom edge so the band runs out into the
-		section below instead of ending on a line.
+		`public/images/molar_world_new.png`, rewritten as `molar-world.png` with a
+		fade baked into its bottom edge so the band runs out into the section below
+		instead of ending on a line. Same format as the master by preference —
+		nothing here is lossy, and the weight is the price of that.
 
 		Pinned to the bottom: the still is a horizon, and the glow along it is the
 		only part that matters. `cover` from 50% 100% keeps that arc in the band at
@@ -109,7 +110,7 @@ const SURFACES = TOUCHPOINTS.map((point) => ({
 		   diagram, and the diagram has to stay the brightest thing in it. */
 		isolation: isolate;
 		overflow: clip;
-		background: url('/images/molar-world.webp') 50% 100% / cover no-repeat;
+		background: url('/images/molar-world.png') 50% 100% / cover no-repeat;
 		/*
 			Roughly half the shared `--section-y`, both ends.
 

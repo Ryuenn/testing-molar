@@ -29,11 +29,19 @@
  */
 import sharp from 'sharp';
 
-const MASTER = process.env.SECTION_BG_MASTER || 'public/images/section_bg_2.png';
-const OUT = 'public/images/section-bg.webp';
+const MASTER = process.env.SECTION_BG_MASTER || 'public/images/section_bg_2_new.png';
+const OUT = 'public/images/section-bg.png';
 
-/** Wide enough for a 1440pt band on a 2× display, once it is stretched. */
-const WIDTH = 1600;
+/**
+ * A ceiling, not a target — `withoutEnlargement` means a smaller master comes
+ * through at its own size rather than being blown up to meet this.
+ *
+ * It used to be 1600, which threw away pixels the master had: `section_bg_2.png`
+ * is 1734 wide, and this band is full-bleed, so every one of them is wanted.
+ * Upscaling past the master is pointless, but downscaling below it is a straight
+ * loss.
+ */
+const WIDTH = 3200;
 
 /** The lift. Tuned by eye against the cards that sit on top: enough to read the
  * lattice and both blooms, not so much that the field competes with them. */
@@ -90,7 +98,20 @@ const alpha = await sharp(ramp).greyscale().toColourspace('b-w').raw().toBuffer(
 
 const { size } = await sharp(lit, { raw: { width, height, channels: info.channels } })
 	.joinChannel(alpha, { raw: { width, height, channels: 1 } })
-	.webp({ quality: 82, effort: 6 })
+	/*
+		PNG, by preference — the same format the master arrives in, and lossless, so
+		nothing the encoder does can be blamed for how the band looks.
+
+		It costs weight: a lossy WebP of the same frame is a fraction of the size at
+		a measured 0.6% mean difference. If this file ever needs to come down, that
+		is the lever — `.webp({ quality: 95 })` here and the four `background`
+		rules that name it.
+
+		`palette: false` on purpose. A palette would quantise to 256 colours, and
+		this is a smooth blue gradient across its whole width; that is the one kind
+		of image quantisation visibly bands.
+	*/
+	.png({ compressionLevel: 9, palette: false })
 	.toFile(OUT);
 
 console.log(`${OUT}  ${width}×${height}  ${(size / 1024).toFixed(0)}KB`);
