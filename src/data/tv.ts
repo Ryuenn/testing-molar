@@ -38,14 +38,19 @@ export const TV_FEATURES: readonly TvFeature[] = [
 ] as const;
 
 /**
- * The clips shown playing on the screen in the visual.
+ * What plays on the screen in the visual. Muted and looping, because a
+ * waiting-room TV is muted and looping.
  *
- * Real files from `public/videos/library/`, muted and looping, because a
- * waiting-room TV is muted and looping. Three is enough to read as a channel
- * and few enough to stay under a megabyte on the wire.
+ * One file, and it is cut for this — landscape, which is the shape of the frame
+ * it plays in. It replaced three clips from `public/videos/library/`, and those
+ * were wrong twice over: 67MB between them, and vertical reels cut for Instagram
+ * being cropped by `object-fit: cover` into a 16:9 slot, so you saw a narrow
+ * horizontal band of each one.
+ *
+ * Still an array. The markup renders one `<source>` per entry, which is a
+ * fallback chain rather than a playlist — the browser takes the first it can
+ * play and never reaches the rest — so a second entry here would be a format
+ * alternative (a WebM beside the MP4), never a second clip. A real rotation
+ * needs a script advancing on `ended`.
  */
-export const TV_LOOP = [
-	'/videos/library/prophylaxis.mp4',
-	'/videos/library/tooth-flossing.mp4',
-	'/videos/library/why-an-athlete.mp4',
-] as const;
+export const TV_LOOP = ['/videos/watch_tv_molar.mp4'] as const;
