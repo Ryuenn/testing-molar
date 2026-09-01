@@ -36,7 +36,14 @@ const COOKIE = 'molar_library';
 const MAX_AGE = 60 * 60 * 24 * 7;
 
 export default async (request: Request, context: Context) => {
-	const password = Netlify.env.get('LIBRARY_PASSWORD');
+	/*
+		Trimmed, both here and on what the visitor types. A password pasted into
+		Netlify's field arrives with a trailing space or newline often enough to be
+		the first thing to suspect when a correct-looking password is refused, and
+		a shared password nobody can see is a bad place to be strict about
+		whitespace that carries no meaning.
+	*/
+	const password = Netlify.env.get('LIBRARY_PASSWORD')?.trim();
 
 	/* Not configured — see the header. Serve the page rather than lock the site
 	   against its own owner. */
@@ -46,7 +53,7 @@ export default async (request: Request, context: Context) => {
 
 	if (request.method === 'POST') {
 		const form = await request.formData();
-		const supplied = String(form.get('password') ?? '');
+		const supplied = String(form.get('password') ?? '').trim();
 
 		if (!timingSafeEqual(supplied, password)) {
 			return page(url.pathname, true);
