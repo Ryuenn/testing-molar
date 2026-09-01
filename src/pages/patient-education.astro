@@ -72,14 +72,14 @@ const buyHref = EDUCATION_CHECKOUT;
 		crumb={t('nav.menuEducation')}
 	>
 		{/*
-			The offer, stated once at the top where a visitor arriving from an ad
-			expects it. The plan card further down is where it can be acted on.
+			The offer and the two asks, on the band with the heading — `slot="actions"`
+			rather than the default slot, which renders after the whole band and left
+			this floating in the seam between two grounds.
 
-			`PageIntro` renders its slot AFTER the lit band rather than inside it —
-			see the component — so this brings its own container and its own top
-			padding rather than inheriting the band's.
+			Stated once here, where a visitor arriving from an ad expects it. The plan
+			card further down is where it can be acted on at length.
 		*/}
-		<div class="container-content offer-row">
+		<div slot="actions" class="offer-row">
 			<p class="offer">
 				{t('edu.trialLong', { n: EDUCATION_TRIAL_DAYS, price: EDUCATION_PRICE })}
 			</p>
@@ -137,9 +137,11 @@ const buyHref = EDUCATION_CHECKOUT;
 </BaseLayout>
 
 <style>
-	/* Directly under the lit band, before the first section's own padding. */
+	/* On the band now, under the lede — so this is spacing within a block rather
+	   than clearance between two sections, and it wants a fraction of what it
+	   took when it stood on its own. The container comes from the band too. */
 	.offer-row {
-		padding-block-start: clamp(1.5rem, 3vw, 2.25rem);
+		margin-block-start: clamp(1.5rem, 3vw, 2.25rem);
 	}
 
 	/* Wraps rather than shrinks — two buttons squeezed onto one line at 380px is

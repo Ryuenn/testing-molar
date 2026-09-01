@@ -65,6 +65,15 @@ const { eyebrow, title, lede, crumb, ground = 'banner' } = Astro.props;
 			{eyebrow && <p class="eyebrow intro__eyebrow">{eyebrow}</p>}
 			<h1 id="page-heading" class="intro__title">{title}</h1>
 			{lede && <p class="intro__lede">{lede}</p>}
+
+			{/*
+				Anything that belongs WITH the heading — an offer line, a pair of
+				buttons. The default slot renders after this whole band, which is
+				right for a section but strands a call to action in the gap between
+				two grounds; this puts it on the band, under the lede, where it reads
+				as part of the same block.
+			*/}
+			<slot name="actions" />
 		</div>
 	</section>
 
