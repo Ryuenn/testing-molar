@@ -481,6 +481,16 @@ const scriptStrings = JSON.stringify({
 			search.focus();
 		});
 
+		/*
+			Run it once now, before anything is typed.
+
+			The grid ships complete — every card visible — so that it works without
+			JS, which means the first page has to be applied rather than assumed. Nothing
+			called `apply()` on load, so the catalogue stayed at its full length and
+			the button, which only shows when something is held back, never appeared.
+		*/
+		apply();
+
 		// ── The modal ──────────────────────────────────────────────────────────
 		const video = dialog.querySelector<HTMLVideoElement>('[data-dialog-video]')!;
 		const embed = dialog.querySelector<HTMLIFrameElement>('[data-dialog-embed]')!;
