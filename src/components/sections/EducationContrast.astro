@@ -1,0 +1,204 @@
+---
+/**
+ * The without/with argument from the live /educate funnel.
+ *
+ * Four rows, PAIRED rather than two independent lists side by side. Row one on
+ * the left is the problem row one on the right answers, and that pairing is the
+ * whole rhetorical move — two loose columns of bullets would let a reader take
+ * the complaints and the promises as unrelated.
+ *
+ * The pairing has to survive the layout collapsing, which is what makes this
+ * a two-column grid of eight cells rather than two lists: on a phone the rows
+ * interleave (problem, answer, problem, answer) instead of stacking four
+ * complaints followed by four unrelated promises.
+ *
+ * Both marks are drawn here rather than imported. The cross has no component to
+ * import, and `Tick` could not be used for the other half: a scoped rule like
+ * `.cell__mark` compiles to `.cell__mark[data-astro-cid-…]`, and that attribute
+ * is only on elements in THIS component's template — Astro passes a `class`
+ * through to a child component but not the parent's scope, so the size rule
+ * silently missed and the tick rendered at whatever width the flex row gave it.
+ *
+ * Drawing both locally also guarantees the thing that mattered anyway: one box,
+ * one stroke weight, one cap style, so a cross and a tick sitting in adjacent
+ * columns read as one set rather than as two icons from different families.
+ */
+import { EDUCATION_CONTRAST_ROWS } from '~/data/education';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const ROWS = Array.from({ length: EDUCATION_CONTRAST_ROWS }, (_, i) => ({
+	without: t(`edu.without${i + 1}` as 'edu.without1'),
+	with: t(`edu.with${i + 1}` as 'edu.with1'),
+}));
+---
+
+<section id="contrast" class="section section-rule ct" aria-labelledby="ct-heading">
+	<div class="container-content">
+		<header class="ct__head">
+			<h2 id="ct-heading" class="ct__title" data-reveal>{t('edu.contrastHeading')}</h2>
+			<p class="ct__lede measure-wide" data-reveal>{t('edu.contrastLede')}</p>
+		</header>
+
+		<div class="ct__grid" data-reveal-stagger>
+			<p class="ct__label ct__label--without">{t('edu.withoutLabel')}</p>
+			<p class="ct__label ct__label--with">{t('edu.withLabel')}</p>
+
+			{
+				ROWS.map((row) => (
+					<>
+						<div class="cell cell--without" data-reveal data-reveal-group>
+							{/* A cross, drawn rather than an emoji — same construction as
+							    `Tick`, at the same weight, so the pair reads as one set. */}
+							<svg
+								class="cell__mark"
+								viewBox="0 0 16 16"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.75"
+								stroke-linecap="square"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<path d="M4 4l8 8M12 4l-8 8" />
+							</svg>
+							<span>{row.without}</span>
+						</div>
+
+						<div class="cell cell--with" data-reveal data-reveal-group>
+							<svg
+								class="cell__mark cell__mark--tick"
+								viewBox="0 0 16 16"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.75"
+								stroke-linecap="square"
+								aria-hidden="true"
+								focusable="false"
+							>
+								<path d="M3 8.4 6.3 11.7 13 5" />
+							</svg>
+							<span>{row.with}</span>
+						</div>
+					</>
+				))
+			}
+		</div>
+	</div>
+</section>
+
+<style>
+	.ct__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.ct__title {
+		margin: 0;
+		max-width: 24ch;
+		font-size: var(--text-3xl);
+	}
+
+	.ct__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/*
+		One grid holding both columns, so a problem and its answer are always on
+		the same row. Two nested lists could not promise that — the rows would
+		align only while the two columns happened to wrap identically.
+	*/
+	.ct__grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 0.625rem clamp(0.75rem, 2vw, 1.5rem);
+	}
+
+	.ct__label {
+		margin: 0 0 0.25rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+	}
+
+	.ct__label--without {
+		color: var(--color-bone-500);
+	}
+
+	.ct__label--with {
+		color: var(--color-arc-300);
+	}
+
+	.cell {
+		display: flex;
+		align-items: start;
+		gap: 0.75rem;
+		padding: 1rem 1.125rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-line);
+		font-size: var(--text-sm);
+		line-height: 1.6;
+	}
+
+	/*
+		The left column is dimmer and flat; the right one is lit. That is the only
+		difference between them, and it is doing the argument's work — the eye
+		should land on the right-hand column and stay there.
+	*/
+	.cell--without {
+		background: color-mix(in oklab, var(--color-ink-900) 55%, transparent);
+		color: var(--color-bone-400);
+	}
+
+	.cell--with {
+		border-color: color-mix(in oklab, var(--color-arc-400) 26%, transparent);
+		background: color-mix(in oklab, var(--color-arc-700) 12%, transparent);
+		color: var(--color-bone-100);
+	}
+
+	.cell__mark {
+		flex: none;
+		width: 1rem;
+		height: 1rem;
+		margin-block-start: 0.28em;
+		color: var(--color-bone-500);
+	}
+
+	.cell__mark--tick {
+		color: var(--color-arc-400);
+	}
+
+	/*
+		Below this the two columns cannot hold a readable line length, so the grid
+		becomes one column — and because the cells are laid out in row order, the
+		stack interleaves problem, answer, problem, answer. That is the point: four
+		complaints followed by four unrelated promises is not the same argument.
+
+		The two headers would be stranded, so they are dropped and each cell is
+		told what it is by its own mark and colour instead.
+	*/
+	@media (max-width: 46rem) {
+		.ct__grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.ct__label {
+			display: none;
+		}
+
+		/* Answers indent under the problem they answer, so the pairing survives
+		   without the column headings to carry it. */
+		.cell--with {
+			margin-inline-start: 1.25rem;
+			margin-block-end: 0.75rem;
+		}
+	}
+</style>

@@ -1,10 +1,30 @@
 ---
+/**
+ * Section 01 — the hero.
+ *
+ * Split composition: the argument runs down the left half in a column, the
+ * footage and the two floating readouts hold the right, and a five-cell figure
+ * band closes the fold along the bottom.
+ *
+ * Order down the left is the strategy's — badge, headline, one paragraph, two
+ * asks, trust line — and the thing it deliberately leaves out is a feature
+ * list: the hero states the category and hands the visitor either a tour or a
+ * price, then gets out of the way.
+ *
+ * Every figure on this page is real. The two readouts and the five cells all
+ * read off `~/data/proof`, `~/data/work` and `~/data/reach` rather than being
+ * typed in here, because a hero is the one place on a site where an invented
+ * number does the most damage.
+ */
 import { Image } from 'astro:assets';
-import logoMark from '~/assets/brand/logo-mark.png';
-import StepIcon from '~/components/ui/StepIcon.astro';
+import type { ImageMetadata } from 'astro';
+import logoIcon from '~/assets/brand/logo-icon.png';
 import { CTA, SITE } from '~/data/site';
 import SocialIcon from '~/components/ui/SocialIcon.astro';
-import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
+import Glyph from '~/components/ui/Glyph.astro';
+import { PROOF_HEADLINE, PROOF_SUB, PRACTICE_COUNT } from '~/data/proof';
+import { COUNTRIES, REGIONS, countryName } from '~/data/reach';
+import { WORK, LANGUAGE_COUNT } from '~/data/work';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -20,10 +40,10 @@ const VIDEO = {
 	// a quarter the weight of the JPEG and supported everywhere that matters. The
 	// CSS fallback below negotiates AVIF/WebP/JPEG properly via image-set().
 	poster: '/images/hero-poster.webp',
-	// The delivered footage: 1280x720 H.264, 10s, ~3.4 MB, moov ahead of mdat so
+	// The delivered footage: 1280x720 H.264, 10s, ~2.7 MB, moov ahead of mdat so
 	// it starts on the first chunk instead of waiting for the whole file. One cut
 	// serves every width — see the crop note on .hero__video below.
-	mp4: '/videos/Hero_video.mp4',
+	mp4: '/videos/Blue_structure_Hero.mp4',
 };
 
 /**
@@ -42,13 +62,35 @@ const TITLE_PARTS = [
 /** The same line as one string, for anything that reads rather than looks. */
 const TITLE_TEXT = TITLE_PARTS.map((part) => part.text).join(' ');
 
-/**
- * The three beats between paying and being seen, as three linked cards.
- *
- * The titles are the line the site already ran; the second line under each is
- * what it actually means, so a card carries the step and its answer rather than
- * a label on its own.
- */
+/*
+	The two promises inside the paragraph are lit in the accent, which is what
+	makes the sentence scannable at a glance instead of a wall.
+
+	Per locale, because a phrase is not a phrase once it has been translated —
+	splitting the German lede on an English substring would simply never match,
+	and the paragraph would render flat, which is the correct failure.
+*/
+const LEDE_MARKS: Record<string, readonly string[]> = {
+	en: ['educate patients', 'build trust'],
+	de: ['Patienten aufzuklären', 'Vertrauen aufzubauen'],
+};
+
+/** The lede as alternating plain / lit runs, in source order. */
+const ledeParts = (() => {
+	const marks = LEDE_MARKS[locale] ?? [];
+	const raw = t('hero.lede');
+	if (!marks.length) return [{ text: raw, lit: false }];
+	/* One pass, splitting on whichever mark comes next — a capturing alternation
+	   keeps the delimiters in the output, so nothing has to be re-joined. */
+	const pattern = new RegExp(
+		`(${marks.map((mark) => mark.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+	);
+	return raw
+		.split(pattern)
+		.filter(Boolean)
+		.map((text) => ({ text, lit: marks.includes(text) }));
+})();
+
 /* The same three the footer lists, from the same source — one place to add a
    fourth account, not two. */
 const SOCIAL = [
@@ -57,10 +99,101 @@ const SOCIAL = [
 	{ label: 'YouTube', href: SITE.social.youtube, icon: 'youtube' },
 ] as const;
 
-const FLOW = [
-	{ title: t('hero.step1'), sub: t('hero.step1sub'), icon: 'bell' },
-	{ title: t('hero.step2'), sub: t('hero.step2sub'), icon: 'link' },
-	{ title: t('hero.step3'), sub: t('hero.step3sub'), icon: 'megaphone' },
+/*
+	The eighteen markets, from `~/data/reach`.
+
+	Real flags, not emoji: HatScripts/circle-flags (MIT), vendored into
+	`public/flags/` rather than hotlinked so the CSP stays locked to 'self'.
+	They are `<img>` rather than inlined SVG on purpose — every one of those
+	files carries a `mask id="a"`, and eighteen of them inlined on one page
+	would be eighteen elements fighting over the same ID.
+*/
+const FLAGS = COUNTRIES.map((country) => ({
+	src: `/flags/${country.code}.svg`,
+	name: countryName(country, locale),
+}));
+
+/*
+	The marquee needs two identical tracks: the first scrolls a full -100% of
+	its own width while the second slides in behind it, so the seam never shows.
+	Eighteen flags overrun the window on their own, so a track is the list once.
+*/
+const FLAG_TRACKS = [0, 1];
+
+/*
+	The two readouts floating over the footage. Both are figures the site can
+	evidence elsewhere: the view count is the marquee's, the markets are the
+	map's.
+*/
+const CARD_VIEWS = {
+	label: t('hero.cardViews'),
+	value: PROOF_HEADLINE,
+	note: PROOF_SUB,
+};
+
+/*
+	The second readout is the roster itself: the practices whose marks we
+	actually hold, matched to accounts by slug the way the trust band does it.
+	Eager, because these are build-time `ImageMetadata` records for <Image>, and
+	the lookup returns undefined rather than throwing — a practice that has not
+	published a logo is a practice with no logo, not a broken build.
+*/
+const logoFiles = import.meta.glob<{ default: ImageMetadata }>(
+	'../../assets/clients/*.{svg,png}',
+	{ eager: true },
+);
+
+const CLIENTS = WORK.map((account) => ({
+	practice: account.practice,
+	logo: (
+		logoFiles[`../../assets/clients/${account.slug}.svg`] ??
+		logoFiles[`../../assets/clients/${account.slug}.png`]
+	)?.default,
+})).filter((client): client is { practice: string; logo: ImageMetadata } => Boolean(client.logo));
+
+const CARD_CLIENTS = {
+	label: t('hero.cardClients'),
+	note: t('hero.cardClientsNote'),
+};
+
+/*
+	The band along the foot of the fold. Five figures, every one counted off the
+	data rather than typed: accounts published, views across them, languages in
+	the grids, countries on the map, continents in the reach section.
+*/
+const STATS = [
+	{
+		icon: 'people',
+		value: PRACTICE_COUNT,
+		label: t('hero.statPractices'),
+		sub: t('hero.statPracticesSub'),
+	},
+	{
+		icon: 'play-circle',
+		/* "10M+ organic views" → "10M+". The figure alone, since the cell's own
+		   label carries the noun. */
+		value: PROOF_HEADLINE.split(' ')[0],
+		label: t('hero.statViews'),
+		sub: t('hero.statViewsSub'),
+	},
+	{
+		icon: 'chat',
+		value: String(LANGUAGE_COUNT),
+		label: t('hero.statLanguages'),
+		sub: t('hero.statLanguagesSub'),
+	},
+	{
+		icon: 'map',
+		value: String(COUNTRIES.length),
+		label: t('hero.statCountries'),
+		sub: t('hero.statCountriesSub'),
+	},
+	{
+		icon: 'globe',
+		value: String(REGIONS.length),
+		label: t('hero.statRegions'),
+		sub: t('hero.statRegionsSub'),
+	},
 ] as const;
 ---
 
@@ -88,26 +221,21 @@ const FLOW = [
 			<source src={VIDEO.mp4} type="video/mp4" />
 		</video>
 
-		{/* Scrim. The tooth's glow must never sit directly behind the headline. */}
+		{/* Scrim. The copy column is on the left, so the ink is banked there. */}
 		<div class="hero__scrim" data-hero-scrim></div>
 		<div class="hero__vignette" aria-hidden="true"></div>
 		<div class="grain" aria-hidden="true"></div>
 	</div>
 
 	{/*
-		The follow rail, pinned to the left edge rather than placed in the flow.
-		It is a secondary invitation — the two buttons in the middle are what the
-		hero is actually asking for — and an aside belongs in the margin.
-
-		Last in the DOM on purpose: every [data-hero-in="tail"] element shares one
-		staggered tween, in document order, so putting the rail here lands the
-		three marks one after another once the buttons have settled rather than
-		competing with them.
+		The follow rail, pinned to the right edge rather than placed in the flow.
+		It is a secondary invitation — the two buttons in the copy column are what
+		the hero is actually asking for — and an aside belongs in the margin.
 	*/}
 	<ul class="hero__social" aria-label="Follow MOLAR AI">
 		{
 			SOCIAL.map((link) => (
-				<li data-hero-in="tail">
+				<li>
 					{/*
 						External, so rel="noopener". No noreferrer — these are the
 						company's own accounts and the referrer is wanted in their
@@ -122,148 +250,234 @@ const FLOW = [
 		}
 	</ul>
 
-	<div class="container-content hero__inner">
-		<p class="eyebrow hero__eyebrow" data-hero-in="lead">{t('site.tagline')}</p>
+	<div class="hero__inner">
+		<div class="hero__copy">
+			<p class="hero__badge" data-hero-in="lead">{t('hero.eyebrow')}</p>
 
-		{/*
-			The visual copy is split into per-letter spans and hidden from assistive
-			tech; the real sentence is carried once, in order, by the sr-only span.
-			An aria-label on the <h1> would do the same job, but this survives a
-			translation layer rewriting the visible text and leaves the accessible
-			name built from actual content.
-		*/}
-		<h1 id="hero-heading" class="hero__title">
-			<span class="sr-only">{TITLE_TEXT}</span>
-			<span class="hero__title-visual" aria-hidden="true">
+			{/*
+				The visual copy is split into per-letter spans and hidden from assistive
+				tech; the real sentence is carried once, in order, by the sr-only span.
+				An aria-label on the <h1> would do the same job, but this survives a
+				translation layer rewriting the visible text and leaves the accessible
+				name built from actual content.
+			*/}
+			<h1 id="hero-heading" class="hero__title">
+				<span class="sr-only">{TITLE_TEXT}</span>
+				<span class="hero__title-visual" aria-hidden="true">
+					{
+						TITLE_PARTS.map((part) => (
+							<span class:list={['hero__part', part.accent && 'hero__part--accent']}>
+								{part.text.split(' ').map((word) => (
+									<span class="hero__word">
+										{[...word].map((char) => (
+											<span class="hero__letter" data-hero-letter>
+												{char}
+											</span>
+										))}
+									</span>
+								))}
+							</span>
+						))
+					}
+				</span>
+			</h1>
+
+			<p class="hero__lede" data-hero-in="tail">
 				{
-					TITLE_PARTS.map((part) => (
-						<span class:list={['hero__part', part.accent && 'hero__part--accent']}>
-							{part.text.split(' ').map((word) => (
-								<span class="hero__word">
-									{[...word].map((char) => (
-										<span class="hero__letter" data-hero-letter>
-											{char}
-										</span>
-									))}
-								</span>
-							))}
-						</span>
-					))
+					ledeParts.map((part) =>
+						part.lit ? <span class="hero__lede-lit">{part.text}</span> : part.text,
+					)
 				}
-			</span>
-		</h1>
+			</p>
 
-		{/*
-			The numbers are the list's own — an <ol> already says these are ordered,
-			so the visible digits are decoration and are hidden from assistive tech
-			rather than read out twice. Spans rather than headings inside: this rail
-			sits under the hero's h1 and has no business minting h3s in it.
-		*/}
-		<ol class="rail" data-hero-in="tail">
-			{
-				FLOW.map((step, i) => (
-					<li class:list={['station', i === FLOW.length - 1 && 'station--live']}>
-						{/*
-							Drawn per station rather than as one line behind the row. A single
-							background line would run under the nodes and show through the gaps
-							between them at every breakpoint; a segment owned by each station
-							starts and stops exactly where its own node does, and the last
-							station simply has none.
-						*/}
-						{i < FLOW.length - 1 && <span class="station__rail" aria-hidden="true" />}
-
-						<span class="station__node">
-							<span class="station__icon" aria-hidden="true">
-								<StepIcon name={step.icon} />
-							</span>
-							<span class="station__num" aria-hidden="true">
-								{String(i + 1).padStart(2, '0')}
-							</span>
-						</span>
-
-						<span class="station__body">
-							<span class="station__title">{step.title}</span>
-							<span class="station__text">{step.sub}</span>
-						</span>
-					</li>
-				))
-			}
-		</ol>
-
-		<div class="hero__actions" data-hero-in="tail">
-			<a href={localizePath(CTA.secondary.href, locale)} class="btn-lit">
-				{/* The wordmark is not in the button, so the mark carries no meaning
-				    here beyond decoration — the label is the accessible name. */}
-				<span class="btn-lit__badge" aria-hidden="true">
+			<div class="hero__actions" data-hero-in="tail">
+				{/*
+					"Explore MOLAR" is an in-page jump rather than a page load, and that
+					is the whole idea of it: the visitor who is not ready to look at a
+					price is asking to be shown the thing, and the thing is the section
+					immediately below. Lenis intercepts it — see motion.ts.
+				*/}
+				<a href="#ecosystem" class="hero__btn hero__btn--solid">
+					<span>{t('cta.explore')}</span>
+					{/* The tile, and it needs no disc behind it — it is its own rounded
+					    ground. Decorative: the label is the link's accessible name. */}
 					<Image
-						src={logoMark}
+						src={logoIcon}
 						alt=""
-						height={22}
+						height={34}
 						densities={[1, 2]}
 						loading="eager"
 						decoding="sync"
 						class="hero__cta-mark"
 					/>
-				</span>
-				<span>{t('cta.heroPlans')}</span>
-			</a>
+				</a>
 
-			{/*
-				Second, and second on purpose: the plan is what the hero is asking for,
-				the library is the way in for anyone not ready to ask about price yet.
-				Same button, one modifier dimmer — see `.btn-lit--quiet`.
-			*/}
-			<a href={localizePath('/resources/', locale)} class="btn-lit btn-lit--quiet">
-				<span class="btn-lit__badge" aria-hidden="true">
-					{/* A stack of sheets. Decorative — the label is the accessible name. */}
+				{/*
+					Second, and second on purpose: the tour is what the hero is asking
+					for, the price is the way in for anyone who already knows what this
+					is.
+				*/}
+				<a href={localizePath(CTA.secondary.href, locale)} class="hero__btn hero__btn--quiet">
+					<span>{t('cta.seePlans')}</span>
+					{/* A price tag. Decorative — the label is the accessible name. */}
 					<svg
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
-						stroke-width="1.4"
+						stroke-width="1.5"
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						class="hero__cta-glyph"
+						aria-hidden="true"
 					>
 						<path
-							d="M8.2 3.6h7.2l4 4v10.2a2.2 2.2 0 0 1-2.2 2.2H8.2A2.2 2.2 0 0 1 6 17.8V5.8a2.2 2.2 0 0 1 2.2-2.2Z"
+							d="M4 11.4V5.4a1.4 1.4 0 0 1 1.4-1.4h6l8.2 8.2a1.4 1.4 0 0 1 0 2l-6 6a1.4 1.4 0 0 1-2 0L4 11.4Z"
 						></path>
-						<path d="M15 3.8v3.8h4"></path>
-						<path d="M9.6 12.6h6M9.6 16h4"></path>
+						<circle cx="8.4" cy="8.4" r="1.2"></circle>
 					</svg>
-				</span>
-				<span>{t('cta.heroResources')}</span>
-			</a>
+				</a>
+			</div>
+
+			{/*
+				The trust bar the strategy asks for, at the foot of the copy column
+				rather than as a band of its own: it answers the question the two
+				buttons raise — "does anyone actually use this?" — at the moment it
+				gets raised.
+
+				The eighteen markets run past as a band rather than sitting still —
+				see the note on `COUNTRIES` in ~/data/reach.
+			*/}
+			<div class="hero__trust" data-hero-in="tail">
+				<p class="hero__trust-line">{t('hero.trust')}</p>
+				<div class="hero__trust-row">
+					{/*
+						Decorative as a whole — it is one list said four times over, in two
+						copies — so the row is hidden from assistive tech and the countries
+						are named once, in order, by the sr-only list beside it.
+					*/}
+					<div class="marquee hero__flags" aria-hidden="true">
+						{
+							FLAG_TRACKS.map(() => (
+								<div class="marquee__track">
+									{FLAGS.map((country) => (
+										<img
+											class="hero__flag"
+											src={country.src}
+											alt=""
+											width="40"
+											height="40"
+											loading="eager"
+											decoding="async"
+										/>
+									))}
+								</div>
+							))
+						}
+					</div>
+					<ul class="sr-only">
+						{FLAGS.map((country) => <li>{country.name}</li>)}
+					</ul>
+					<span class="hero__trust-stat">{PROOF_HEADLINE}</span>
+				</div>
+			</div>
 		</div>
 
 		{/*
-			The proof, under the asks rather than in its own band further down.
-			It answers the question the two buttons raise — "does this work?" —
-			at the moment it gets raised, and it costs the hero one line to do it.
-
-			One sentence, not a stat block: the number and what it counts read as
-			a single phrase, so it is marked up as one <p> with the number given
-			weight rather than as a figure with a caption.
+			The readouts. They float over the footage rather than sitting in a
+			column, and both carry real text, so both stay in the reading order —
+			after the copy they support.
 		*/}
-		<p class="hero__proof" data-hero-in="tail">
-			<span class="hero__proof-number">{PROOF_HEADLINE}</span>
-			<span class="hero__proof-label">{PROOF_SUB}</span>
-		</p>
+		<div class="hero__panel" data-hero-in="tail">
+			<div class="hero__card hero__card--views">
+				<p class="hero__card-label">{CARD_VIEWS.label}</p>
+				<p class="hero__card-value">{CARD_VIEWS.value}</p>
+				{/* The trend line. Pure decoration — the figure above it is the data. */}
+				<svg class="hero__spark" viewBox="0 0 120 32" fill="none" aria-hidden="true">
+					<path
+						d="M2 27 L18 22 L32 24 L46 16 L60 18 L74 11 L88 13 L104 5 L118 3"
+						stroke="url(#hero-spark)"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"></path>
+					<defs>
+						<linearGradient id="hero-spark" x1="0" y1="0" x2="120" y2="0">
+							<stop offset="0" stop-color="#0a66ff"></stop>
+							<stop offset="1" stop-color="#b3d3ff"></stop>
+						</linearGradient>
+					</defs>
+				</svg>
+				<p class="hero__card-note">
+					<span class="hero__card-trend" aria-hidden="true">↗</span>
+					{CARD_VIEWS.note}
+				</p>
+			</div>
+
+			<div class="hero__card hero__card--clients">
+				<p class="hero__card-label">{CARD_CLIENTS.label}</p>
+				{/*
+					Every mark knocked back to one bone silhouette. Three brand palettes
+					dropped onto a navy card at their native colours would read as three
+					stray images rather than as one roster — the same call the trust band
+					makes, for the same reason.
+				*/}
+				<ul class="hero__clients">
+					{
+						CLIENTS.map((client) => (
+							<li class="hero__client">
+								<Image
+									class="hero__client-logo"
+									src={client.logo}
+									alt={client.practice}
+									height={26}
+									densities={[1, 2]}
+									loading="eager"
+								/>
+							</li>
+						))
+					}
+					<li class="hero__client hero__client--more">{PRACTICE_COUNT}</li>
+				</ul>
+				<p class="hero__card-note">{CARD_CLIENTS.note}</p>
+			</div>
+		</div>
 	</div>
+
+	{/*
+		The figure band, closing the fold. Inside the hero rather than a section
+		of its own because it is the evidence for the sentence directly above it,
+		and a rule between the two would break that link.
+	*/}
+	<ul class="hero__stats" data-hero-in="tail">
+		{
+			STATS.map((stat) => (
+				<li class="hero__stat">
+					<span class="hero__stat-icon" aria-hidden="true">
+						<Glyph name={stat.icon} />
+					</span>
+					<span class="hero__stat-body">
+						<span class="hero__stat-value">{stat.value}</span>
+						<span class="hero__stat-label">
+							{stat.label}
+							<span class="hero__stat-sub">{stat.sub}</span>
+						</span>
+					</span>
+				</li>
+			))
+		}
+	</ul>
 </section>
 
 <style>
 	.hero {
 		position: relative;
 		display: flex;
-		align-items: center;
+		flex-direction: column;
 		justify-content: center;
 		/* dvh, not vh — vh is wrong the moment mobile Safari's chrome moves. */
 		min-height: 100dvh;
-		padding-block: calc(var(--nav-h, 5.25rem) + clamp(2.5rem, 7vh, 4.5rem)) clamp(3.5rem, 9vh, 6rem);
+		padding-block: calc(var(--nav-h, 5.25rem) + clamp(1.5rem, 4vh, 3rem)) clamp(1rem, 2vh, 1.75rem);
 		overflow: clip;
 		isolation: isolate;
-		text-align: center;
 	}
 
 	/* Fallback for the handful of engines without dvh. */
@@ -288,7 +502,7 @@ const FLOW = [
 			url('/images/hero-poster.jpg') type('image/jpeg')
 		);
 		background-size: cover;
-		background-position: 50% 46%;
+		background-position: 76% 42%;
 	}
 
 	.hero__video {
@@ -296,31 +510,31 @@ const FLOW = [
 		height: 100%;
 		object-fit: cover;
 		/*
-			The tooth sits centred and small in the footage, and with the copy
-			centred too it is the composition's focal mark — there is no separate
-			logo in the stack because this is it. A hair above centre keeps its glow
-			between the eyebrow and the headline rather than behind the headline.
+			Pushed off to the right: the copy column owns the left half of the
+			frame now, so the footage's bright mass has to sit beside it rather
+			than under it.
 		*/
-		object-position: 50% 46%;
+		object-position: 76% 42%;
 	}
 
 	.hero__scrim {
 		position: absolute;
 		inset: 0;
 		background:
-			/* Pool of ink under the copy stack. The footage is at its brightest
-			   dead centre, which is exactly where the headline sits. */
-			radial-gradient(
-				68% 54% at 50% 52%,
-				color-mix(in oklab, var(--color-ink-950) 74%, transparent) 0%,
-				color-mix(in oklab, var(--color-ink-950) 44%, transparent) 58%,
+			/* Ink banked down the left, where the copy is. */
+			linear-gradient(
+				90deg,
+				var(--color-ink-950) 0%,
+				color-mix(in oklab, var(--color-ink-950) 92%, transparent) 26%,
+				color-mix(in oklab, var(--color-ink-950) 62%, transparent) 46%,
+				color-mix(in oklab, var(--color-ink-950) 18%, transparent) 66%,
 				transparent 100%
 			),
 			linear-gradient(
 				180deg,
-				color-mix(in oklab, var(--color-ink-950) 68%, transparent) 0%,
-				color-mix(in oklab, var(--color-ink-950) 24%, transparent) 30%,
-				color-mix(in oklab, var(--color-ink-950) 80%, transparent) 82%,
+				color-mix(in oklab, var(--color-ink-950) 62%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 12%, transparent) 34%,
+				color-mix(in oklab, var(--color-ink-950) 72%, transparent) 84%,
 				var(--color-ink-950) 100%
 			);
 	}
@@ -329,76 +543,90 @@ const FLOW = [
 		position: absolute;
 		inset: 0;
 		background: radial-gradient(
-			120% 80% at 50% 46%,
-			transparent 38%,
-			color-mix(in oklab, var(--color-ink-950) 72%, transparent) 100%
+			120% 86% at 74% 44%,
+			transparent 32%,
+			color-mix(in oklab, var(--color-ink-950) 78%, transparent) 100%
 		);
 	}
 
+	/* ── Layout ──────────────────────────────────────────────────────────── */
+	/*
+		Its own measure rather than `.container-content`: this fold is furniture as
+		much as copy, and the band, the nav bar and the copy column all have to
+		share one edge.
+	*/
 	.hero__inner {
 		position: relative;
-		display: flex;
-		flex-direction: column;
+		width: calc(100% - var(--gutter) * 2);
+		max-width: 112rem;
+		margin-inline: auto;
+		display: grid;
+		gap: clamp(2.5rem, 6vw, 4rem);
 		align-items: center;
-		gap: clamp(1.25rem, 3.2vh, 2.25rem);
 	}
 
-	.hero__eyebrow {
+	.hero__copy {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: clamp(1rem, 2.4vh, 1.5rem);
+		text-align: start;
+	}
+
+	/* ── Badge ───────────────────────────────────────────────────────────── */
+	.hero__badge {
+		display: inline-flex;
+		align-items: center;
 		margin: 0;
+		height: 1.875rem;
+		padding-inline: 0.875rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-950) 62%, transparent);
+		backdrop-filter: blur(14px) saturate(140%);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		line-height: 1;
+		text-transform: uppercase;
+		color: var(--color-bone-300);
 	}
 
 	/* ── Headline ────────────────────────────────────────────────────────── */
 	.hero__title {
 		margin: 0;
 		/*
-			Its own scale, not --text-5xl — that token tops out at 5.25rem for
-			sentence case. The 6.5rem ceiling is measured, not chosen: it is the
-			largest size at which "THE EASIEST WAY TO" still holds one line inside
-			the 76rem container, and it is past the size at which the accent run
-			below breaks after "PATIENTS". Those two facts are the three-line
-			shape. Moving the ceiling moves the shape.
+			Sized against the half-width column it now sits in rather than against
+			the window: at the old 6.1vw the line ran straight into the readouts.
 		*/
-		font-size: clamp(2.6rem, 6.8vw + 0.6rem, 6.5rem);
-		/*
-			Caps have no descenders, so the generous default leading that sentence
-			case needs just opens a hole between the two lines. Under 1 is only
-			safe because of that.
-		*/
-		line-height: 0.95;
-		font-weight: 600;
-		/* Caps sit further apart optically than lowercase — they want a fraction
-		   of the negative tracking, not the -0.035em the lowercase line took. */
-		letter-spacing: -0.018em;
-		/* `balance` comes from the global h1 rule and is right below 1000px, where
-		   the line count is whatever fits — see the desktop override. */
-		max-width: 100%;
+		font-size: clamp(2.35rem, 3.9vw + 0.9rem, 4.35rem);
+		line-height: 1.03;
+		font-weight: 700;
+		letter-spacing: -0.03em;
+		text-wrap: balance;
+		max-width: 19ch;
 	}
 
-	/*
-		The transform lives here, not on the <h1>. On the heading it would also
-		cover the sr-only sentence, and some screen readers read the transformed
-		text rather than the source — which turns a headline into spelling.
-	*/
 	.hero__title-visual {
 		display: block;
-		text-transform: uppercase;
 	}
 
 	/*
 		Block, not inline — and not only for the line break it pins down. Astro
 		emits a newline between the two parts, and as inlines that collapsed to a
-		real space *on top of* the word margin below, so the seam at
-		"to | educate" rendered a space and a half wide.
+		real space *on top of* the word margin below, so the seam rendered a space
+		and a half wide.
 	*/
 	.hero__part {
 		display: block;
 	}
 
 	.hero__part--accent {
-		color: var(--color-arc-300);
+		color: var(--color-arc-400);
 		/* Applied per letter, which is what makes it cheap — no filter on a
 		   forty-child block, just a shadow each glyph already needs. */
-		text-shadow: 0 0 42px color-mix(in oklab, var(--color-arc-500) 45%, transparent);
+		text-shadow: 0 0 46px color-mix(in oklab, var(--color-arc-500) 45%, transparent);
 	}
 
 	/*
@@ -409,12 +637,20 @@ const FLOW = [
 	.hero__word {
 		display: inline-block;
 		white-space: nowrap;
-		/* Caps read tighter than lowercase at the same word space. */
-		margin-inline-end: 0.22em;
+		margin-inline-end: 0.26em;
 	}
 
 	.hero__part:last-child .hero__word:last-child {
 		margin-inline-end: 0;
+	}
+
+	/*
+		The last word of the accent run takes a line of its own. Left to wrap, the
+		line runs the full width of the column and reads as one long beat; broken
+		here it reads as two, which is the shape the headline was written for.
+	*/
+	.hero__part--accent .hero__word:last-child {
+		display: block;
 	}
 
 	/* inline-block, or `transform` on the entrance has nothing to act on. No
@@ -424,391 +660,520 @@ const FLOW = [
 		display: inline-block;
 	}
 
-	/* ── Subscribe → Connect → Stay top of mind ──────────────────────────── */
-	/*
-		The same rail /how-it-works/ runs, at three stations instead of four: a
-		numbered node per step with the line threading through them. Three cards
-		said "here are three features"; a rail says "this, then this, then this",
-		and the order is the only thing this row is here to carry.
-
-		Centred, unlike the page version, which hangs its copy off the left of each
-		node. The hero is a centred composition from the headline down and a rail of
-		left-ragged copy under a centred h1 reads as a different section that
-		wandered in. Centring also puts every node on its column's centre line, so
-		the segments between them come out symmetric without being measured.
-	*/
-	.rail {
-		/*
-			The two numbers every offset below is written in terms of, so the rail
-			segments cannot drift out of line with the nodes they connect. Changing
-			the node size — as the short-laptop query below does — moves the line
-			with it.
-		*/
-		--rail-gap: clamp(1rem, 3vw, 2rem);
-		--node: 3.5rem;
-
-		position: relative;
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: var(--rail-gap);
-		width: 100%;
-		/* The row reads as a diagram, not as a band across the page; past this it
-		   stops looking like three related things and starts looking like three
-		   columns of a layout. */
-		max-width: 52rem;
-		margin: 0 auto;
-		padding: 0;
-		list-style: none;
-	}
-
-	.station {
-		position: relative;
-		display: grid;
-		justify-items: center;
-		align-content: start;
-		gap: 0.875rem;
-		text-align: center;
-	}
-
-	.station__node {
-		position: relative;
-		/* Over the rail segment, which runs behind it. */
-		z-index: 1;
-		display: grid;
-		place-items: center;
-		width: var(--node);
-		height: var(--node);
-		border-radius: 50%;
-		border: 1px solid var(--color-line-strong);
-		background: color-mix(in oklab, var(--color-ink-900) 88%, transparent);
-		backdrop-filter: blur(10px);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #dbeaff 12%, transparent);
-		color: var(--color-bone-300);
-		transition:
-			border-color 0.4s var(--ease-out-quint),
-			color 0.4s var(--ease-out-quint),
-			box-shadow 0.4s var(--ease-out-quint);
-	}
-
-	/* Nothing behind it to sample, so translucency would read as washed out. */
-	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-		.station__node {
-			background-color: color-mix(in oklab, var(--color-ink-900) 94%, transparent);
-		}
-	}
-
-	.station__icon {
-		display: block;
-		width: 1.5rem;
-		height: 1.5rem;
-		color: var(--color-arc-200);
-		/* Two passes, tight then wide: the glyph is a hairline stroke, and one
-		   large blur only smears it. */
-		filter:
-			drop-shadow(0 0 4px color-mix(in oklab, var(--color-arc-300) 55%, transparent))
-			drop-shadow(0 0 16px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
-	}
-
-	/*
-		The digit rides the node's edge rather than sitting inside it — inside, it
-		competes with the icon for a 56px circle and both lose.
-	*/
-	.station__num {
-		position: absolute;
-		inset-block-start: -0.4rem;
-		inset-inline-start: -0.4rem;
-		display: grid;
-		place-items: center;
-		min-width: 1.35rem;
-		height: 1.35rem;
-		padding-inline: 0.3rem;
-		border-radius: 999px;
-		border: 1px solid var(--color-line-strong);
-		background: var(--color-ink-950);
-		font-family: var(--font-mono);
-		font-size: var(--text-2xs);
-		font-weight: 500;
-		line-height: 1;
-		color: var(--color-bone-500);
-	}
-
-	/*
-		The segment, from this node's right edge to the next node's left edge.
-		Every node is centred in its column, so it starts half a node past the
-		column's centre and runs one whole column plus the gap, less the node.
-	*/
-	.station__rail {
-		position: absolute;
-		inset-block-start: calc(var(--node) / 2);
-		inset-inline-start: calc(50% + var(--node) / 2);
-		width: calc(100% + var(--rail-gap) - var(--node));
-		height: 1px;
-		background: linear-gradient(
-			90deg,
-			var(--color-line-strong),
-			color-mix(in oklab, var(--color-arc-500) 30%, transparent)
-		);
-	}
-
-	.station__body {
-		display: grid;
-		gap: 0.3rem;
-	}
-
-	.station__title {
-		font-family: var(--font-display);
+	/* ── Supporting copy ─────────────────────────────────────────────────── */
+	.hero__lede {
+		max-width: 52ch;
+		margin: 0;
 		font-size: var(--text-base);
-		font-weight: 600;
-		line-height: 1.3;
-		color: var(--color-bone-50);
+		line-height: 1.65;
+		color: var(--color-bone-300);
 	}
 
-	.station__text {
-		font-size: var(--text-sm);
-		line-height: 1.6;
-		color: var(--color-bone-400);
-	}
-
-	/*
-		Arrival. The last node is the only one lit, and it is lit the same way the
-		"after" frame on /results/ is — same accent, same halo — so the light means
-		one thing across the site: this account is live.
-	*/
-	.station--live .station__node {
-		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
-		background: color-mix(in oklab, var(--color-arc-600) 16%, transparent);
-		color: var(--color-arc-300);
-		box-shadow:
-			inset 0 1px 0 color-mix(in oklab, #dbeaff 22%, transparent),
-			0 0 30px -6px color-mix(in oklab, var(--color-arc-400) 75%, transparent);
-	}
-
-	.station--live .station__num {
-		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+	/* The two promises, lit. Not links — nothing here navigates — so no
+	   underline and no pointer. */
+	.hero__lede-lit {
 		color: var(--color-arc-300);
 	}
 
 	/* ── CTA ─────────────────────────────────────────────────────────────── */
-	/*
-		Stacked, not side by side. The two buttons are different widths and the
-		hero is centre-aligned throughout — a row would hang them off a shared
-		centre line with ragged ends, and it would also put the secondary CTA level
-		with the primary rather than under it.
-
-		One `max-content` column is what makes them the same width: the track sizes
-		to the widest button, and both stretch into it. Doing it that way rather
-		than hard-coding a width means the pair stays matched if either label is
-		ever reworded — including through a translation, where a guessed width is a
-		guarantee of a broken button. `min()` keeps the track from overflowing a
-		narrow phone.
-	*/
 	.hero__actions {
-		display: grid;
-		grid-template-columns: min(100%, max-content);
-		justify-content: center;
+		display: flex;
+		flex-wrap: wrap;
 		gap: 0.75rem;
-		margin-top: clamp(0.25rem, 1.5vh, 1rem);
+		margin-top: clamp(0.25rem, 1.2vh, 0.75rem);
 	}
 
 	/*
-		The button itself is `.btn-lit` in global.css — dark glass with the accent
-		around its rim, shared with the resource CTA on how-it-works so the two
-		cannot drift apart. Only the logo mark inside it is sized here.
+		Two buttons of one shape: the label first, its mark second, in a pill a
+		notch taller than the nav's CTA. The pair differs only in ground — solid
+		accent for the ask, glass for the alternative.
 	*/
-	/*
-		The follow rail. Absolute against the hero rather than inside
-		.hero__inner, so it sits out at the window's edge instead of on the
-		content measure — the same reasoning the nav uses for the brand lockup.
+	.hero__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.625rem;
+		height: 3rem;
+		padding-inline: 1.25rem 0.4375rem;
+		border-radius: 0.75rem;
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			border-color 0.28s var(--ease-out-quint),
+			box-shadow 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
+	}
 
-		Hidden below 68rem: there is no margin left to put it in, and the footer
+	.hero__btn--solid {
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 55%, transparent);
+		background: var(--color-arc-500);
+		color: #fff;
+		box-shadow: 0 18px 40px -20px color-mix(in oklab, var(--color-arc-400) 90%, transparent);
+	}
+
+	.hero__btn--solid:hover {
+		background: var(--color-arc-400);
+		transform: translateY(-2px);
+		box-shadow: 0 24px 54px -18px color-mix(in oklab, var(--color-arc-400) 95%, transparent);
+	}
+
+	.hero__btn--quiet {
+		padding-inline: 1.25rem;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-900) 72%, transparent);
+		backdrop-filter: blur(14px) saturate(140%);
+		color: var(--color-bone-50);
+	}
+
+	.hero__btn--quiet:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-ink-800) 82%, transparent);
+		transform: translateY(-2px);
+	}
+
+	.hero__btn:active {
+		transform: translateY(0);
+	}
+
+	/* The tile at the end of the solid button. No disc behind it: the art is
+	   already a rounded square with its own ground and its own glow. */
+	.hero__cta-mark {
+		flex: none;
+		width: 2.125rem;
+		height: 2.125rem;
+		border-radius: 0.5rem;
+	}
+
+	.hero__cta-glyph {
+		width: 1.0625rem;
+		height: 1.0625rem;
+		color: var(--color-bone-300);
+	}
+
+	/* ── Trust bar ───────────────────────────────────────────────────────── */
+	.hero__trust {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.75rem;
+		margin-top: clamp(0.5rem, 1.8vh, 1.25rem);
+	}
+
+	.hero__trust-line {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.hero__trust-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/*
+		A running band of flags rather than a static row. `.marquee` and
+		`.marquee__track` are the site's own, from global.css — the loop, the
+		hover pause and the reduced-motion off switch all come with them — and
+		only the measurements are set here.
+	*/
+	.hero__flags {
+		width: clamp(10rem, 20vw, 16rem);
+		--marquee-duration: 34s;
+		/* Tighter than the global fade: over 12rem an 8% ramp is barely two
+		   pixels, and the discs need to actually dissolve at both ends. */
+		mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+		-webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+	}
+
+	/* The global track is spaced for logos a foot apart. */
+	.hero__flags .marquee__track {
+		gap: 0.625rem;
+		padding-inline: 0.3125rem;
+	}
+
+	.hero__flag {
+		flex: none;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 999px;
+		box-shadow:
+			0 0 0 1px color-mix(in oklab, #dbe8ff 22%, transparent),
+			0 8px 18px -8px #000;
+	}
+
+	.hero__trust-stat {
+		display: inline-flex;
+		align-items: center;
+		height: 2rem;
+		padding-inline: 0.75rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-900) 78%, transparent);
+		backdrop-filter: blur(14px) saturate(140%);
+		font-family: var(--font-display);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		line-height: 1;
+		color: var(--color-bone-100);
+	}
+
+	/* ── The readouts ────────────────────────────────────────────────────── */
+	/*
+		Below 60rem they are hidden outright: there is no right half to float them
+		over, and stacked under the copy they would push the buttons off a phone.
+		Nothing is lost — both figures appear again in the band underneath.
+	*/
+	.hero__panel {
+		display: none;
+	}
+
+	.hero__card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 13.5rem;
+		max-width: 100%;
+		padding: 0.8125rem 0.875rem 0.875rem;
+		border-radius: 1rem;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-900) 72%, transparent);
+		backdrop-filter: blur(20px) saturate(150%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbe8ff 12%, transparent),
+			0 30px 70px -34px #000;
+	}
+
+	.hero__card-label {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: 0.625rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.hero__card-value {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: 1.75rem;
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--color-arc-300);
+	}
+
+	.hero__spark {
+		width: 100%;
+		height: 2rem;
+		margin-block: 0.125rem;
+	}
+
+	.hero__card-note {
+		display: flex;
+		align-items: center;
+		gap: 0.3125rem;
+		margin: 0;
+		font-size: var(--text-2xs);
+		line-height: 1.35;
+		color: var(--color-bone-400);
+	}
+
+	.hero__card-trend {
+		color: #4ade80;
+	}
+
+	/* Overlapped discs, the way the flag rail reads. */
+	.hero__clients {
+		display: flex;
+		align-items: center;
+		margin: 0.5rem 0 0.25rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.hero__client {
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, #cfe0f5 22%, transparent);
+		background: color-mix(in oklab, var(--color-ink-800) 92%, transparent);
+		box-shadow: 0 6px 16px -8px #000;
+		overflow: hidden;
+	}
+
+	.hero__client + .hero__client {
+		margin-inline-start: -0.4375rem;
+	}
+
+	/*
+		`brightness(0)` crushes every colour to black and `invert(1)` lifts the
+		whole thing to white in one pass — the only chain that flattens a colour
+		mark to a silhouette without touching its shape. Inside a 36px disc there
+		is no room for a wordmark to be read, so what the chip carries is the
+		shape; the practice's name rides along as the image's alt.
+	*/
+	.hero__client-logo {
+		width: 1.5rem;
+		height: 1.5rem;
+		object-fit: contain;
+		filter: brightness(0) invert(1);
+		opacity: 0.86;
+	}
+
+	.hero__client--more {
+		width: auto;
+		min-width: 2.25rem;
+		padding-inline: 0.5rem;
+		font-family: var(--font-display);
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-100);
+	}
+
+	/* ── The figure band ─────────────────────────────────────────────────── */
+	/*
+		The band runs the full width of the fold, and the cells are pushed out to
+		both edges rather than centred in equal tracks: the first sits against the
+		left rule, the last against the right, and the slack falls between them.
+	*/
+	.hero__stats {
+		position: relative;
+		width: calc(100% - var(--gutter) * 2);
+		max-width: 112rem;
+		margin: clamp(2rem, 5vh, 3.5rem) auto 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.25rem 1rem;
+		padding: 1.125rem 1.25rem;
+		border-radius: 1.25rem;
+		border: 1px solid var(--color-line);
+		/*
+			Lit from the left, the way the fold above it is. A flat wash under five
+			evenly spaced cells is what makes a band look like a table row.
+		*/
+		background:
+			linear-gradient(
+				100deg,
+				color-mix(in oklab, var(--color-arc-700) 16%, transparent) 0%,
+				transparent 42%
+			),
+			color-mix(in oklab, var(--color-ink-900) 74%, transparent);
+		backdrop-filter: blur(20px) saturate(150%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbe8ff 10%, transparent),
+			0 30px 70px -40px #000;
+		list-style: none;
+	}
+
+	.hero__stat {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+	}
+
+	/*
+		The mark, bare. No disc behind it: two of these glyphs draw their own ring
+		— the play and the clock — and a tile behind all five would put a second
+		ring around those two and a box around the other three.
+	*/
+	.hero__stat-icon {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		color: var(--color-arc-400);
+		filter: drop-shadow(0 0 12px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
+	}
+
+	.hero__stat-icon :global(svg) {
+		width: 2.75rem;
+		height: 2.75rem;
+	}
+
+	.hero__stat-body {
+		display: grid;
+		gap: 0.1875rem;
+	}
+
+	.hero__stat-value {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1;
+		letter-spacing: -0.025em;
+		color: var(--color-bone-50);
+	}
+
+	.hero__stat-label {
+		display: grid;
+		font-size: var(--text-xs);
+		line-height: 1.4;
+		color: var(--color-bone-300);
+	}
+
+	.hero__stat-sub {
+		color: var(--color-bone-500);
+	}
+
+	/* ── The follow rail ─────────────────────────────────────────────────── */
+	/*
+		Absolute against the hero rather than inside the copy column, so it sits
+		out at the window's edge instead of on the content measure — the same
+		reasoning the nav uses for the brand lockup.
+
+		Hidden below 78rem: there is no margin left to put it in, and the footer
 		carries the same three links on every page anyway, so nothing is lost.
 	*/
 	.hero__social {
 		display: none;
 	}
 
-	@media (min-width: 68rem) {
+	@media (min-width: 78rem) {
 		.hero__social {
 			position: absolute;
 			z-index: 2;
-			inset-inline-start: clamp(1.25rem, 3vw, 2.5rem);
-			inset-block-start: 50%;
+			inset-inline-end: clamp(0.75rem, 1.6vw, 1.5rem);
+			inset-block-start: 46%;
 			transform: translateY(-50%);
 			display: flex;
 			flex-direction: column;
-			gap: 0.5rem;
+			gap: 0.375rem;
 			margin: 0;
-			padding: 0;
+			padding: 0.375rem;
+			border-radius: 1rem;
+			border: 1px solid var(--color-line);
+			background: color-mix(in oklab, var(--color-ink-900) 68%, transparent);
+			backdrop-filter: blur(18px) saturate(150%);
+			box-shadow:
+				inset 0 1px 0 color-mix(in oklab, #dbe8ff 10%, transparent),
+				0 24px 60px -34px #000;
 			list-style: none;
 		}
 	}
 
 	/*
 		The tile is the hit area, and deliberately larger than the mark it holds:
-		2.75rem clears the minimum a pointer target should meet, which the 20px
-		glyph on its own would not. Same dimensions as the footer's, so the two
-		read as the same control in two places.
+		2.25rem clears what a pointer target should meet, which the 18px glyph on
+		its own would not.
 	*/
 	.hero__social-link {
 		display: grid;
 		place-items: center;
-		width: 2.75rem;
-		height: 2.75rem;
-		border-radius: 0.7rem;
-		border: 1px solid var(--color-line);
-		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
-		backdrop-filter: blur(14px) saturate(140%);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.625rem;
 		color: var(--color-bone-300);
 		transition:
 			color 0.24s var(--ease-out-quint),
-			border-color 0.24s var(--ease-out-quint),
-			background-color 0.24s var(--ease-out-quint),
-			transform 0.24s var(--ease-out-quint);
+			background-color 0.24s var(--ease-out-quint);
 	}
 
 	.hero__social-link:hover {
 		color: var(--color-bone-50);
-		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
-		background: color-mix(in oklab, var(--color-arc-600) 22%, transparent);
-		transform: translateX(3px);
+		background: color-mix(in oklab, var(--color-arc-600) 32%, transparent);
 	}
 
 	.hero__social-icon {
-		width: 1.25rem;
-		height: 1.25rem;
+		width: 1.125rem;
+		height: 1.125rem;
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.hero__social-link:hover {
-			transform: none;
+	/* ── Widths ──────────────────────────────────────────────────────────── */
+	@media (min-width: 40rem) {
+		.hero__stats {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 
-	.hero__proof {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		justify-content: center;
-		gap: 0.5rem;
-		margin: clamp(1.25rem, 3vh, 2rem) 0 0;
-		text-align: center;
-	}
-
-	.hero__proof-number {
-		font-family: var(--font-display);
-		font-size: var(--text-xl);
-		font-weight: 700;
-		letter-spacing: -0.01em;
-		color: var(--color-bone-50);
-	}
-
-	.hero__proof-label {
-		font-size: var(--text-sm);
-		color: var(--color-bone-400);
-	}
-
-	.hero__cta-mark {
-		width: auto;
-		height: 1.375rem;
-	}
-
-	.hero__cta-glyph {
-		width: 1.25rem;
-		height: 1.25rem;
-	}
-
-	/*
-		The three-line shape only exists at the sizes that can hold it. Greedy
-		wrapping there, overriding the `balance` every h1 gets globally: with three
-		words over two lines balance has a tie to break and can hand back
-		"EDUCATE" / "PATIENTS ONLINE.", where greedy always fills the first line.
-
-		Below this it stays balanced, because greedy on a narrow screen strands
-		"TO" alone on a line of its own.
-	*/
-	@media (min-width: 1000px) {
-		.hero__title {
-			text-wrap: wrap;
-		}
-	}
-
-	/*
-		Below this the three stations will not hold a readable line length side by
-		side, so the rail turns and runs down instead of across: node in a narrow
-		first column, copy beside it, segment dropping from each node to the next.
-		The same turn the /how-it-works/ rail makes at its own breakpoint.
-	*/
-	@media (max-width: 46rem) {
+	@media (min-width: 60rem) {
 		/*
-			`max-content`, not a fixed measure. The copy here is short — "Choose
-			your plan" — so a 24rem column leaves several centimetres of empty
-			track to the right of every row, and `margin: 0 auto` then centres a
-			block that is mostly air. The result sits visibly left of the headline
-			above it even though the box is dead centre.
-
-			Sizing the rail to its widest row makes the block and its contents the
-			same thing, so centring the one centres the other. The cap keeps a long
-			label from pushing it past the screen.
+			The split. The copy holds a little over half so the headline keeps its
+			two-line shape, and the readouts float over the rest.
 		*/
-		.rail {
-			--rail-gap: 1.5rem;
+		.hero__inner {
+			grid-template-columns: minmax(0, 1.28fr) minmax(0, 1fr);
+		}
 
-			grid-template-columns: minmax(0, 1fr);
+		.hero__panel {
+			position: relative;
+			display: block;
+			/* The footage is what fills this half; the cards only need a box tall
+			   enough to be pinned inside. */
+			min-height: 24rem;
+		}
+
+		/* Pinned rather than stacked: they are readouts floating over the
+		   footage, and the diagonal between them is the composition. */
+		/* Inside the panel at this width — the copy column has no room to spare. */
+		/*
+			Top-aligned with the badge, not with the panel. The panel is centred in
+			the row and shorter than the copy beside it, so its own top edge sits
+			well below the first line — the offset is that difference.
+		*/
+		.hero__card--views {
+			position: absolute;
+			inset-block-start: -6.5rem;
+			inset-inline-start: -11rem;
+		}
+
+		.hero__card--clients {
+			/* Sized to the chip row rather than to the sentence under it — the note
+			   wraps, and a card wide enough to hold it on one line leaves a hole to
+			   the right of the marks. */
 			width: max-content;
-			max-width: min(24rem, 100%);
+			max-width: 13rem;
+			position: absolute;
+			inset-block-end: -7rem;
+			inset-inline-start: -10rem;
 		}
 
-		.station {
-			grid-template-columns: auto minmax(0, 1fr);
-			justify-items: start;
-			gap: 0 1rem;
-			text-align: start;
-		}
-
-		.station__rail {
-			inset-block-start: var(--node);
-			inset-inline-start: calc(var(--node) / 2);
-			width: 1px;
-			/* Down to the next node: this station's own height past the node, plus
-			   the gap below it. */
-			height: calc(100% - var(--node) + var(--rail-gap));
-			background: linear-gradient(
-				180deg,
-				var(--color-line-strong),
-				color-mix(in oklab, var(--color-arc-500) 30%, transparent)
-			);
-		}
-
-		.station__body {
-			padding-block-start: 0.35rem;
+		.hero__stats {
+			/* auto, not 1fr: a cell is as wide as its own figure and caption, and
+			   `space-between` is what then throws the five apart evenly with the
+			   outer two against the band's own padding. */
+			grid-template-columns: repeat(5, auto);
+			justify-content: space-between;
+			padding: 1.25rem clamp(1.5rem, 2.4vw, 2.5rem);
+			gap: 1rem;
 		}
 	}
 
-	/*
-		Short and wide, which is most laptops. The rail gives up its air before the
-		button gives up its place on the first screen; without this the row's extra
-		height pushes the CTA below the fold at 700px. Only `--node` and the gaps
-		move — every segment offset is written in terms of them, so the line follows
-		the nodes down on its own.
-	*/
-	@media (min-width: 46rem) and (max-height: 820px) {
-		.rail {
-			--node: 3rem;
-			--rail-gap: clamp(0.75rem, 2.5vw, 1.5rem);
+	/* Wide enough for the pair to hang out over the copy column's right edge. */
+	@media (min-width: 90rem) {
+		.hero__card--views {
+			inset-block-start: -5rem;
+			inset-inline-start: -15rem;
 		}
 
-		.station {
-			gap: 0.625rem;
+		.hero__card--clients {
+			inset-block-end: -5rem;
+			inset-inline-start: -14rem;
+		}
+	}
+
+	@media (min-width: 106rem) {
+		.hero__card--views {
+			inset-block-start: -8rem;
+			inset-inline-start: -28rem;
 		}
 
-		.station__icon {
-			width: 1.25rem;
-			height: 1.25rem;
-		}
-
-		.station__title {
-			font-size: var(--text-sm);
+		.hero__card--clients {
+			inset-block-end: -6rem;
+			inset-inline-start: -28rem;
 		}
 	}
 </style>

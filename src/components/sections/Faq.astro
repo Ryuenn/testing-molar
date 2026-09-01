@@ -1,6 +1,6 @@
 ---
 import Section from '~/components/ui/Section.astro';
-import { FAQ } from '~/data/faq';
+import { FAQ, type FaqItem } from '~/data/faq';
 
 /**
  * Native <details>/<summary>. Keyboard support, screen-reader semantics and
@@ -8,22 +8,43 @@ import { FAQ } from '~/data/faq';
  * gives the exclusive-accordion behaviour that would otherwise need a script,
  * and browsers without it simply allow more than one open at a time.
  *
- * The FAQPage structured data on this page is generated from the same array,
- * so the markup and the schema cannot drift apart.
+ * The FAQPage structured data on the page is generated from the SAME array the
+ * caller passes here, via `faqSchema(items)` in ~/data/schema, so the markup
+ * and the schema cannot drift apart. Pass one and you must pass the other.
+ *
+ * Two lists exist. `FAQ` answers questions about the social subscription and is
+ * the default; `EDUCATION_FAQ` answers questions about the $97 library and is
+ * passed in by /patient-education/. They are different products at different
+ * prices, and one merged accordion would read as one confusing product.
+ *
+ * `id` has to differ when two of these ever end up on one page — the anchor is
+ * a document id and the `name` groups the exclusive accordion. Nothing does
+ * that today; the guard is here so that the day someone tries, the collision is
+ * a decision rather than a surprise.
  */
+export interface Props {
+	items?: FaqItem[];
+	eyebrow?: string;
+	heading?: string;
+	lede?: string;
+	/** Anchor and accordion group. Keep unique per page. */
+	id?: string;
+}
+
+const {
+	items = FAQ,
+	eyebrow = 'FAQ',
+	heading = 'Questions practices actually ask.',
+	lede = 'If something is not here, email team@molarai.studio and a person will answer.',
+	id = 'faq',
+} = Astro.props;
 ---
 
-<Section
-	id="faq"
-	class="faq-band"
-	eyebrow="FAQ"
-	heading="Questions practices actually ask."
-	lede="If something is not here, email team@molarai.studio and a person will answer."
->
+<Section id={id} class="faq-band" eyebrow={eyebrow} heading={heading} lede={lede}>
 	<div class="faq" data-reveal-stagger>
 		{
-			FAQ.map((item, i) => (
-				<details class="faq__item" name="molar-faq" open={i === 0} data-reveal data-reveal-group>
+			items.map((item, i) => (
+				<details class="faq__item" name={id} open={i === 0} data-reveal data-reveal-group>
 					<summary class="faq__q">
 						<span class="faq__q-text">{item.q}</span>
 						<span class="faq__icon" aria-hidden="true">

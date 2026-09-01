@@ -1,0 +1,59 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import MolarTv from '~/components/sections/MolarTv.astro';
+import EducationLibrary from '~/components/sections/EducationLibrary.astro';
+import PatientJourney from '~/components/sections/PatientJourney.astro';
+import WhyMolar from '~/components/sections/WhyMolar.astro';
+import Faq from '~/components/sections/Faq.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	MOLAR TV — the waiting-room channel.
+
+	There is no price on this page. The offer is quoted rather than bought and
+	there is no checkout for it in this repo, so every ask here is a
+	conversation. Do not add a figure to this page before there is something a
+	practice can actually pay.
+
+	The library section runs underneath because TV is not a separate catalogue —
+	it is the same content on a fourth screen, and a visitor who came in through
+	the waiting room should see what is actually going to play on it.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.tvTitle')}
+	description={t('pages.tvDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR TV — patient education for the dental waiting room',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.menuTv'), path: '/molar-tv/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('tv.eyebrow')}
+		title={t('pages.tvIntro')}
+		lede={t('pages.tvLede')}
+		crumb={t('nav.menuTv')}
+	/>
+
+	{/* Headless: the page <h1> above already carries this section's headline. */}
+	<MolarTv head={false} />
+	<EducationLibrary />
+	<PatientJourney />
+	<WhyMolar />
+	<Faq />
+	<ClosingCta />
+</BaseLayout>

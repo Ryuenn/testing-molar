@@ -1,0 +1,171 @@
+---
+/**
+ * Section 06 — show it, do not explain it.
+ *
+ * The heading, seven categories, and then the reel itself. The reel is the
+ * existing `VideoReel` component playing nine real delivered clips; this
+ * section is the frame that tells a visitor what they are looking at, which
+ * the strip on its own never did.
+ *
+ * Every category links somewhere real examples of it can be watched or
+ * scrolled — see the note in `~/data/showcase`. A gallery whose tiles link to
+ * descriptions of themselves is a menu, not a gallery.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import VideoReel from '~/components/sections/VideoReel.astro';
+import { SHOWCASE } from '~/data/showcase';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const CATEGORIES = SHOWCASE.map((category) => ({
+	icon: category.icon,
+	name: t(`showcase.${category.key}Name` as 'showcase.reelsName'),
+	body: t(`showcase.${category.key}Body` as 'showcase.reelsBody'),
+	href: localizePath(category.href, locale),
+}));
+---
+
+<section id="showcase" class="section section-rule show" aria-labelledby="show-heading">
+	<div class="container-content">
+		<header class="show__head">
+			<p class="eyebrow" data-reveal="fade">{t('showcase.eyebrow')}</p>
+			<h2 id="show-heading" class="show__title" data-reveal>{t('showcase.heading')}</h2>
+			<p class="show__lede measure-wide" data-reveal>{t('showcase.lede')}</p>
+		</header>
+
+		{/*
+			A scroll rail on narrow screens and a grid on wide ones — one list,
+			restyled at the breakpoint, never two copies in the DOM. `scroll-x`
+			from global.css brings the thin scrollbar; the snap points are local,
+			because they only make sense while the rail is a rail.
+		*/}
+		<ul class="show__cats scroll-x" data-reveal-stagger>
+			{
+				CATEGORIES.map((category) => (
+					<li data-reveal data-reveal-group>
+						<a class="cat panel panel-hover" href={category.href}>
+							<span class="cat__icon" aria-hidden="true">
+								<Glyph name={category.icon} />
+							</span>
+							<span class="cat__name">{category.name}</span>
+							<span class="cat__body">{category.body}</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+
+	<VideoReel />
+
+	<div class="container-content">
+		<p class="show__more" data-reveal>
+			<a class="btn btn-ghost" href={localizePath('/our-work/', locale)}>{t('showcase.cta')}</a>
+		</p>
+	</div>
+</section>
+
+<style>
+	.show__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2rem, 4vw, 3rem);
+	}
+
+	.show__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.show__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.show__cats {
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: minmax(14rem, 1fr);
+		gap: 0.75rem;
+		margin: 0 0 clamp(2rem, 4vw, 3rem);
+		/* Room for the scrollbar the rail gets on a phone, so the last card is
+		   not sitting on top of it. */
+		padding: 0 0 0.75rem;
+		list-style: none;
+		scroll-snap-type: x mandatory;
+	}
+
+	.show__cats > li {
+		scroll-snap-align: start;
+	}
+
+	.cat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: 100%;
+		padding: 1.125rem 1rem 1.25rem;
+		text-decoration: none;
+	}
+
+	.cat__icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--color-arc-300);
+	}
+
+	.cat__name {
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		line-height: 1.25;
+		color: var(--color-bone-50);
+	}
+
+	.cat__body {
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		color: var(--color-bone-400);
+	}
+
+	.show__more {
+		display: flex;
+		justify-content: center;
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+	}
+
+	/*
+		Wide enough for all seven to sit still. Below this the rail scrolls, which
+		is the honest behaviour for seven cards on a phone — a 7-row stack pushes
+		the reel a screen and a half down the page.
+	*/
+	@media (min-width: 76rem) {
+		.show__cats {
+			grid-auto-flow: row;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			grid-auto-columns: auto;
+			padding-bottom: 0;
+			overflow: visible;
+			scroll-snap-type: none;
+		}
+
+		/*
+			Seven cards into a four-column grid leaves a hole on the second row.
+			The first card takes two columns instead, which makes eight cells out
+			of seven cards and closes it — and Reels is the right one to widen,
+			since it is what most of the reel below actually is.
+
+			If an eighth category is ever added, delete this rule: eight cards fill
+			the grid on their own and the wide first card would then push the last
+			one onto a row of its own.
+		*/
+		.show__cats > li:first-child {
+			grid-column: span 2;
+		}
+	}
+</style>

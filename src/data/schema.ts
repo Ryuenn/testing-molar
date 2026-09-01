@@ -2,7 +2,7 @@ import { SITE } from './site';
 import { DEFAULT_LOCALE, type Locale } from '~/i18n/config';
 import { useTranslations } from '~/i18n/utils';
 import { PLANS, CURRENCY } from './pricing';
-import { FAQ } from './faq';
+import { FAQ, type FaqItem } from './faq';
 
 const abs = (path: string) => new URL(path, SITE.origin).href;
 
@@ -98,12 +98,25 @@ export const productSchema = (locale: Locale = DEFAULT_LOCALE): Record<string, u
 	};
 };
 
-/** FAQ section. Answers are the same strings the accordion renders. */
-export const faqSchema = (): Record<string, unknown> => ({
+/**
+ * FAQ section. Answers are the same strings the accordion renders.
+ *
+ * Takes the list rather than reaching for `FAQ` directly, because there are two
+ * of them now — the social subscription's and the $97 library's — and structured
+ * data describing questions that are not on the page is a manual action waiting
+ * to happen. Pass `<Faq items={X} />` and `faqSchema(X)` together, always.
+ *
+ * `anchor` matches the section's own `id`, so the `@id` points at the block a
+ * reader would actually land on.
+ */
+export const faqSchema = (
+	items: FaqItem[] = FAQ,
+	anchor = 'faq',
+): Record<string, unknown> => ({
 	'@context': 'https://schema.org',
 	'@type': 'FAQPage',
-	'@id': `${SITE.origin}/#faq`,
-	mainEntity: FAQ.map((item) => ({
+	'@id': `${SITE.origin}/#${anchor}`,
+	mainEntity: items.map((item) => ({
 		'@type': 'Question',
 		name: item.q,
 		acceptedAnswer: {

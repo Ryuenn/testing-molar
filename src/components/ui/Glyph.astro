@@ -1,0 +1,265 @@
+---
+/**
+ * The marks the ecosystem sections wear.
+ *
+ * A second set beside `StepIcon`, not a replacement for it. StepIcon is the six
+ * marks on the hero rail and the how-it-works rail, drawn for one context and
+ * tuned there; these are the products, the touchpoints and the journey, and
+ * there are enough of them that folding both into one file would make either
+ * set hard to find.
+ *
+ * Same construction as StepIcon and deliberately so: one 24px box, one 1.4
+ * stroke, round caps and joins, no fills except where a play triangle needs
+ * one. A row of glyphs only reads as a set if every one of them was drawn to
+ * the same weight, and mixing an imported icon font into this page would break
+ * that at the first size change.
+ */
+import type { GlyphName } from '~/data/glyphs';
+
+export interface Props {
+	name: GlyphName;
+	class?: string;
+}
+
+const { name, class: className } = Astro.props;
+---
+
+<svg
+	class={className}
+	viewBox="0 0 24 24"
+	fill="none"
+	stroke="currentColor"
+	stroke-width="1.4"
+	stroke-linecap="round"
+	stroke-linejoin="round"
+	aria-hidden="true"
+>
+	{/* Three nodes and the lines between them — a post going out. */}
+	{
+		name === 'share' && (
+			<>
+				<circle cx="17.6" cy="5.8" r="2.6" />
+				<circle cx="6.4" cy="12" r="2.6" />
+				<circle cx="17.6" cy="18.2" r="2.6" />
+				<path d="m8.7 10.7 6.6-3.6M8.7 13.3l6.6 3.6" />
+			</>
+		)
+	}
+
+	{/* An open book. The library. */}
+	{
+		name === 'book' && (
+			<>
+				<path d="M12 6.8v12" />
+				<path d="M12 6.8C10.4 5.4 8.4 4.8 5.4 4.8a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1c3 0 5 .6 6.6 2" />
+				<path d="M12 6.8c1.6-1.4 3.6-2 6.6-2a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1c-3 0-5 .6-6.6 2" />
+			</>
+		)
+	}
+
+	{/* A wall-mounted screen. MOLAR TV. */}
+	{
+		name === 'monitor' && (
+			<>
+				<rect x="2.8" y="4.6" width="18.4" height="12.4" rx="2" />
+				<path d="M9 20.4h6M12 17v3.4" />
+				<path d="M10.6 8.6v4.4l3.9-2.2-3.9-2.2Z" fill="currentColor" stroke="none" />
+			</>
+		)
+	}
+
+	{/* Three stacked planes. The whole ecosystem. */}
+	{
+		name === 'layers' && (
+			<>
+				<path d="m12 3.4 8.4 4.2-8.4 4.2L3.6 7.6 12 3.4Z" />
+				<path d="m3.6 12 8.4 4.2 8.4-4.2" />
+				<path d="m3.6 16.4 8.4 4.2 8.4-4.2" />
+			</>
+		)
+	}
+
+	{/* A molar. The one mark on the page that could only belong to dentistry. */}
+	{
+		name === 'tooth' && (
+			<>
+				<path d="M7.4 3.6c1.5 0 2.2.8 4.6.8s3.1-.8 4.6-.8c2.2 0 3.6 1.7 3.6 4.2 0 2.3-.9 3.6-1.6 6.1-.5 1.8-.6 3.7-1.1 5.2-.4 1.2-1 1.9-1.8 1.9-1.5 0-1.6-2.3-1.9-4.4-.2-1.5-.7-2.3-1.8-2.3s-1.6.8-1.8 2.3c-.3 2.1-.4 4.4-1.9 4.4-.8 0-1.4-.7-1.8-1.9-.5-1.5-.6-3.4-1.1-5.2C5.7 11.4 4.8 10.1 4.8 7.8c0-2.5 1.4-4.2 3.6-4.2Z" />
+			</>
+		)
+	}
+
+	{/* Two bubbles. The consultation. */}
+	{
+		name === 'chat' && (
+			<>
+				<path d="M9.6 15.4H6.2l-2.8 2.4v-2.6a1.8 1.8 0 0 1-.9-1.6V6.4a1.8 1.8 0 0 1 1.8-1.8h9.4a1.8 1.8 0 0 1 1.8 1.8v1" />
+				<path d="M14.4 9.2h4.8a1.8 1.8 0 0 1 1.8 1.8v5a1.8 1.8 0 0 1-1.8 1.8h-.6v2.6l-2.8-2.6h-3.2a1.8 1.8 0 0 1-1.8-1.8v-5a1.8 1.8 0 0 1 1.8-1.8Z" />
+			</>
+		)
+	}
+
+	{/* A stack of sheets. The resource hub. */}
+	{
+		name === 'docs' && (
+			<>
+				<path d="M8.4 2.8h6l4 4v10.4a1.8 1.8 0 0 1-1.8 1.8H8.4a1.8 1.8 0 0 1-1.8-1.8V4.6a1.8 1.8 0 0 1 1.8-1.8Z" />
+				<path d="M14.2 3v4h4" />
+				<path d="M4 7v12.4a1.8 1.8 0 0 0 1.8 1.8h9" />
+			</>
+		)
+	}
+
+	{
+		name === 'search' && (
+			<>
+				<circle cx="10.8" cy="10.8" r="6.4" />
+				<path d="m15.6 15.6 4.2 4.2" />
+			</>
+		)
+	}
+
+	{
+		name === 'globe' && (
+			<>
+				<circle cx="12" cy="12" r="8.6" />
+				<path d="M3.4 12h17.2" />
+				<path d="M12 3.4c2.2 2.4 3.4 5.4 3.4 8.6S14.2 18.2 12 20.6c-2.2-2.4-3.4-5.4-3.4-8.6S9.8 5.8 12 3.4Z" />
+			</>
+		)
+	}
+
+	{/* A four-point star. New content, continuously. */}
+	{
+		name === 'spark' && (
+			<>
+				<path d="M12 3.2c0 4.3 2.1 6.4 6.4 6.4-4.3 0-6.4 2.1-6.4 6.4 0-4.3-2.1-6.4-6.4-6.4 4.3 0 6.4-2.1 6.4-6.4Z" />
+				<path d="M18.2 15.4c0 2-1 3-3 3 2 0 3 1 3 3 0-2 1-3 3-3-2 0-3-1-3-3Z" />
+			</>
+		)
+	}
+
+	{/* A phone in front of a screen. Every surface in the practice. */}
+	{
+		name === 'screens' && (
+			<>
+				<rect x="2.6" y="4.4" width="13.4" height="9.6" rx="1.8" />
+				<path d="M6.6 17.6h4.6" />
+				<rect x="15.2" y="10.6" width="6.2" height="10.4" rx="1.8" />
+				<path d="M17.8 18.4h1" />
+			</>
+		)
+	}
+
+	{
+		name === 'palette' && (
+			<>
+				<path d="M12 3.4a8.6 8.6 0 0 0 0 17.2c1.2 0 1.9-.8 1.9-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.8-1.7h1.6a4.3 4.3 0 0 0 4.3-4.3c0-3.9-3.9-7.1-8.6-7.1Z" />
+				<circle cx="8" cy="10.4" r="1.1" fill="currentColor" stroke="none" />
+				<circle cx="12" cy="7.6" r="1.1" fill="currentColor" stroke="none" />
+				<circle cx="16" cy="9.6" r="1.1" fill="currentColor" stroke="none" />
+			</>
+		)
+	}
+
+	{/* Film gate. The reels. */}
+	{
+		name === 'film' && (
+			<>
+				<rect x="3" y="4.6" width="18" height="14.8" rx="2" />
+				<path d="M7.6 4.6v14.8M16.4 4.6v14.8M3 12h18M3 8.3h4.6M3 15.7h4.6M16.4 8.3H21M16.4 15.7H21" />
+			</>
+		)
+	}
+
+	{
+		name === 'play' && (
+			<>
+				<circle cx="12" cy="12" r="8.6" />
+				<path d="M10.2 8.4v7.2l6-3.6-6-3.6Z" fill="currentColor" stroke="none" />
+			</>
+		)
+	}
+
+	{
+		name === 'check' && <path d="m4.8 12.4 4.6 4.6 9.8-9.8" />
+	}
+
+	{
+		name === 'arrow' && <path d="M4.6 12h14.2M13.4 6.6 18.8 12l-5.4 5.4" />
+	}
+
+	{/* Two figures — the practices. */}
+	{
+		name === 'people' && (
+			<>
+				<circle cx="9.4" cy="8.2" r="3.2" />
+				<path d="M3.6 19.4a5.8 5.8 0 0 1 11.6 0" />
+				<path d="M16.2 5.4a3.2 3.2 0 0 1 0 5.9M17.6 14.2a5.8 5.8 0 0 1 2.8 5.2" />
+			</>
+		)
+	}
+
+	{/* A play mark in its ring — the views. Filled, as the note at the head of
+	    this file allows for a triangle. */}
+	{
+		name === 'play-circle' && (
+			<>
+				<circle cx="12" cy="12" r="8.6" />
+				<path d="M10.4 9.1v5.8l4.8-2.9z" fill="currentColor" stroke-width="1" />
+			</>
+		)
+	}
+
+	{/* Bars under a rising trend, arrowhead and all — the languages. */}
+	{
+		name === 'chart' && (
+			<>
+				<path d="M4.6 20h14.8" />
+				<path d="M7.4 20v-5.2M12 20v-8.4M16.6 20v-6.4" />
+				<path d="m6.2 10.6 4.4-4.2 3.2 2.8 4.4-4.8" />
+				<path d="M14.6 4.2h3.8V8" />
+			</>
+		)
+	}
+
+	{/* A clock — the reach that keeps running. */}
+	{
+		name === 'clock' && (
+			<>
+				<circle cx="12" cy="12" r="8.6" />
+				<path d="M12 7.2V12l3.2 2" />
+			</>
+		)
+	}
+
+	{/* A folded map with a pin dropped on it — the countries. */}
+	{
+		name === 'map' && (
+			<>
+				<path d="M9 4.6 3.8 6.9v12.5L9 17.1M9 4.6v12.5M9 4.6l3.4 1.5M15 19.4l5.2-2.3V4.6L15 6.9M15 19.4V13M15 19.4l-6-2.3" />
+				<path d="M12 13.4c1.5-1.8 2.3-3.2 2.3-4.2a2.3 2.3 0 0 0-4.6 0c0 1 .8 2.4 2.3 4.2Z" />
+			</>
+		)
+	}
+
+	{/* A shield with its tick — the ground the whole thing stands on. */}
+	{
+		name === 'shield' && (
+			<>
+				<path d="M12 3.4l6.8 2.6v5.2c0 4-2.8 7.6-6.8 9.4-4-1.8-6.8-5.4-6.8-9.4V6z" />
+				<path d="m9.2 12.1 2 2 3.6-3.9" />
+			</>
+		)
+	}
+</svg>
+
+<style>
+	/* Fills whatever box the caller gives it — same contract as StepIcon, for
+	   the same reason: a `.card__icon svg` rule written in the caller is scoped
+	   to the caller and can never match this element. */
+	svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+</style>

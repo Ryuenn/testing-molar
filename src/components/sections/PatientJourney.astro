@@ -1,0 +1,342 @@
+---
+/**
+ * Section 11 — the complete patient journey.
+ *
+ * The same five surfaces the ecosystem diagram put around the core, now in the
+ * order a patient walks through them. That repetition is the point: the first
+ * pass is the abstraction, this one is the story, and a reader who bounced off
+ * the diagram gets a concrete second run at the same claim.
+ *
+ * A rail, not five cards — the order is the entire content. The connecting line
+ * is drawn per station rather than as one background rule behind the row, which
+ * is the same construction /how-it-works/ uses: a segment owned by each station
+ * starts and stops exactly where its own node does, so it cannot show through
+ * the gaps between them at any breakpoint, and the last station simply has none.
+ *
+ * The last node is the only one lit. Light means one thing across this site —
+ * this is where it arrives — so the fifth station wears the same halo the
+ * "after" frame on /results/ does.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import { JOURNEY } from '~/data/ecosystem';
+import { productById } from '~/data/products';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+export interface Props {
+	/** Render the eyebrow, headline and lede. Off on /molar-complete/, whose
+	    <h1> already carries this exact line. */
+	head?: boolean;
+}
+
+const { head = true } = Astro.props;
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const STEPS = JOURNEY.map((step) => ({
+	icon: step.icon,
+	title: t(`journey.${step.key}Title` as 'journey.discoverTitle'),
+	where: t(`journey.${step.key}Where` as 'journey.discoverWhere'),
+	body: t(`journey.${step.key}Body` as 'journey.discoverBody'),
+	href: localizePath(productById(step.product).href, locale),
+}));
+---
+
+<section
+	id="journey"
+	class="section section-rule jn"
+	aria-labelledby={head ? 'jn-heading' : undefined}
+	aria-label={head ? undefined : t('journey.eyebrow')}
+>
+	<div class="container-content">
+		{
+			head && (
+				<header class="jn__head">
+					<p class="eyebrow" data-reveal="fade">
+						{t('journey.eyebrow')}
+					</p>
+					<h2 id="jn-heading" class="jn__title" data-reveal>
+						{t('journey.heading')}
+					</h2>
+					<p class="jn__lede measure-wide" data-reveal>
+						{t('journey.lede')}
+					</p>
+				</header>
+			)
+		}
+
+		{/*
+			An <ol> because the order is the meaning. The visible digits are the
+			list's own numbering rendered for the eye and hidden from assistive
+			tech, which would otherwise announce the position twice.
+		*/}
+		<ol class="jn__rail" data-reveal-stagger>
+			{
+				STEPS.map((step, i) => (
+					<li
+						class:list={['stop', i === STEPS.length - 1 && 'stop--live']}
+						data-reveal
+						data-reveal-group
+					>
+						{i < STEPS.length - 1 && <span class="stop__link" aria-hidden="true" />}
+
+						<span class="stop__node">
+							<span class="stop__icon" aria-hidden="true">
+								<Glyph name={step.icon} />
+							</span>
+							<span class="stop__num" aria-hidden="true">
+								{String(i + 1).padStart(2, '0')}
+							</span>
+						</span>
+
+						<div class="stop__body">
+							<h3 class="stop__title">{step.title}</h3>
+							<a class="stop__where" href={step.href}>{step.where}</a>
+							<p class="stop__text">{step.body}</p>
+						</div>
+					</li>
+				))
+			}
+		</ol>
+
+		<p class="jn__close" data-reveal>{t('journey.close')}</p>
+	</div>
+</section>
+
+<style>
+	.jn__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.jn__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.jn__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/*
+		The two numbers every offset below is written in terms of, so the segments
+		cannot drift out of line with the nodes they connect. Change the node size
+		and the line follows it.
+	*/
+	.jn__rail {
+		--node: 3rem;
+		--gap: clamp(1.25rem, 3vw, 2rem);
+
+		display: grid;
+		gap: var(--gap);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.stop {
+		position: relative;
+		display: grid;
+		grid-template-columns: var(--node) minmax(0, 1fr);
+		gap: 0 1.125rem;
+	}
+
+	.stop__node {
+		position: relative;
+		/* Over the segment, which runs behind it. */
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		width: var(--node);
+		height: var(--node);
+		border-radius: 50%;
+		border: 1px solid var(--color-line-strong);
+		background: color-mix(in oklab, var(--color-ink-900) 90%, transparent);
+		color: var(--color-bone-300);
+	}
+
+	.stop__icon {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--color-arc-200);
+	}
+
+	/* The digit rides the node's edge rather than sitting inside it — inside, it
+	   competes with the icon for a 48px circle and both lose. */
+	.stop__num {
+		position: absolute;
+		inset-block-start: -0.4rem;
+		inset-inline-start: -0.4rem;
+		display: grid;
+		place-items: center;
+		min-width: 1.3rem;
+		height: 1.3rem;
+		padding-inline: 0.28rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line-strong);
+		background: var(--color-ink-950);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		line-height: 1;
+		color: var(--color-bone-500);
+	}
+
+	/* Down from this node to the next: this station's own height past the node,
+	   plus the gap below it. */
+	.stop__link {
+		position: absolute;
+		inset-block-start: var(--node);
+		inset-inline-start: calc(var(--node) / 2);
+		width: 1px;
+		height: calc(100% - var(--node) + var(--gap));
+		background: linear-gradient(
+			180deg,
+			var(--color-line-strong),
+			color-mix(in oklab, var(--color-arc-500) 30%, transparent)
+		);
+	}
+
+	.stop__body {
+		display: grid;
+		gap: 0.3125rem;
+		padding-block: 0.25rem 0.5rem;
+	}
+
+	.stop__title {
+		margin: 0;
+		font-size: var(--text-base);
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	/*
+		Where it happens, and it is a link because every one of these surfaces is
+		a product with a page. A visitor reading the journey and recognising their
+		own problem in step three should be one click from step three's product.
+	*/
+	.stop__where {
+		justify-self: start;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-arc-300);
+		text-decoration: none;
+	}
+
+	.stop__where:hover {
+		color: var(--color-arc-200);
+		text-decoration: underline;
+	}
+
+	.stop__text {
+		max-width: 56ch;
+		margin: 0.25rem 0 0;
+		font-size: var(--text-sm);
+		line-height: 1.65;
+		color: var(--color-bone-400);
+	}
+
+	/* Arrival. Same accent and same halo as the "after" frame on /results/ — the
+	   light means one thing across this site. */
+	.stop--live .stop__node {
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 16%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbeaff 22%, transparent),
+			0 0 30px -6px color-mix(in oklab, var(--color-arc-400) 75%, transparent);
+	}
+
+	.stop--live .stop__num {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		color: var(--color-arc-300);
+	}
+
+	.jn__close {
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+		padding-inline-start: calc(3rem + 1.125rem);
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 500;
+		color: var(--color-bone-100);
+	}
+
+	/*
+		Wide: the rail lies flat and the five stations run across. Each segment now
+		reaches from this node's right edge to the next node's left edge — one
+		whole column plus the gap, less the node.
+	*/
+	@media (min-width: 64rem) {
+		/*
+			Four named rows — node, title, where, body — and every station is a
+			subgrid spanning all four. That is what keeps the five columns aligned
+			when the titles wrap to different depths: without it, "Patient discovers
+			your practice" runs to two lines and pushes its own label and paragraph
+			half a line below its neighbours', and the row reads as five separate
+			cards rather than as one rail.
+
+			`.stop__body` becomes `display: contents` so its three children are
+			direct participants in that subgrid; the wrapper is only there to group
+			them in the stacked layout, where it does carry a gap.
+
+			Where subgrid is unsupported the declaration is dropped, the stations
+			fall back to their own auto rows, and the row is merely ragged — which
+			is what it was before this rule existed.
+		*/
+		.jn__rail {
+			grid-template-columns: repeat(5, minmax(0, 1fr));
+			grid-template-rows: auto auto auto auto;
+			gap: 0.5rem var(--gap);
+		}
+
+		.stop {
+			grid-row: span 4;
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: subgrid;
+			gap: 0;
+		}
+
+		.stop__body {
+			display: contents;
+		}
+
+		/* The row gap is shared by all four rows, so the extra air under the node
+		   is added here rather than by widening the gap for everyone. */
+		.stop__node {
+			margin-block-end: 0.375rem;
+		}
+
+		.stop__text {
+			/* The shared row gap is tuned for the node and the title; the paragraph
+			   wants a little more air off the label above it. */
+			margin-block-start: 0.25rem;
+		}
+
+		.stop__link {
+			inset-block-start: calc(var(--node) / 2);
+			inset-inline-start: var(--node);
+			width: calc(100% + var(--gap) - var(--node));
+			height: 1px;
+			background: linear-gradient(
+				90deg,
+				var(--color-line-strong),
+				color-mix(in oklab, var(--color-arc-500) 30%, transparent)
+			);
+		}
+
+		.stop__body {
+			padding-block: 0;
+		}
+
+		.jn__close {
+			padding-inline-start: 0;
+			text-align: center;
+		}
+	}
+</style>

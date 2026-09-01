@@ -1,3 +1,5 @@
+import type { GlyphName } from './glyphs';
+
 /**
  * Site-wide constants. Single source of truth for anything that appears in more
  * than one place — origin, contact, positioning lines, promo code.
@@ -66,22 +68,103 @@ export const CTA = {
 } as const;
 
 /**
- * Primary nav — the six destinations that sit in the centred pill. Work and
- * results are separate stops: one is the case studies, the other the numbers
- * across every account, and they answer different questions.
+ * Primary navigation — the ecosystem, not a list of pages.
  *
- * Every href is a real route. Pricing and Resources are built; Our work,
- * Results and How it works are deliberately empty for now — nav and footer,
- * nothing between. Anything the nav leaves out is reachable from the footer.
+ * Five stops. Two of them open a mega panel rather than going anywhere on
+ * their own, because MOLAR is now four products and a resource engine and a
+ * flat row of eleven links would say nothing about how any of them relate.
+ *
+ * Every `href` is a real route. A parent with a `menu` is still a link — the
+ * panel is an expansion of it, not a replacement for it — so a keyboard user
+ * or a crawler that never opens the panel still reaches the page underneath.
+ *
+ * Copy is in `~/i18n/ui` under `nav.*`, keyed off `key`. What is here is which
+ * stops exist, in what order, and what hangs off each.
  */
-export const NAV_LINKS = [
-	{ label: 'Home', href: '/' },
-	{ label: 'Our work', href: '/our-work/' },
-	{ label: 'Results', href: '/results/' },
-	{ label: 'How it works', href: '/how-it-works/' },
-	{ label: 'Pricing', href: '/pricing/' },
-	{ label: 'Resources', href: '/resources/' },
+export interface NavMenuItem {
+	/** Key into `nav.*` for the label, and `nav.<key>Sub` for the line under it. */
+	key: string;
+	href: string;
+	/** Mark, from `~/data/glyphs`. */
+	icon: GlyphName;
+}
+
+export interface NavEntry {
+	/** Key into `nav.*`. */
+	key: string;
+	href: string;
+	/** Present on a stop that opens a panel. */
+	menu?: readonly NavMenuItem[];
+	/** Optional link along the foot of the panel. */
+	menuFoot?: { key: string; href: string };
+}
+
+export const NAV_LINKS: readonly NavEntry[] = [
+	{ key: 'home', href: '/' },
+	{
+		key: 'products',
+		/* The panel's own parent page: the ecosystem in one place. */
+		href: '/molar-complete/',
+		menu: [
+			{ key: 'menuSocial', href: '/social-media/', icon: 'share' },
+			{ key: 'menuEducation', href: '/patient-education/', icon: 'book' },
+			{ key: 'menuTv', href: '/molar-tv/', icon: 'monitor' },
+			{ key: 'menuComplete', href: '/molar-complete/', icon: 'layers' },
+		],
+		menuFoot: { key: 'menuHow', href: '/how-it-works/' },
+	},
+	{ key: 'customers', href: '/customers/' },
+	{
+		key: 'resources',
+		href: '/resources/',
+		menu: [
+			{ key: 'menuHub', href: '/resources/', icon: 'docs' },
+			{ key: 'menuLibrary', href: '/resources/video-library/', icon: 'film' },
+			/*
+				Deep links into the hub's own category filter, which reads
+				`?category=` off the URL on load — see src/pages/resources/index.astro.
+				The values have to match `RESOURCE_CATEGORIES` in ~/data/resources
+				exactly or the chip lights nothing.
+			*/
+			{ key: 'menuPatientGuides', href: '/resources/?category=Patient+Education', icon: 'tooth' },
+			{ key: 'menuMarketing', href: '/resources/?category=Social+Media', icon: 'palette' },
+			{ key: 'menuTemplates', href: '/resources/?category=Operations', icon: 'layers' },
+			{ key: 'menuFaq', href: '/#faq', icon: 'chat' },
+		],
+		menuFoot: { key: 'menuAllResources', href: '/resources/' },
+	},
+	{ key: 'pricing', href: '/pricing/' },
 ] as const;
+
+/**
+ * The client portal, for the Login link in the nav.
+ *
+ * EMPTY ON PURPOSE, and the nav renders no Login link while it is. The
+ * subscriber portal is a real thing — Premium lists "Client Portal access" as
+ * a feature — but its URL is not in this repo and nobody should guess at it.
+ * Paste the real one in and the link appears in the header and the footer at
+ * once; leave it blank and neither shows a link to a page that does not load.
+ */
+export const PORTAL_LOGIN = '';
+
+/**
+ * Checkout for the $97 Patient Education Library.
+ *
+ * **A LIVE STRIPE PAYMENT LINK.** It takes real money from real cards, and it
+ * is the same one every CTA on molarai.studio/educate points at — read off that
+ * page rather than guessed at. Change it only against the Stripe dashboard: a
+ * link that 404s and a link that charges the wrong amount look identical from
+ * here.
+ *
+ * It opens the 30-day free month and bills $97 at the start of month two; see
+ * `EDUCATION_TRIAL_DAYS` in `~/data/education` and the FAQ entry "What happens
+ * after my free month?".
+ *
+ * There is no annual equivalent. The live page advertises $849/year in its FAQ
+ * but carries no button for it, so neither does this site — every annual
+ * mention on these pages states the price rather than offering to take it.
+ */
+export const EDUCATION_CHECKOUT = 'https://buy.stripe.com/28E14ne6ngNGfwU0CgeAg0a';
 
 /**
  * The nav's language switcher.

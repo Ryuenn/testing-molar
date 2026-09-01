@@ -1,0 +1,345 @@
+---
+/**
+ * The Patient Education Library's plan card — one plan, everything included.
+ *
+ * One card rather than a two-column monthly/annual toggle, and that is a
+ * deliberate difference from the live funnel. The live page shows a toggle, but
+ * only the monthly side has a button behind it: there is no annual Payment Link
+ * in existence, so an annual column with a CTA would be a control that either
+ * does nothing or charges the wrong amount. The annual price is stated instead,
+ * as a line under the plan and in the FAQ — which is what the live page's own
+ * FAQ does.
+ *
+ * When an annual Payment Link exists, this becomes two cards or a real toggle,
+ * and `EDUCATION_CHECKOUT` in `~/data/site` grows a sibling. Not before.
+ *
+ * The eight feature lines and every figure here come from `~/data/education`,
+ * which is transcribed from molarai.studio/educate. Nothing is typed twice, and
+ * the arithmetic between the monthly price, the annual price and the advertised
+ * saving is checked at build time in that file.
+ */
+import Tick from '~/components/ui/Tick.astro';
+import {
+	EDUCATION_PRICE,
+	EDUCATION_PRICE_ANNUAL,
+	EDUCATION_ANNUAL_MONTHLY,
+	EDUCATION_ANNUAL_SAVING,
+	EDUCATION_TRIAL_DAYS,
+	EDUCATION_PLAN_FEATURE_COUNT,
+} from '~/data/education';
+import { EDUCATION_CHECKOUT } from '~/data/site';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const FEATURES = Array.from({ length: EDUCATION_PLAN_FEATURE_COUNT }, (_, i) =>
+	t(`edu.plan${i + 1}` as 'edu.plan1'),
+);
+
+/* Live Stripe Payment Link — leaves the site, so it says where it goes. Still
+   localised defensively in case it is ever swapped back to an internal path. */
+const buyHref = EDUCATION_CHECKOUT.startsWith('/')
+	? localizePath(EDUCATION_CHECKOUT, locale)
+	: EDUCATION_CHECKOUT;
+const buyIsExternal = !buyHref.startsWith('/');
+---
+
+<section id="pricing" class="section section-rule ep" aria-labelledby="ep-heading">
+	{/* Glass needs something behind it or it is a translucent grey box. */}
+	<div class="ep__aurora" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
+
+	<div class="container-content ep__inner">
+		<header class="ep__head">
+			<p class="eyebrow" data-reveal="fade">{t('pricing.eyebrow')}</p>
+			<h2 id="ep-heading" class="ep__title" data-reveal>{t('edu.planLede')}</h2>
+		</header>
+
+		<div class="plan" data-reveal>
+			<div class="plan__top">
+				<p class="plan__badge">{t('edu.trial')}</p>
+				<h3 class="plan__name">{t('edu.planName')}</h3>
+
+				<p class="plan__price">
+					<span class="plan__amount">{EDUCATION_PRICE}</span>
+					<span class="plan__unit">{t('edu.perMonth')}</span>
+				</p>
+				<p class="plan__billed">{t('edu.billedFrom')}</p>
+
+				<a class="plan__cta" href={buyHref} rel="noopener">
+					{t('edu.startFreeThen', { price: EDUCATION_PRICE })}
+					{/* Says where the button goes without putting it in the label twice
+					    for anyone who can see the button. */}
+					{buyIsExternal && <span class="sr-only"> — opens Stripe Checkout</span>}
+					<span class="plan__cta-arrow" aria-hidden="true">&rarr;</span>
+				</a>
+
+				<p class="plan__fine">{t('edu.cancelBeforeLong')}</p>
+			</div>
+
+			<ul class="plan__features">
+				{/*
+					The offer, first and lit. It is not one of the six features — it is
+					what the first month costs — and the live card gives it the same
+					separation for the same reason.
+				*/}
+				<li class="plan__lead">
+					<Tick class="tick" />
+					<span>{t('edu.planLead', { n: EDUCATION_TRIAL_DAYS })}</span>
+				</li>
+
+				{
+					FEATURES.map((feature) => (
+						<li>
+							<Tick class="tick" />
+							<span>{feature}</span>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		{/*
+			Stated, not sold. There is no annual Payment Link, so this is a price a
+			reader can ask for rather than a button — see the note at the top of
+			this file before adding a CTA here.
+		*/}
+		<div class="ep__annual" data-reveal>
+			<p class="ep__annual-line">
+				{
+					t('edu.annual', {
+						price: EDUCATION_PRICE_ANNUAL,
+						monthly: EDUCATION_ANNUAL_MONTHLY,
+						saving: EDUCATION_ANNUAL_SAVING,
+					})
+				}
+			</p>
+			<p class="ep__annual-note">{t('edu.annualNote')}</p>
+		</div>
+	</div>
+</section>
+
+<style>
+	.ep {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+	}
+
+	.ep__aurora {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		background:
+			radial-gradient(
+				46% 44% at 26% 18%,
+				color-mix(in oklab, var(--color-arc-600) 24%, transparent),
+				transparent 70%
+			),
+			radial-gradient(
+				52% 48% at 78% 82%,
+				color-mix(in oklab, var(--color-arc-700) 22%, transparent),
+				transparent 72%
+			);
+		filter: blur(50px);
+	}
+
+	.ep__inner {
+		position: relative;
+	}
+
+	.ep__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.9rem;
+		margin-bottom: clamp(2rem, 4vw, 3rem);
+		text-align: center;
+	}
+
+	.ep__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	/*
+		One card, centred, and capped well short of the page measure. A single
+		plan spread across 76rem reads as a banner rather than as something you
+		buy; the width here is roughly what one of the three social plans gets.
+	*/
+	.plan {
+		display: grid;
+		gap: 0;
+		max-width: 34rem;
+		margin-inline: auto;
+		border-radius: 0.875rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		background: color-mix(in oklab, var(--color-ink-900) 82%, transparent);
+		backdrop-filter: blur(14px) saturate(135%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbeaff 20%, transparent),
+			0 40px 90px -50px #000;
+		overflow: clip;
+	}
+
+	.plan__top {
+		display: grid;
+		justify-items: center;
+		gap: 0.75rem;
+		padding: clamp(1.75rem, 3.5vw, 2.5rem) clamp(1.25rem, 3vw, 2rem);
+		text-align: center;
+		background: color-mix(in oklab, var(--color-arc-700) 14%, transparent);
+		border-block-end: 1px solid var(--color-line);
+	}
+
+	.plan__badge {
+		margin: 0;
+		padding: 0.3rem 0.75rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-arc-600) 26%, transparent);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-arc-200);
+	}
+
+	.plan__name {
+		margin: 0;
+		font-size: var(--text-xl);
+		line-height: 1.25;
+	}
+
+	.plan__price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.35rem;
+		margin: 0.25rem 0 0;
+	}
+
+	.plan__amount {
+		font-family: var(--font-display);
+		font-size: var(--text-5xl);
+		font-weight: 700;
+		letter-spacing: -0.035em;
+		line-height: 1;
+		color: var(--color-bone-50);
+	}
+
+	.plan__unit {
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.plan__billed {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	.plan__cta {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem;
+		width: 100%;
+		margin-block-start: 0.5rem;
+		padding: 0.95rem 1.5rem;
+		border-radius: var(--radius-md);
+		background: var(--color-arc-500);
+		color: var(--color-bone-50);
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		line-height: 1;
+		text-decoration: none;
+		box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-arc-400) 60%, transparent);
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			box-shadow 0.28s var(--ease-out-quint),
+			transform 0.28s var(--ease-out-quint);
+	}
+
+	.plan__cta:hover {
+		background: var(--color-arc-400);
+		transform: translateY(-1px);
+		box-shadow: 0 0 28px -6px color-mix(in oklab, var(--color-arc-400) 70%, transparent);
+	}
+
+	.plan__cta:active {
+		transform: translateY(0);
+	}
+
+	.plan__cta-arrow {
+		transition: transform 0.28s var(--ease-out-quint);
+	}
+
+	.plan__cta:hover .plan__cta-arrow {
+		transform: translateX(2px);
+	}
+
+	.plan__fine {
+		margin: 0;
+		max-width: 40ch;
+		font-size: var(--text-xs);
+		line-height: 1.5;
+		color: var(--color-bone-500);
+	}
+
+	.plan__features {
+		display: grid;
+		gap: 0.75rem;
+		margin: 0;
+		padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1.25rem, 3vw, 2rem);
+		list-style: none;
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		color: var(--color-bone-300);
+	}
+
+	.plan__features li {
+		display: flex;
+		align-items: start;
+		gap: 0.7rem;
+	}
+
+	/* The offer, set apart from the six features below it by weight and a rule
+	   rather than by a second box — this is one card, not two. */
+	.plan__lead {
+		padding-block-end: 0.75rem;
+		margin-block-end: 0.25rem;
+		border-block-end: 1px solid var(--color-line);
+		font-weight: 600;
+		color: var(--color-arc-200);
+	}
+
+	.plan__features .tick {
+		margin-block-start: 0.22em;
+	}
+
+	.ep__annual {
+		max-width: 34rem;
+		margin: clamp(1.5rem, 3vw, 2rem) auto 0;
+		text-align: center;
+	}
+
+	.ep__annual-line {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		color: var(--color-bone-100);
+	}
+
+	.ep__annual-note {
+		margin: 0.4rem 0 0;
+		font-size: var(--text-sm);
+		line-height: 1.6;
+		color: var(--color-bone-500);
+	}
+</style>

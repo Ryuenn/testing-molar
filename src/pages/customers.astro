@@ -1,0 +1,73 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import CustomerStories from '~/components/sections/CustomerStories.astro';
+import Testimonials from '~/components/sections/Testimonials.astro';
+import GrowthStory from '~/components/sections/GrowthStory.astro';
+import InboundWall from '~/components/sections/InboundWall.astro';
+import CaseStudies from '~/components/sections/CaseStudies.astro';
+import Faq from '~/components/sections/Faq.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	Customers — the stop the strategy's sitemap puts between Products and
+	Resources.
+
+	Four kinds of evidence, deliberately kept apart because they answer
+	different questions:
+
+	  CustomerStories  who we run, what they run with, and the one measured
+	                   result we can stand behind.
+	  GrowthStory      that result at full length, read off two screenshots of
+	                   the same public profile.
+	  CaseStudies      the written case, where one exists.
+	  InboundWall      what OTHER practices said, unprompted, when they saw the
+	                   work in their feed.
+
+	The last of those is not a testimonial and the page never calls it one. See
+	the note at the top of ~/data/customers: there is no client quote in this
+	repo, and the messages here are from practices who are not clients.
+
+	No aggregateRating or Review JSON-LD, for the same reason /results/ has
+	none: Google's review-snippet guidelines exclude reviews a business collects
+	about itself, and with the markup this page would be a manual action waiting
+	to happen. It is honest without it.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.customersTitle')}
+	description={t('pages.customersDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR customers — the dental practices we publish for',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.customers'), path: '/customers/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('customers.eyebrow')}
+		title={t('pages.customersIntro')}
+		lede={t('pages.customersLede')}
+		crumb={t('nav.customers')}
+	/>
+
+	{/* Headless: the page <h1> above already carries this section's headline. */}
+	<CustomerStories head={false} />
+	<Testimonials />
+	<GrowthStory />
+	<CaseStudies />
+	<InboundWall />
+	<Faq />
+	<ClosingCta />
+</BaseLayout>

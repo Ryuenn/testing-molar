@@ -1,0 +1,165 @@
+---
+/**
+ * Section 08b — the countries and languages, under the world map.
+ *
+ * `GlobalReach` above draws the map at continent resolution, which is the claim
+ * the site has always made. The strategy asks for the level below that: flags,
+ * country names, language support. This band is that, and it is deliberately
+ * short — eighteen markets and four languages, every one of them recorded
+ * somewhere else on this site.
+ *
+ * Read the note on `COUNTRIES` in `~/data/reach` before adding to it. A flag on
+ * this rail asserts that MOLAR serves that market, and it is exactly the kind
+ * of claim a prospective client checks before they call.
+ *
+ * The provenance note at the foot is not boilerplate. A visitor who counts
+ * three flags under a six-continent map deserves to be told why the two numbers
+ * differ, and saying so is what makes both of them credible.
+ */
+import { COUNTRIES, LANGUAGES_SERVED, countryName } from '~/data/reach';
+import { flagOf } from '~/data/customers';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const MARKETS = COUNTRIES.map((country) => ({
+	flag: flagOf(country.code),
+	name: countryName(country, locale),
+}));
+---
+
+<section class="section geo" aria-labelledby="geo-heading">
+	<div class="container-content">
+		<header class="geo__head">
+			<p class="eyebrow" data-reveal="fade">{t('geo.eyebrow')}</p>
+			<h2 id="geo-heading" class="geo__title" data-reveal>{t('geo.heading')}</h2>
+			<p class="geo__lede measure-wide" data-reveal>{t('geo.lede')}</p>
+		</header>
+
+		<div class="geo__rows">
+			<section class="geo__row" aria-labelledby="geo-markets" data-reveal>
+				<h3 id="geo-markets" class="geo__label">{t('geo.countriesLabel')}</h3>
+				<ul class="geo__chips">
+					{
+						MARKETS.map((market) => (
+							<li class="chip">
+								{/*
+									Flags are emoji and fall through to whatever the platform
+									has — on Windows that is a two-letter box rather than a
+									flag. The country's name sits beside every one of them for
+									that reason, so the chip reads the same either way.
+								*/}
+								<span class="chip__flag" aria-hidden="true">
+									{market.flag}
+								</span>
+								{market.name}
+							</li>
+						))
+					}
+				</ul>
+			</section>
+
+			<section class="geo__row" aria-labelledby="geo-langs" data-reveal>
+				<h3 id="geo-langs" class="geo__label">{t('geo.languagesLabel')}</h3>
+				<ul class="geo__chips">
+					{LANGUAGES_SERVED.map((language) => <li class="chip">{language}</li>)}
+				</ul>
+			</section>
+		</div>
+
+		<p class="geo__note" data-reveal>{t('geo.note')}</p>
+	</div>
+</section>
+
+<style>
+	/*
+		No `section-rule`. This band sits directly under the world map and is part
+		of the same argument — a hairline between them would split one section
+		into two that happen to be about the same thing.
+	*/
+	.geo {
+		padding-block-start: 0;
+	}
+
+	.geo__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2rem, 4vw, 3rem);
+	}
+
+	.geo__title {
+		margin: 0;
+		font-size: var(--text-2xl);
+	}
+
+	.geo__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.geo__rows {
+		display: grid;
+		gap: clamp(1.5rem, 3vw, 2.5rem);
+	}
+
+	@media (min-width: 48rem) {
+		.geo__rows {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	.geo__row {
+		display: grid;
+		gap: 0.875rem;
+		align-content: start;
+	}
+
+	.geo__label {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.geo__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+		height: 2.25rem;
+		padding-inline: 0.875rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-800) 70%, transparent);
+		font-size: var(--text-sm);
+		line-height: 1;
+		color: var(--color-bone-100);
+	}
+
+	.chip__flag {
+		font-size: 1.05rem;
+		line-height: 1;
+	}
+
+	.geo__note {
+		max-width: 68ch;
+		margin: clamp(1.75rem, 3.5vw, 2.5rem) 0 0;
+		font-size: var(--text-sm);
+		line-height: 1.65;
+		color: var(--color-bone-500);
+	}
+</style>

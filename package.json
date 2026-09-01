@@ -17,6 +17,7 @@
     "sync": "astro sync",
     "icons": "node scripts/generate-icons.mjs && node scripts/build-ico.mjs",
     "og": "node scripts/generate-og.mjs",
+    "section-bg": "node scripts/generate-section-bg.mjs",
     "brand": "npm run icons && npm run og",
     "astro": "astro"
   },

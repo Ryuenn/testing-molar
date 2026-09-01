@@ -8,6 +8,17 @@
  * to clear it rather than sit under it — the padding accounts for `--nav-h`
  * either way, because the nav is fixed and out of flow on every page.
  *
+ * The band is `public/page_banner_r.png` — the same undulating blue field the
+ * home page's hero runs as video, held still — screened over a lit navy ground.
+ * Every inner page wears it; the home page does not, because the footage itself
+ * is already there.
+ *
+ * `ground="plans"` swaps it for the field the plans grid paints, and stretches
+ * that one picture across this band AND whatever is slotted below it — see
+ * `.band--plans`. /pricing/ and /social-media/ take it, because on those two the
+ * slot is the plans grid and the two grounds meeting at a seam halfway down read
+ * as two bands rather than as one section.
+ *
  * Breadcrumb markup only; the matching JSON-LD is `breadcrumbSchema()` in
  * `~/data/schema`, which the page passes to BaseLayout separately. The two are
  * deliberately not coupled: a visible breadcrumb without structured data is
@@ -20,6 +31,11 @@ export interface Props {
 	lede?: string;
 	/** Trailing crumb label. Defaults to the title. */
 	crumb?: string;
+	/**
+	 * Which ground the band paints. `plans` runs the plans field through this
+	 * band and the slot below it as one picture; anything else wears the banner.
+	 */
+	ground?: 'banner' | 'plans';
 }
 
 import { localizePath } from '~/i18n/config';
@@ -28,32 +44,191 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
-const { eyebrow, title, lede, crumb } = Astro.props;
+const { eyebrow, title, lede, crumb, ground = 'banner' } = Astro.props;
 ---
 
-<section class="intro lit-band" aria-labelledby="page-heading">
-	<div class="container-content">
-		<nav aria-label="Breadcrumb" class="crumbs">
-			<ol class="crumbs__list">
-				<li><a href={localizePath('/', locale)}>{t('crumbs.home')}</a></li>
-				<li aria-current="page">{crumb ?? title}</li>
-			</ol>
-		</nav>
+{/*
+	`display: contents` unless the band is carrying the plans field, so on every
+	other page this wrapper is not in the layout at all and the three children
+	below are laid out exactly as they were before it existed.
+*/}
+<div class:list={['band', ground === 'plans' && 'band--plans']}>
+	<section class="intro" aria-labelledby="page-heading">
+		<div class="container-content">
+			<nav aria-label="Breadcrumb" class="crumbs">
+				<ol class="crumbs__list">
+					<li><a href={localizePath('/', locale)}>{t('crumbs.home')}</a></li>
+					<li aria-current="page">{crumb ?? title}</li>
+				</ol>
+			</nav>
 
-		{eyebrow && <p class="eyebrow intro__eyebrow">{eyebrow}</p>}
-		<h1 id="page-heading" class="intro__title">{title}</h1>
-		{lede && <p class="intro__lede">{lede}</p>}
-	</div>
-</section>
+			{eyebrow && <p class="eyebrow intro__eyebrow">{eyebrow}</p>}
+			<h1 id="page-heading" class="intro__title">{title}</h1>
+			{lede && <p class="intro__lede">{lede}</p>}
+		</div>
+	</section>
 
-<slot />
+	{/* The band's light, carried past its bottom edge — see .band-falloff. */}
+	<div class="band-falloff" aria-hidden="true"></div>
+
+	<slot />
+</div>
 
 <style>
-	/* The light comes from `.lit-band` in global.css, which this section also
-	   wears — see the note there. Only the band's own metrics live here. */
+	/*
+		Not in the layout by default: every page that does not ask for the plans
+		field lays out the intro, the falloff and the slot as siblings of whatever
+		wraps PageIntro, exactly as it did before this element existed.
+	*/
+	.band {
+		display: contents;
+	}
+
+	/*
+		The plans field — `public/images/section-bg.webp`, the same picture the
+		grid paints — stretched across the heading AND the slot below it, so the
+		two read as one section instead of two bands meeting at a seam.
+
+		It has to be painted HERE rather than on either child, because the two are
+		siblings: a copy on each would put the still's top and bottom blooms in the
+		band twice.
+
+		`--plans-ground` is the handshake with that grid. Pricing's own background
+		reads it, so the copy it would otherwise paint inside this one is switched
+		off by inheritance — one flag on this component rather than two that have
+		to agree.
+	*/
+	.band--plans {
+		display: block;
+		position: relative;
+		isolation: isolate;
+		background: url('/images/section-bg.webp') 50% 50% / 100% 100% no-repeat;
+		--plans-ground: none;
+	}
+
+	/*
+		Everything the heading normally paints comes off: its opaque navy floor,
+		its banner still, the seams under it, its bottom rule and the falloff
+		below it. Each one would cover the field, and — the part that actually
+		showed — each one stops dead at the heading's bottom edge, which is a hard
+		line straight across the band exactly where the picture is meant to be
+		continuous. That edge is the whole reason the two halves read as two bands.
+	*/
+	.band--plans .intro {
+		background: none;
+		border-block-end: 0;
+	}
+
+	/*
+		Nothing is laid over the heading at all — no banner still, no seams, no ink
+		scrim. A scrim here did read as a dark stripe across the top of the band,
+		which is what made the picture look like it started at the cards rather
+		than at the top of the section. The heading is white display type over the
+		still's own upper half, which is its darkest; it carries itself.
+	*/
+	.band--plans .intro::before,
+	.band--plans .intro::after,
+	.band--plans .band-falloff {
+		display: none;
+	}
+
+	/*
+		The banner, and it replaces the `.lit-band` glow this section used to wear.
+		Two scrims over one still: ink down the left, where the heading sits, and
+		ink at the top and bottom edges so the band meets the nav and the section
+		below it without a seam. Layer order is paint order — first listed is
+		nearest the viewer — so the picture is last and the ground under it is the
+		floor for anything the PNG does not cover.
+	*/
 	.intro {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
 		padding-block: calc(var(--nav-h, 5.25rem) + clamp(2.5rem, 6vw, 4.5rem))
-			clamp(2rem, 4vw, 3rem);
+			clamp(2.5rem, 5vw, 4rem);
+		background:
+			radial-gradient(
+				128% 92% at 50% 108%,
+				color-mix(in oklab, var(--color-arc-500) 32%, transparent) 0%,
+				color-mix(in oklab, var(--color-arc-600) 24%, transparent) 30%,
+				color-mix(in oklab, var(--color-arc-700) 14%, transparent) 54%,
+				color-mix(in oklab, var(--color-arc-700) 5%, transparent) 72%,
+				transparent 88%
+			),
+			radial-gradient(
+				96% 74% at 50% -12%,
+				color-mix(in oklab, var(--color-arc-700) 18%, transparent) 0%,
+				transparent 70%
+			),
+			linear-gradient(
+				180deg,
+				var(--color-ink-950) 0%,
+				var(--color-ink-900) 46%,
+				var(--color-ink-950) 100%
+			);
+		border-block-end: 1px solid var(--color-line);
+	}
+
+	/* The still, over the field. Lifted: the PNG is exposed for a full-bleed
+	   hero and reads a stop under that at band height. */
+	.intro::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: url('/page_banner_r.png') 50% 64% / cover no-repeat;
+		filter: brightness(1.75) saturate(1.2);
+		/* Screen, so the wave adds its light to the field instead of covering
+		   it — the dark half of the still then costs nothing. */
+		mix-blend-mode: screen;
+		/* And it fades out to the left, where the heading and lede sit. */
+		-webkit-mask-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 0, 0, 0.3) 28%,
+			rgba(0, 0, 0, 0.74) 50%,
+			#000 72%
+		);
+		mask-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 0, 0, 0.3) 28%,
+			rgba(0, 0, 0, 0.74) 50%,
+			#000 72%
+		);
+		pointer-events: none;
+	}
+
+	/* The two seams: under the nav at the top, into the next section below. */
+	.intro::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(
+			180deg,
+			var(--color-ink-950) 0%,
+			color-mix(in oklab, var(--color-ink-950) 40%, transparent) 16%,
+			transparent 40%,
+			transparent 78%,
+			color-mix(in oklab, var(--color-ink-950) 45%, transparent) 100%
+		);
+		pointer-events: none;
+	}
+
+	.band-falloff {
+		position: relative;
+		z-index: 1;
+		height: clamp(5rem, 10vw, 8.5rem);
+		margin-block-end: calc(-1 * clamp(5rem, 10vw, 8.5rem));
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-700) 30%, transparent) 0%,
+			color-mix(in oklab, var(--color-arc-700) 14%, transparent) 34%,
+			color-mix(in oklab, var(--color-arc-700) 5%, transparent) 62%,
+			transparent 100%
+		);
 	}
 
 	.crumbs {

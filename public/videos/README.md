@@ -4,13 +4,13 @@ Three things live here, and the folder is the source of truth for only one of th
 
 | Path                          | Used for                        | Filenames                                        |
 | ----------------------------- | ------------------------------- | ------------------------------------------------ |
-| `Hero_video.mp4`              | The hero background, all widths | **Fixed** — `Hero.astro` references it literally  |
+| `Blue_structure_Hero.mp4`              | The hero background, all widths | **Fixed** — `Hero.astro` references it literally  |
 | `MolarExampleVideos/`         | The reel below the hero         | **Free** — the folder is read at build time       |
 | `molar-testimonial-0721.mp4`  | The film card and its modal     | **Fixed** — `AssetFilm.astro` references it literally |
 
 `netlify.toml` caches all of `/videos/*` as immutable for a year, so a replacement that keeps its
 name will not reach anyone already carrying the old one. Bust it by renaming the file
-(`Hero_video.mp4` → `Hero_video-v2.mp4`) rather than by overwriting in place.
+(`Blue_structure_Hero.mp4` → `Blue_structure_Hero-v2.mp4`) rather than by overwriting in place.
 
 The hero poster lives at `public/images/hero-poster.jpg` — not in this folder, because Netlify sets
 `Content-Disposition` and range headers differently for `/videos/*`.
@@ -34,10 +34,10 @@ off the download.
 ```bash
 # H.264 — faststart matters, or the video will not begin until fully buffered
 ffmpeg -i master.mov -c:v libx264 -crf 24 -preset slow -pix_fmt yuv420p \
-  -movflags +faststart -an Hero_video.mp4
+  -movflags +faststart -an Blue_structure_Hero.mp4
 
 # Poster — pull a frame where the tooth is lit
-ffmpeg -i Hero_video.mp4 -ss 00:00:02 -frames:v 1 -q:v 3 ../images/hero-poster.jpg
+ffmpeg -i Blue_structure_Hero.mp4 -ss 00:00:02 -frames:v 1 -q:v 3 ../images/hero-poster.jpg
 ```
 
 ### If you add more cuts

@@ -1,0 +1,63 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import Pricing from '~/components/sections/Pricing.astro';
+import WorkGallery from '~/components/sections/WorkGallery.astro';
+import AssetFilm from '~/components/sections/AssetFilm.astro';
+import HowItWorks from '~/components/sections/HowItWorks.astro';
+import Comparison from '~/components/sections/Comparison.astro';
+import Faq from '~/components/sections/Faq.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema, productSchema } from '~/data/schema';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	Managed Social Media — "we create it for you".
+
+	The plans come first because this page is the end of a routed path: a
+	visitor who clicked "View Social Plans" has already been told what the
+	product is and is here for the price. Everything under the grid is the
+	answer to "what does that actually get me" — the real feeds, the asset
+	argument, the four steps, and the agency comparison.
+
+	`productSchema()` is correct here for the same reason it is on /pricing/:
+	the prices it describes are on the page, in the grid below the intro.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.socialTitle')}
+	description={t('pages.socialDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR — social media management for dental practices',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		productSchema(locale),
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.menuSocial'), path: '/social-media/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('social.eyebrow')}
+		title={t('pages.socialIntro')}
+		lede={t('pages.socialLede')}
+		crumb={t('nav.menuSocial')}
+		ground="plans"
+	>
+		<Pricing head={false} />
+	</PageIntro>
+
+	<WorkGallery />
+	<AssetFilm />
+	<HowItWorks />
+	<Comparison />
+	<Faq />
+	<ClosingCta />
+</BaseLayout>

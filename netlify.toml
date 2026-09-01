@@ -30,8 +30,17 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Cross-Origin-Opener-Policy = "same-origin"
     Cross-Origin-Resource-Policy = "same-origin"
-    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), interest-cohort=()"
-    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
+    # `fullscreen` names Vimeo explicitly: the player's own fullscreen button
+    # lives inside its iframe, and `fullscreen=(self)` alone denies it there —
+    # the control renders and does nothing.
+    Permissions-Policy = "accelerometer=(), autoplay=(self), camera=(), display-capture=(), encrypted-media=(), fullscreen=(self \"https://player.vimeo.com\"), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), interest-cohort=()"
+    # Vimeo carries the video library. `frame-src` is the one that matters — the
+    # player is an iframe, and without it the directive falls back to
+    # `default-src 'self'` and the embed is blocked outright. `script-src` covers
+    # player.js where the page drives the player from the parent frame, and
+    # `img-src` the poster frames served off Vimeo's CDN. Nothing else is needed:
+    # the iframe's own requests answer to Vimeo's CSP, not this one.
+    Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://player.vimeo.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.vimeocdn.com; media-src 'self'; frame-src https://player.vimeo.com; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
 
 # ── Immutable, content-hashed build output ────────────────────────────────────
 [[headers]]
@@ -90,15 +99,43 @@
   status = 301
   force = true
 
-# Pricing is on-page; keep the shorthand link working.
+# Pricing has been a page of its own since the plans moved off the home page,
+# and the home page no longer carries an id="pricing" for the old fragment to
+# land on. Send the slashless shorthand at the real route instead.
 [[redirects]]
   from = "/pricing"
-  to = "/#pricing"
+  to = "/pricing/"
   status = 301
 
+# The FAQ is still a section of the home page — id="faq", rendered by
+# ~/components/sections/Faq.astro. Verify this target exists before removing
+# that section from the page.
 [[redirects]]
   from = "/faq"
   to = "/#faq"
+  status = 301
+
+# The product routes, so a shorthand or a slashless link lands on the page
+# rather than on the 404. Every "to" here is a real route; check dist/ before
+# adding another.
+[[redirects]]
+  from = "/social"
+  to = "/social-media/"
+  status = 301
+
+[[redirects]]
+  from = "/education"
+  to = "/patient-education/"
+  status = 301
+
+[[redirects]]
+  from = "/tv"
+  to = "/molar-tv/"
+  status = 301
+
+[[redirects]]
+  from = "/complete"
+  to = "/molar-complete/"
   status = 301
 
 # No 404 rule: Astro emits 404.astro as /404.html at the publish root even under

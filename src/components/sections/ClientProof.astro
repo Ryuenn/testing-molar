@@ -1,0 +1,203 @@
+---
+/**
+ * Section 07 — client proof.
+ *
+ * The strategy asks for a large premium logo wall and is explicit that it must
+ * not read as a generic strip. What it gets instead is the grids: seven cards,
+ * each one the actual feed of an actual practice, with the palette that makes
+ * it that practice's and nobody else's.
+ *
+ * That is a stronger wall than logos would be, and it is the only one we can
+ * build honestly — there are no client logo files in this repo. If they arrive,
+ * the place for them is `~/components/sections/TrustBand`, which is the marquee;
+ * this stays the grids.
+ *
+ * No count of practices anywhere in this component. `~/data/work` is explicit
+ * that its list is a sample chosen to show range, and a number rendered from
+ * its length would read as a total. See the note at the top of that file.
+ */
+import { Image } from 'astro:assets';
+import { WORK, type WorkAccount } from '~/data/work';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	Matched to accounts by slug rather than imported one by one beside the data,
+	so a new entry in `work.ts` plus a file of the same name is the whole job.
+	Eager, because these are build-time `ImageMetadata` records for <Image>.
+*/
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/work/*.png', {
+	eager: true,
+});
+
+const gridFor = (account: WorkAccount): ImageMetadata => {
+	const file = files[`../../assets/work/${account.slug}.png`];
+	/* Build-time, and loud. A silently missing grid would ship as a hole. */
+	if (!file) throw new Error(`No grid image for work account "${account.slug}".`);
+	return file.default;
+};
+---
+
+<section id="proof" class="section section-rule wall" aria-labelledby="wall-heading">
+	<div class="container-content">
+		<header class="wall__head">
+			<p class="eyebrow" data-reveal="fade">{t('proofwall.eyebrow')}</p>
+			<h2 id="wall-heading" class="wall__title" data-reveal>{t('proofwall.heading')}</h2>
+			<p class="wall__lede measure-wide" data-reveal>{t('proofwall.lede')}</p>
+		</header>
+
+		<ul class="wall__grid" data-reveal-stagger>
+			{
+				WORK.map((account) => (
+					<li class="client panel panel-hover" data-reveal data-reveal-group>
+						<a class="client__link" href={localizePath('/our-work/', locale)}>
+							{/*
+								4:5 — Instagram's portrait crop, which is the shape these were
+								composed in. Nothing here re-crops them.
+							*/}
+							<Image
+								src={gridFor(account)}
+								alt={t('work.alt', {
+									practice: account.practice,
+									specialty: account.specialty,
+									language: account.language,
+									a: account.palette[0].name,
+									b: account.palette[1].name,
+								})}
+								widths={[280, 420, 560]}
+								sizes="(min-width: 62rem) 22vw, (min-width: 40rem) 42vw, 88vw"
+								loading="lazy"
+								class="client__grid"
+							/>
+
+							<span class="client__body">
+								<span class="client__name">{account.practice}</span>
+								<span class="client__meta">{account.specialty}</span>
+							</span>
+
+							{/* Three swatches is enough to identify a brand world and few
+							    enough to stay a detail rather than becoming a chart. */}
+							<span class="client__palette" aria-hidden="true">
+								{account.palette.map((swatch) => (
+									<span class="client__swatch" style={`--swatch:${swatch.hex}`} />
+								))}
+								<span class="client__lang">{account.language}</span>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+
+		<p class="wall__more" data-reveal>
+			<a class="btn btn-ghost" href={localizePath('/our-work/', locale)}>{t('proofwall.cta')}</a>
+		</p>
+	</div>
+</section>
+
+<style>
+	.wall__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.wall__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.wall__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.wall__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+		gap: clamp(0.75rem, 2vw, 1.25rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.client {
+		overflow: clip;
+	}
+
+	.client__link {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		text-decoration: none;
+	}
+
+	.client__grid {
+		width: 100%;
+		aspect-ratio: 4 / 5;
+		object-fit: cover;
+		/*
+			The grids are light and the page is near-black. A hairline under each
+			one stops the image bleeding into the card's own ground at the seam.
+		*/
+		border-block-end: 1px solid var(--color-line);
+	}
+
+	.client__body {
+		display: grid;
+		gap: 0.25rem;
+		padding: 0.875rem 1rem 0.625rem;
+	}
+
+	.client__name {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--color-bone-50);
+	}
+
+	.client__meta {
+		font-size: var(--text-xs);
+		line-height: 1.4;
+		color: var(--color-bone-400);
+	}
+
+	.client__palette {
+		display: flex;
+		align-items: center;
+		gap: 0.3125rem;
+		margin-block-start: auto;
+		padding: 0 1rem 0.875rem;
+	}
+
+	.client__swatch {
+		width: 0.625rem;
+		height: 0.625rem;
+		border-radius: 999px;
+		background: var(--swatch);
+		/* The palettes include near-whites, which vanish on this ground without
+		   an edge of their own. */
+		box-shadow: inset 0 0 0 1px color-mix(in oklab, #000 25%, transparent);
+	}
+
+	.client__lang {
+		margin-inline-start: auto;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.wall__more {
+		display: flex;
+		justify-content: center;
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+	}
+</style>

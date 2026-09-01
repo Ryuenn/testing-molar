@@ -1,0 +1,247 @@
+---
+/**
+ * Section 14 — the product selector.
+ *
+ * The same three routes `ChoosePath` offered near the top of the page, asked a
+ * second time and asked differently: up there they were positions ("we create
+ * it for you"), down here they are sentences the visitor says about themselves
+ * ("run my social media").
+ *
+ * That is not repetition for its own sake. A visitor who has read the whole
+ * page has changed since the third section — they now know what MOLAR TV is and
+ * what the library costs — and the last thing a long page should do is make
+ * someone scroll back up to act on it.
+ *
+ * Each card is one big target. Not a card with a link in it: the whole tile is
+ * the anchor, so there is no dead area inside a control that looks clickable
+ * from edge to edge.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import { productById } from '~/data/products';
+import { EDUCATION_PRICE } from '~/data/education';
+import { CTA } from '~/data/site';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const social = productById('social');
+const education = productById('education');
+const complete = productById('complete');
+
+const CHOICES = [
+	{
+		icon: social.icon,
+		name: t('products.socialName'),
+		say: t('selector.socialSay'),
+		price: null,
+		cta: t('selector.exploreSocial'),
+		href: localizePath(social.href, locale),
+	},
+	{
+		icon: education.icon,
+		name: t('products.educationName'),
+		say: t('selector.educationSay'),
+		/* The one price on this row, and it is here because the library is the
+		   only one of the three a visitor can price without a conversation. */
+		price: `${EDUCATION_PRICE}${t('edu.perMonth')}`,
+		cta: t('selector.exploreEducation'),
+		href: localizePath(education.href, locale),
+	},
+	{
+		icon: complete.icon,
+		name: t('products.completeName'),
+		say: t('selector.completeSay'),
+		price: null,
+		cta: t('selector.buildSystem'),
+		href: localizePath(complete.href, locale),
+	},
+];
+---
+
+<section id="selector" class="section section-rule sel" aria-labelledby="sel-heading">
+	<div class="container-content">
+		<header class="sel__head">
+			<p class="eyebrow" data-reveal="fade">{t('selector.eyebrow')}</p>
+			<h2 id="sel-heading" class="sel__title" data-reveal>{t('selector.heading')}</h2>
+			<p class="sel__lede measure-wide" data-reveal>{t('selector.lede')}</p>
+		</header>
+
+		<ul class="sel__grid" data-reveal-stagger>
+			{
+				CHOICES.map((choice) => (
+					<li data-reveal data-reveal-group>
+						<a class="pick panel panel-hover" href={choice.href}>
+							<span class="pick__top">
+								<span class="pick__icon" aria-hidden="true">
+									<Glyph name={choice.icon} />
+								</span>
+								<span class="pick__name">{choice.name}</span>
+								{choice.price && <span class="pick__price">{choice.price}</span>}
+							</span>
+
+							{/*
+								The visitor's own words. Set as a quotation because that is
+								what it is — a sentence they might say, not a claim we are
+								making — and given the largest type on the card for the same
+								reason: it is the thing they are meant to recognise.
+							*/}
+							<q class="pick__say">{choice.say}</q>
+
+							<span class="pick__cta">
+								{choice.cta}
+								<span aria-hidden="true">→</span>
+							</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+
+		<p class="sel__more" data-reveal>
+			<span class="sel__more-q">{t('selector.notSure')}</span>
+			<a class="btn btn-quiet" href={CTA.sales.href} target="_blank" rel="noopener">
+				{t('selector.talk')} <span aria-hidden="true">→</span>
+				<span class="sr-only">{t('footer.newTab')}</span>
+			</a>
+		</p>
+	</div>
+</section>
+
+<style>
+	.sel__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+		text-align: center;
+	}
+
+	.sel__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.sel__lede {
+		margin: 0 auto;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.sel__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+		gap: clamp(1rem, 2.5vw, 1.5rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pick {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		height: 100%;
+		padding: clamp(1.25rem, 2.5vw, 1.75rem);
+		text-decoration: none;
+	}
+
+	/*
+		Two lines of room whether the label needs them or not. "Patient Education
+		Library" wraps in this column and the other two do not, and without a floor
+		the middle card's quotation starts a line lower than its neighbours' — three
+		cards side by side with three different first lines read as three
+		unrelated things.
+
+		A measured floor rather than a subgrid: these three are a single row at
+		every width that fits them and a stack below that, so there is no second
+		row for a subgrid to align against.
+	*/
+	.pick__top {
+		display: flex;
+		align-items: start;
+		gap: 0.625rem;
+		min-height: 2.1rem;
+	}
+
+	.pick__icon {
+		flex: none;
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--color-arc-300);
+	}
+
+	.pick__name {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.pick__price {
+		margin-inline-start: auto;
+		padding: 0.1875rem 0.5rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
+		font-family: var(--font-display);
+		font-size: var(--text-2xs);
+		font-weight: 600;
+		white-space: nowrap;
+		color: var(--color-arc-200);
+	}
+
+	/*
+		<q> brings its own quotation marks in every browser, in the right glyphs
+		for the document's language — which is worth having on a bilingual site,
+		where German opens with a low mark English does not use.
+	*/
+	.pick__say {
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 500;
+		line-height: 1.35;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-50);
+	}
+
+	.pick__cta {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		margin-block-start: auto;
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-arc-300);
+		transition: gap 0.28s var(--ease-out-quint);
+	}
+
+	.pick:hover .pick__cta {
+		gap: 0.65rem;
+		color: var(--color-arc-200);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.pick:hover .pick__cta {
+			gap: 0.4rem;
+		}
+	}
+
+	.sel__more {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		gap: 0.75rem;
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+		text-align: center;
+	}
+
+	.sel__more-q {
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+</style>

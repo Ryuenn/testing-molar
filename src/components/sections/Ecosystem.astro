@@ -1,0 +1,396 @@
+---
+/**
+ * Section 03 — the big idea, drawn.
+ *
+ * One core node, a distribution bar, five surfaces hanging off it. The whole
+ * argument of the site is that these five are fed by one thing, and a diagram
+ * makes that claim in a way five cards in a row never can: cards say "we do
+ * five things", a bus says "one thing reaches five places".
+ *
+ * How the drawing is built, because it is not obvious from the CSS:
+ *
+ *   · The bar is a single 1px element spanning the row, inset by half a column
+ *     at each end so it starts on the first card's centre line and stops on the
+ *     last card's. A bar running the full width would overhang two cards that
+ *     nothing connects to.
+ *   · Each card grows its own riser from the bar down to its top edge, centred
+ *     on the card. Owning the riser per card rather than drawing five of them
+ *     against the row is what keeps them aligned at every breakpoint without a
+ *     single measured offset.
+ *   · Below 60rem the whole thing turns: the bar becomes a spine down the left
+ *     and the risers become stubs pointing right. Same three elements, rotated.
+ *
+ * Nothing here animates on its own. The reveal is the site's standard
+ * `data-reveal-stagger`, which walks the five cards in document order — which
+ * is also the order of the patient journey further down the page.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import { TOUCHPOINTS } from '~/data/ecosystem';
+import { productById } from '~/data/products';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const SURFACES = TOUCHPOINTS.map((point) => ({
+	icon: point.icon,
+	name: t(`eco.${point.key}Name` as 'eco.socialName'),
+	a: t(`eco.${point.key}A` as 'eco.socialA'),
+	b: t(`eco.${point.key}B` as 'eco.socialB'),
+	href: localizePath(productById(point.product).href, locale),
+	product: t(`products.${point.product}Name` as 'products.socialName'),
+}));
+---
+
+<section id="ecosystem" class="section section-rule eco" aria-labelledby="eco-heading">
+	<div class="container-content">
+		<header class="eco__head">
+			<p class="eyebrow" data-reveal="fade">{t('eco.eyebrow')}</p>
+			<h2 id="eco-heading" class="eco__title" data-reveal>{t('eco.heading')}</h2>
+			<p class="eco__lede measure-wide" data-reveal>{t('eco.lede')}</p>
+		</header>
+
+		<div class="map">
+			{/* The core. */}
+			<div class="map__core" data-reveal>
+				<span class="map__core-mark" aria-hidden="true">
+					<Glyph name="layers" />
+				</span>
+				<span class="map__core-name">{t('eco.core')}</span>
+				<span class="map__core-sub">{t('eco.coreSub')}</span>
+			</div>
+
+			{/* The stem from the core down to the bar. Decorative throughout. */}
+			<span class="map__stem" aria-hidden="true"></span>
+
+			<div class="map__row">
+				<span class="map__bus" aria-hidden="true"></span>
+
+				<ul class="map__surfaces" data-reveal-stagger>
+					{
+						SURFACES.map((surface) => (
+							<li class="map__surface" data-reveal data-reveal-group>
+								<span class="map__riser" aria-hidden="true" />
+								<a class="surface panel panel-hover" href={surface.href}>
+									<span class="surface__icon" aria-hidden="true">
+										<Glyph name={surface.icon} />
+									</span>
+									<span class="surface__name">{surface.name}</span>
+									<span class="surface__lines">
+										<span>{surface.a}</span>
+										<span>{surface.b}</span>
+									</span>
+									<span class="surface__product">{surface.product}</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+
+			<p class="map__key" data-reveal>{t('eco.key')}</p>
+		</div>
+	</div>
+</section>
+
+<style>
+	/*
+		`public/images/molar_world.png`, converted to `molar-world.webp` (1.4MB →
+		23KB) with a fade baked into its bottom edge so the band runs out into the
+		section below instead of ending on a line.
+
+		Pinned to the bottom: the still is a horizon, and the glow along it is the
+		only part that matters. `cover` from 50% 100% keeps that arc in the band at
+		every width and crops the empty sky above it.
+	*/
+	.eco {
+		/* The section's own light, well under the title bands' — this is a
+		   diagram, and the diagram has to stay the brightest thing in it. */
+		isolation: isolate;
+		overflow: clip;
+		background: url('/images/molar-world.webp') 50% 100% / cover no-repeat;
+	}
+
+	.eco::before {
+		content: '';
+		position: absolute;
+		z-index: -1;
+		inset-block-start: 12%;
+		inset-inline-start: 50%;
+		width: min(64rem, 92%);
+		height: 26rem;
+		transform: translateX(-50%);
+		border-radius: 50%;
+		pointer-events: none;
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--color-arc-600) 22%, transparent),
+			color-mix(in oklab, var(--color-arc-700) 12%, transparent) 46%,
+			transparent 74%
+		);
+		filter: blur(70px);
+	}
+
+	.eco__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+		text-align: center;
+	}
+
+	.eco__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.eco__lede {
+		margin: 0 auto;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	/* ── The diagram ─────────────────────────────────────────────────────── */
+	/*
+		Left-aligned while the diagram runs vertically, centred once it lies flat.
+
+		That is not a stylistic preference. In the vertical layout the spine sits
+		1.125rem from the left — half the stub's own inset — and the stem out of
+		the core has to land on it. Centring the core would drop its stem down the
+		middle of the page with the spine two hundred pixels to the left of it, and
+		the drawing would come apart at the one joint that carries its meaning.
+	*/
+	.map {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.map__core {
+		align-self: start;
+		position: relative;
+		z-index: 1;
+		display: grid;
+		justify-items: center;
+		gap: 0.375rem;
+		padding: 1.25rem 2rem 1.375rem;
+		border-radius: 0.875rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background: color-mix(in oklab, var(--color-ink-900) 82%, transparent);
+		backdrop-filter: blur(12px) saturate(130%);
+		text-align: center;
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbeaff 24%, transparent),
+			0 0 34px -6px color-mix(in oklab, var(--color-arc-400) 70%, transparent);
+	}
+
+	.map__core-mark {
+		display: block;
+		width: 1.5rem;
+		height: 1.5rem;
+		color: var(--color-arc-200);
+		filter: drop-shadow(0 0 8px color-mix(in oklab, var(--color-arc-400) 60%, transparent));
+	}
+
+	.map__core-name {
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		line-height: 1;
+		color: var(--color-bone-50);
+	}
+
+	.map__core-sub {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	/*
+		Core to bus. Held in rem rather than as a percentage: it is a fixed piece
+		of the drawing, and a percentage would make its length depend on how tall
+		the five cards below happen to be.
+	*/
+	.map__stem {
+		/* On the spine. Same literal as `.map__bus`'s own inset below — the two
+		   are the same line and have to be written to the same number. */
+		margin-inline-start: 1.125rem;
+		width: 1px;
+		height: 2.5rem;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-400) 70%, transparent),
+			var(--color-line-strong)
+		);
+	}
+
+	.map__row {
+		position: relative;
+		width: 100%;
+	}
+
+	.map__surfaces {
+		display: grid;
+		gap: clamp(0.75rem, 1.6vw, 1.25rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.map__surface {
+		position: relative;
+	}
+
+	/*
+		Flex, not grid, for one reason: the product line at the foot is pushed
+		down with `margin-block-start: auto`, and that only reaches the bottom of
+		a flex container. In a grid it would push against its own track's edge,
+		which in a five-card row of unequal copy leaves the footers unaligned.
+	*/
+	.surface {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: 100%;
+		padding: 1.25rem 1.125rem 1.125rem;
+		text-decoration: none;
+	}
+
+	.surface__icon {
+		width: 1.375rem;
+		height: 1.375rem;
+		color: var(--color-arc-300);
+	}
+
+	.surface__name {
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		line-height: 1.25;
+		color: var(--color-bone-50);
+	}
+
+	.surface__lines {
+		display: grid;
+		gap: 0.125rem;
+		font-size: var(--text-sm);
+		line-height: 1.5;
+		color: var(--color-bone-400);
+	}
+
+	/* Which product feeds this surface. Sits at the foot of the card behind its
+	   own rule, so it reads as provenance rather than as another feature. */
+	.surface__product {
+		margin-block-start: auto;
+		padding-block-start: 0.75rem;
+		border-block-start: 1px solid var(--color-line);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-arc-300);
+	}
+
+	.map__key {
+		max-width: 60ch;
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
+		font-size: var(--text-lg);
+		line-height: 1.6;
+		text-align: center;
+		text-wrap: balance;
+		color: var(--color-bone-300);
+	}
+
+	/* ── Narrow: the bus turns and runs down the left ────────────────────── */
+	.map__bus {
+		position: absolute;
+		inset-block: 0;
+		inset-inline-start: 1.125rem;
+		width: 1px;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-400) 55%, transparent),
+			var(--color-line-strong) 65%,
+			transparent
+		);
+	}
+
+	.map__surfaces {
+		padding-inline-start: 2.75rem;
+	}
+
+	/* Stub from the spine to the card. */
+	.map__riser {
+		position: absolute;
+		inset-block-start: 1.75rem;
+		inset-inline-start: -1.625rem;
+		width: 1.625rem;
+		height: 1px;
+		background: var(--color-line-strong);
+	}
+
+	/* ── Wide: the bus lies flat and the risers drop ─────────────────────── */
+	@media (min-width: 60rem) {
+		/* Flat now, so the core and its stem return to the page's centre line. */
+		.map {
+			align-items: center;
+		}
+
+		.map__core {
+			align-self: auto;
+		}
+
+		.map__stem {
+			margin-inline-start: 0;
+		}
+
+		.map__surfaces {
+			grid-template-columns: repeat(5, minmax(0, 1fr));
+			padding-inline-start: 0;
+			padding-block-start: 2.5rem;
+		}
+
+		/*
+			Inset by half a column at each end so the bar starts on the first
+			card's centre line and stops on the last card's. `10%` is half of a
+			fifth of the row — written as a percentage rather than a calc on the
+			gap because the gap is fluid and this only has to be right to within a
+			pixel at the ends, where a card is already 200px wide.
+		*/
+		.map__bus {
+			inset-block: 0 auto;
+			inset-inline: 10%;
+			width: auto;
+			height: 1px;
+			background: linear-gradient(
+				90deg,
+				transparent,
+				var(--color-line-strong) 12%,
+				color-mix(in oklab, var(--color-arc-400) 45%, transparent) 50%,
+				var(--color-line-strong) 88%,
+				transparent
+			);
+		}
+
+		/*
+			Up from the card to the bus, not down from the card's top edge into it.
+			`.map__surfaces` carries a 2.5rem top padding, so the bus sits exactly
+			that far above every card — which is the one number this offset and this
+			height both have to be. The two are written as the same literal on
+			purpose: they are the same distance, and a mismatch leaves either a
+			floating stub or a line drawn across the card.
+		*/
+		.map__riser {
+			inset-block-start: -2.5rem;
+			inset-inline-start: 50%;
+			width: 1px;
+			height: 2.5rem;
+			background: linear-gradient(180deg, var(--color-line-strong), transparent);
+		}
+	}
+</style>

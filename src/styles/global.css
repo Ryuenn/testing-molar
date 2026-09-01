@@ -17,12 +17,12 @@
    ──────────────────────────────────────────────────────────────────────────── */
 @theme static {
 	/* Ground — navy-black, not neutral grey. */
-	--color-ink-950: #04070e;
-	--color-ink-900: #070b16;
-	--color-ink-850: #090e1c;
-	--color-ink-800: #0c1322;
-	--color-ink-700: #121a2d;
-	--color-ink-600: #1a2440;
+	--color-ink-950: #05070d;
+	--color-ink-900: #070b14;
+	--color-ink-850: #0a101d;
+	--color-ink-800: #0e1628;
+	--color-ink-700: #141f36;
+	--color-ink-600: #1c2b4b;
 
 	/* Type */
 	--color-bone-50: #eef3fb;
@@ -37,12 +37,12 @@
 	--color-bone-500: #6f7e99;
 
 	/* The single accent. */
-	--color-arc-200: #b9dbff;
-	--color-arc-300: #7fbcff;
-	--color-arc-400: #4da2ff;
-	--color-arc-500: #1e85ff;
-	--color-arc-600: #0a6ae0;
-	--color-arc-700: #0b4f9e;
+	--color-arc-200: #b3d3ff;
+	--color-arc-300: #78b0ff;
+	--color-arc-400: #3d8bff;
+	--color-arc-500: #0a66ff;
+	--color-arc-600: #0a51cc;
+	--color-arc-700: #1e3a8a;
 
 	/* Hairlines — margins should read as machined, not drawn. */
 	--color-line: color-mix(in oklab, #7aa2d8 14%, transparent);
@@ -120,12 +120,35 @@
 		min-width: 0;
 	}
 
+	/*
+		The page ground, and it is a lit one rather than flat black: near-black
+		navy through the body of the page, opening into blue up in the top-right
+		corner.
+
+		It lives on <html> and is `fixed`, so it is painted once against the
+		viewport instead of stretching to the height of whatever page it is on —
+		a 12,000px page and a 900px one then carry the same wash rather than the
+		first one smearing the whole ramp into invisibility.
+
+		Sections that want their own ground still set one; sections that were flat
+		`ink-950` no longer set anything, which is what lets this through.
+	*/
 	html {
 		-webkit-text-size-adjust: 100%;
 		scroll-behavior: smooth;
 		/* Anchor targets clear the fixed nav. */
 		scroll-padding-top: calc(var(--nav-h) + 1rem);
 		background-color: var(--color-ink-950);
+		background-image: radial-gradient(
+			148% 108% at 100% 0%,
+			color-mix(in oklab, var(--color-arc-500) 30%, transparent) 0%,
+			color-mix(in oklab, var(--color-arc-700) 34%, transparent) 18%,
+			color-mix(in oklab, #0e1a2f 82%, transparent) 42%,
+			color-mix(in oklab, #080d17 94%, transparent) 66%,
+			var(--color-ink-950) 100%
+		);
+		background-attachment: fixed;
+		background-repeat: no-repeat;
 		/*
 			The gutter is reserved whether or not a scrollbar is in it, so locking
 			the page for a modal does not shift the whole layout sideways by the
@@ -159,7 +182,8 @@
 
 	body {
 		margin: 0;
-		background-color: var(--color-ink-950);
+		/* Transparent, so the lit ground on <html> is what shows. */
+		background-color: transparent;
 		color: var(--color-bone-100);
 		font-family: var(--font-sans);
 		font-size: var(--text-base);
@@ -455,14 +479,20 @@
 			transform 0.28s var(--ease-out-quint);
 	}
 
+	/*
+		White on arc-500 measures 4.8:1 — the electric blue is dark enough that the
+		near-black label it used to carry would land at 4.2:1 and fail AA. The
+		hover darkens to arc-600 rather than lightening, so the label keeps its
+		contrast on the way through.
+	*/
 	.btn-primary {
 		background: var(--color-arc-500);
-		color: #00121f;
+		color: var(--color-bone-50);
 		box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-arc-400) 60%, transparent);
 	}
 
 	.btn-primary:hover {
-		background: var(--color-arc-400);
+		background: var(--color-arc-600);
 		transform: translateY(-1px);
 		box-shadow: 0 0 28px -6px color-mix(in oklab, var(--color-arc-400) 70%, transparent);
 	}
@@ -708,7 +738,7 @@
 		transform: translateY(-120%);
 		padding: 0.75rem 1.25rem;
 		background: var(--color-arc-500);
-		color: #00121f;
+		color: var(--color-bone-50);
 		font-family: var(--font-display);
 		font-weight: 600;
 		font-size: var(--text-sm);

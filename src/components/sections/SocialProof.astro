@@ -39,7 +39,12 @@ const TRACKS = [0, 1];
 		position: relative;
 		padding-block: clamp(3rem, 6vw, 5rem);
 		border-bottom: 1px solid var(--color-line);
-		background: linear-gradient(180deg, var(--color-ink-950), var(--color-ink-900));
+		/* A wash over the page's lit ground, not a fill on top of it. */
+		background: linear-gradient(
+			180deg,
+			transparent,
+			color-mix(in oklab, var(--color-ink-900) 62%, transparent)
+		);
 		overflow: clip;
 	}
 

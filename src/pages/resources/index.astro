@@ -54,7 +54,7 @@ const scriptStrings = JSON.stringify({
 		]),
 	]}
 >
-	<section class="hero-lite lit-band" aria-labelledby="library-heading">
+	<section class="hero-lite" aria-labelledby="library-heading">
 		<div class="container-content">
 			<nav aria-label="Breadcrumb" class="crumbs">
 				<ol class="crumbs__list">
@@ -71,6 +71,9 @@ const scriptStrings = JSON.stringify({
 			</p>
 		</div>
 	</section>
+
+	{/* The band's light, carried past its bottom edge — see .band-falloff. */}
+	<div class="band-falloff" aria-hidden="true"></div>
 
 	<section class="library section-rule" aria-labelledby="library-grid-heading">
 		{/* The field the cards and chips blur — without it, translucency is just
@@ -384,10 +387,95 @@ const scriptStrings = JSON.stringify({
 </script>
 
 <style>
-	/* The light comes from `.lit-band` in global.css, which this section also
-	   wears — see the note there. Only the band's own metrics live here. */
+	/* The banner, matching PageIntro's — see the note there. */
 	.hero-lite {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
 		padding-block: calc(var(--nav-h, 4.5rem) + clamp(3rem, 8vw, 6rem)) clamp(2.5rem, 5vw, 4rem);
+		background:
+			radial-gradient(
+				128% 92% at 50% 108%,
+				color-mix(in oklab, var(--color-arc-500) 32%, transparent) 0%,
+				color-mix(in oklab, var(--color-arc-600) 24%, transparent) 30%,
+				color-mix(in oklab, var(--color-arc-700) 14%, transparent) 54%,
+				color-mix(in oklab, var(--color-arc-700) 5%, transparent) 72%,
+				transparent 88%
+			),
+			radial-gradient(
+				96% 74% at 50% -12%,
+				color-mix(in oklab, var(--color-arc-700) 18%, transparent) 0%,
+				transparent 70%
+			),
+			linear-gradient(
+				180deg,
+				var(--color-ink-950) 0%,
+				var(--color-ink-900) 46%,
+				var(--color-ink-950) 100%
+			);
+		border-block-end: 1px solid var(--color-line);
+	}
+
+	/* The still, over the field. Lifted: the PNG is exposed for a full-bleed
+	   hero and reads a stop under that at band height. */
+	.hero-lite::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: url('/page_banner_r.png') 50% 64% / cover no-repeat;
+		filter: brightness(1.75) saturate(1.2);
+		/* Screen, so the wave adds its light to the field instead of covering
+		   it — the dark half of the still then costs nothing. */
+		mix-blend-mode: screen;
+		/* And it fades out to the left, where the heading and lede sit. */
+		-webkit-mask-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 0, 0, 0.3) 28%,
+			rgba(0, 0, 0, 0.74) 50%,
+			#000 72%
+		);
+		mask-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 0, 0, 0.3) 28%,
+			rgba(0, 0, 0, 0.74) 50%,
+			#000 72%
+		);
+		pointer-events: none;
+	}
+
+	/* The two seams: under the nav at the top, into the next section below. */
+	.hero-lite::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(
+			180deg,
+			var(--color-ink-950) 0%,
+			color-mix(in oklab, var(--color-ink-950) 40%, transparent) 16%,
+			transparent 40%,
+			transparent 78%,
+			color-mix(in oklab, var(--color-ink-950) 45%, transparent) 100%
+		);
+		pointer-events: none;
+	}
+
+	.band-falloff {
+		position: relative;
+		z-index: 1;
+		height: clamp(5rem, 10vw, 8.5rem);
+		margin-block-end: calc(-1 * clamp(5rem, 10vw, 8.5rem));
+		pointer-events: none;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-700) 30%, transparent) 0%,
+			color-mix(in oklab, var(--color-arc-700) 14%, transparent) 34%,
+			color-mix(in oklab, var(--color-arc-700) 5%, transparent) 62%,
+			transparent 100%
+		);
 	}
 
 	.hero-lite__title {

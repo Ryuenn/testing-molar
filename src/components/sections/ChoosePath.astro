@@ -1,0 +1,299 @@
+---
+/**
+ * Section 04 — the merger point.
+ *
+ * This is where the two funnels the strategy set out to combine actually meet:
+ * one card for the service, one for the library, one for both. Before this
+ * section a visitor is reading about a company; after it they are on a path.
+ *
+ * Three cards, and the middle one is not the featured one — the pricing grid
+ * further down already lights its middle column, and two lit middles on one
+ * page teaches the eye nothing. What is lit here is the third card, because
+ * "everything" is the position the whole site is arguing for.
+ *
+ * Prices come from `~/data/products`, which reads Social's from the live
+ * Stripe amount in `~/data/pricing`. Nothing on this card is typed twice.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import Tick from '~/components/ui/Tick.astro';
+import { PRODUCTS, type ProductId } from '~/data/products';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	Social, Education, Complete. MOLAR TV is deliberately not one of the three:
+	it is not a way to buy MOLAR, it is a surface MOLAR plays on, and it has a
+	section of its own further down that makes that case properly.
+*/
+const SHOWN: ProductId[] = ['social', 'education', 'complete'];
+
+const OPTION_LINE = {
+	social: t('choose.opt1'),
+	education: t('choose.opt2'),
+	complete: t('choose.opt3'),
+} as const;
+
+const CARDS = PRODUCTS.filter((product) => SHOWN.includes(product.id)).map((product) => ({
+	...product,
+	option: OPTION_LINE[product.id as keyof typeof OPTION_LINE],
+	name: t(`products.${product.key}Name` as 'products.socialName'),
+	blurb: t(`products.${product.key}Blurb` as 'products.socialBlurb'),
+	cta: t(`products.${product.key}Cta` as 'products.socialCta'),
+	features: Array.from({ length: product.featureCount }, (_, i) =>
+		t(`products.${product.featureKey}${i + 1}` as 'products.soc1'),
+	),
+	href: localizePath(product.href, locale),
+	featured: product.id === 'complete',
+}));
+---
+
+<section id="choose" class="section section-rule choose" aria-labelledby="choose-heading">
+	<div class="container-content">
+		<header class="choose__head">
+			<p class="eyebrow" data-reveal="fade">{t('choose.eyebrow')}</p>
+			<h2 id="choose-heading" class="choose__title" data-reveal>{t('choose.heading')}</h2>
+			<p class="choose__lede measure-wide" data-reveal>{t('choose.lede')}</p>
+		</header>
+
+		<ul class="choose__grid" data-reveal-stagger>
+			{
+				CARDS.map((card, i) => (
+					<li
+						class:list={['path panel', card.featured && 'path--lit']}
+						data-reveal
+						data-reveal-group
+					>
+						<p class="path__option">
+							<span class="path__num" aria-hidden="true">
+								{String(i + 1).padStart(2, '0')}
+							</span>
+							{card.option}
+						</p>
+
+						<h3 class="path__name">
+							<span class="path__icon" aria-hidden="true">
+								<Glyph name={card.icon} />
+							</span>
+							{card.name}
+						</h3>
+
+						<p class="path__blurb">{card.blurb}</p>
+
+						<ul class="path__features">
+							{card.features.map((feature) => (
+								<li>
+									<Tick class="tick" />
+									<span>{feature}</span>
+								</li>
+							))}
+						</ul>
+
+						<p class="path__price">
+							{card.price ? (
+								<>
+									<span class="path__price-from">{t('products.from')}</span>
+									<span class="path__price-value">{card.price}</span>
+									{card.perMonth && <span class="path__price-unit">{t('products.perMonth')}</span>}
+								</>
+							) : (
+								<span class="path__price-value path__price-value--quoted">
+									{t('products.quoted')}
+								</span>
+							)}
+						</p>
+
+						<a
+							class:list={['btn', card.featured ? 'btn-primary' : 'btn-ghost', 'path__cta']}
+							href={card.href}
+						>
+							{card.cta}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.choose__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.choose__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.choose__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.choose__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
+		gap: clamp(1rem, 2.5vw, 1.75rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.path {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: clamp(1.5rem, 3vw, 2rem);
+	}
+
+	/*
+		The third card. Same pane, one lit rim — the treatment `.btn-lit` uses,
+		at a fraction of the intensity because this is a surface rather than a
+		control and it has to stay quieter than the button inside it.
+	*/
+	.path--lit {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		background:
+			radial-gradient(
+				120% 80% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-600) 20%, transparent),
+				transparent 68%
+			),
+			linear-gradient(
+				180deg,
+				color-mix(in oklab, var(--color-ink-800) 92%, transparent),
+				color-mix(in oklab, var(--color-ink-900) 96%, transparent)
+			);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #dbeaff 16%, transparent),
+			0 26px 70px -40px color-mix(in oklab, var(--color-arc-500) 85%, transparent);
+	}
+
+	.path__option {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.path__num {
+		display: grid;
+		place-items: center;
+		min-width: 1.5rem;
+		height: 1.5rem;
+		padding-inline: 0.3rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line-strong);
+		font-size: var(--text-2xs);
+		line-height: 1;
+		color: var(--color-arc-300);
+	}
+
+	.path__name {
+		display: flex;
+		/* `start`, not `center`: "Patient Education Library" runs to two lines in
+		   this column and a centred mark then floats between them instead of
+		   sitting beside the first word. */
+		align-items: start;
+		gap: 0.625rem;
+		margin: 0;
+		font-size: var(--text-xl);
+		line-height: 1.25;
+	}
+
+	.path__icon {
+		flex: none;
+		width: 1.375rem;
+		height: 1.375rem;
+		/* Optical centring on the first line's cap height. */
+		margin-block-start: 0.15em;
+		color: var(--color-arc-300);
+	}
+
+	.path__blurb {
+		margin: 0;
+		font-size: var(--text-sm);
+		line-height: 1.65;
+		color: var(--color-bone-300);
+	}
+
+	.path__features {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0.875rem 0 0;
+		border-top: 1px solid var(--color-line);
+		list-style: none;
+		font-size: var(--text-sm);
+		line-height: 1.5;
+		color: var(--color-bone-300);
+	}
+
+	.path__features li {
+		display: flex;
+		align-items: start;
+		gap: 0.625rem;
+	}
+
+	.path__features .tick {
+		margin-block-start: 0.2em;
+	}
+
+	/*
+		Pushed to the foot so the price and the button sit on the same line across
+		all three cards however long the feature lists run.
+	*/
+	.path__price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.4rem;
+		margin: auto 0 0;
+		padding-block-start: 0.5rem;
+	}
+
+	.path__price-from {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.path__price-value {
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1;
+		color: var(--color-bone-50);
+	}
+
+	/* "Custom pricing" is a phrase, not a figure, and setting a phrase at
+	   figure size makes the card look like it is shouting a word. */
+	.path__price-value--quoted {
+		font-size: var(--text-lg);
+		font-weight: 600;
+	}
+
+	.path__price-unit {
+		font-size: var(--text-sm);
+		color: var(--color-bone-400);
+	}
+
+	.path__cta {
+		justify-content: center;
+		width: 100%;
+	}
+</style>

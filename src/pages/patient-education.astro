@@ -1,0 +1,143 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import EducationLibrary from '~/components/sections/EducationLibrary.astro';
+import EducationInside from '~/components/sections/EducationInside.astro';
+import EducationContrast from '~/components/sections/EducationContrast.astro';
+import Testimonials from '~/components/sections/Testimonials.astro';
+import EducationSteps from '~/components/sections/EducationSteps.astro';
+import EducationPricing from '~/components/sections/EducationPricing.astro';
+import EducationCompare from '~/components/sections/EducationCompare.astro';
+import MolarTv from '~/components/sections/MolarTv.astro';
+import Faq from '~/components/sections/Faq.astro';
+import ClosingCta from '~/components/sections/ClosingCta.astro';
+import { breadcrumbSchema, faqSchema } from '~/data/schema';
+import { EDUCATION_FAQ } from '~/data/faq-education';
+import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
+import { EDUCATION_CHECKOUT } from '~/data/site';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	The Patient Education Library — "your team uses it". The $97 offer.
+
+	This page IS the funnel that used to live at molarai.studio/educate, rebuilt
+	in this site's design system and in the order that page runs: what it is,
+	what is inside, why it changes the conversation, who says so, how it starts,
+	what it costs, what it replaces, and the questions people ask before they
+	buy.
+
+	Two lists of questions exist on this site and this page carries the library's
+	one — `EDUCATION_FAQ` — not the social subscription's. The FAQPage structured
+	data is generated from the same array the accordion renders, which is why
+	`faqSchema()` takes it as an argument: markup and schema cannot drift.
+
+	No `productSchema()`. That helper describes the three social plans, and the
+	library is a different offer at a different price. Marking this page up with
+	it would assert prices no button on it charges. When the library gets its own
+	Offer markup it belongs in ~/data/schema beside the others, generated from
+	`~/data/education` so the figures cannot diverge from the page.
+
+	MOLAR TV sits near the foot because the two are bought together more often
+	than not: the library is the content and TV is one of the four screens it
+	plays on. Its own page carries that argument at full length.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const buyHref = EDUCATION_CHECKOUT;
+---
+
+<BaseLayout
+	title={t('pages.educationTitle')}
+	description={t('pages.educationDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR — the patient education library for dental practices',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		faqSchema(EDUCATION_FAQ, 'faq-library'),
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.menuEducation'), path: '/patient-education/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('edu.eyebrow')}
+		title={t('pages.educationIntro')}
+		lede={t('pages.educationLede')}
+		crumb={t('nav.menuEducation')}
+	>
+		{/*
+			The offer, stated once at the top where a visitor arriving from an ad
+			expects it. The plan card further down is where it can be acted on.
+
+			`PageIntro` renders its slot AFTER the lit band rather than inside it —
+			see the component — so this brings its own container and its own top
+			padding rather than inheriting the band's.
+		*/}
+		<div class="container-content offer-row">
+			<p class="offer">
+				{t('edu.trialLong', { n: EDUCATION_TRIAL_DAYS, price: EDUCATION_PRICE })}
+			</p>
+		</div>
+	</PageIntro>
+
+	{/*
+		Headless and priceless: the page <h1> already carries this section's
+		headline, and `EducationPricing` below carries the offer. Two price blocks
+		on one page invite a reader to wonder which one is the real one.
+	*/}
+	<EducationLibrary head={false} buy={false} />
+
+	<EducationInside />
+	<EducationContrast />
+	<Testimonials />
+	<EducationSteps />
+	<EducationPricing />
+	<EducationCompare />
+	<MolarTv />
+
+	<Faq
+		id="faq-library"
+		items={EDUCATION_FAQ}
+		heading={t('edu.faqHeading')}
+	/>
+
+	<ClosingCta
+		heading={t('edu.closeHeading')}
+		lede={t('edu.closeLede')}
+		note={t('edu.cancelBefore')}
+		primaryLabel={t('edu.startFree')}
+		primaryHref={buyHref}
+	/>
+</BaseLayout>
+
+<style>
+	/* Directly under the lit band, before the first section's own padding. */
+	.offer-row {
+		padding-block-start: clamp(1.5rem, 3vw, 2.25rem);
+	}
+
+	/*
+		The offer, given the accent rim rather than body-copy treatment because it
+		is the offer rather than a description of it — a reader scanning the top of
+		this page should find the price and the free month without reading a
+		paragraph.
+	*/
+	.offer {
+		display: inline-flex;
+		margin: 0;
+		padding: 0.6rem 1rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
+		backdrop-filter: blur(10px);
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+</style>

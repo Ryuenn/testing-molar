@@ -1,20 +1,37 @@
 ---
 /**
- * Primary navigation — three groups floating over the page, no bar.
+ * Primary navigation — one floating bar.
  *
- *   <Nav links={NAV_LINKS} cta={CTA.primary} transparent />
+ *   <Nav transparent />
  *
- * Brand lockup, a centred pill of links, and the right-hand cluster (language
- * switcher + white CTA). There is no bar behind them — the header is empty air.
- * Each pill is frosted glass instead: a wash of cool grey over translucent ink
- * with the page blurred behind it, thickening once the hero has scrolled past.
+ * A single rounded bar held off the window's edges, carrying the brand lockup
+ * at one end, the links across the middle, and the right-hand cluster
+ * (language switcher + blue CTA) at the other. The bar is frosted
+ * glass: a wash of cool grey over translucent ink with the page blurred behind
+ * it, thickening once the hero has scrolled past.
+ *
  * The material is defined once, as the `--pill-*` custom properties on `.nav`,
- * and worn by all four so they read as cut from the same sheet.
+ * and worn by the bar, the language switcher and the mobile toggle, so all
+ * three read as cut from the same sheet.
+ *
+ * ── The mega panels ────────────────────────────────────────────────────────
+ * Two of the five stops open a panel: Products and Resources. Both are still
+ * links to a real page — the panel is an expansion of the stop, not a
+ * replacement for it — so a crawler, a keyboard user who never opens it, and
+ * anyone with JS off all still reach the page underneath.
+ *
+ * The disclosure is a separate <button> beside the link rather than the link
+ * itself, because one control cannot both navigate and toggle. That split is
+ * what makes the whole thing work without JavaScript for the common case: CSS
+ * opens the panel on hover and on `:focus-within`, so a mouse user and a
+ * keyboard user both get it. The button and its `aria-expanded` exist for touch,
+ * where there is no hover to open it with, and the script below is the only
+ * thing that reads them.
  *
  * Slots
  *   brand    logo lockup (defaults to the mark + wordmark below)
  *   links    full replacement for the generated link list
- *   actions  right-hand cluster (defaults to language + CTA + menu toggle)
+ *   actions  right-hand cluster (defaults to language + CTA + toggle)
  *
  * Contract the rest of the site relies on:
  *   - renders a landmark <header> containing a labelled <nav>
@@ -24,25 +41,16 @@
  *     driven by the ScrollTrigger in `src/scripts/motion.ts`
  *
  * Below 1100px the same link list becomes a dropdown panel behind the toggle
- * button. One list, restyled — never two copies of the links in the DOM. That
- * breakpoint is where five links, the language switcher and the CTA stop
- * fitting on one row: at 1000px the pill closes to within 19px of the switcher,
- * at 1100px it clears it by 65.
+ * button. One list, restyled — never two copies of the links in the DOM.
  */
 import { Image } from 'astro:assets';
-import logoMark from '~/assets/brand/logo-mark.png';
-import { CTA } from '~/data/site';
+import logoWordmark from '~/assets/brand/logo-wordmark.png';
+import Glyph from '~/components/ui/Glyph.astro';
+import { CTA, NAV_LINKS } from '~/data/site';
 import { LOCALES, localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
-export interface NavLink {
-	label: string;
-	href: string;
-}
-
 export interface Props {
-	links?: readonly NavLink[];
-	cta?: { label: string; href: string };
 	/** Hero pages start transparent and solidify on scroll. */
 	transparent?: boolean;
 	class?: string;
@@ -51,28 +59,42 @@ export interface Props {
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
+const { transparent = false, class: className = '' } = Astro.props;
+
 /*
-	Built per render rather than imported as a constant: both the label and the
-	href depend on the locale, and a shared constant could only ever carry one of
+	Built per render rather than imported ready-made: both the label and the href
+	depend on the locale, and a shared constant could only ever carry one of
 	each. `localizePath` is what keeps a German visitor inside German when they
 	click through the nav.
 */
-const NAV_LINKS = [
-	{ label: t('nav.home'), href: localizePath('/', locale) },
-	{ label: t('nav.work'), href: localizePath('/our-work/', locale) },
-	{ label: t('nav.results'), href: localizePath('/results/', locale) },
-	{ label: t('nav.how'), href: localizePath('/how-it-works/', locale) },
-	{ label: t('nav.pricing'), href: localizePath('/pricing/', locale) },
-	{ label: t('nav.resources'), href: localizePath('/resources/', locale) },
-];
+const links = NAV_LINKS.map((entry) => ({
+	key: entry.key,
+	label: t(`nav.${entry.key}` as 'nav.home'),
+	href: localizePath(entry.href, locale),
+	menu: entry.menu?.map((item) => ({
+		icon: item.icon,
+		label: t(`nav.${item.key}` as 'nav.menuSocial'),
+		sub: t(`nav.${item.key}Sub` as 'nav.menuSocialSub'),
+		/*
+			`localizePath` is path-only and leaves a query string alone, which is
+			what the resource-hub deep links need — `/resources/?category=…` has to
+			survive into `/de/resources/?category=…` with the query intact.
+		*/
+		href: localizePath(item.href, locale),
+	})),
+	menuFoot: entry.menuFoot
+		? {
+				label: t(`nav.${entry.menuFoot.key}` as 'nav.menuHow'),
+				href: localizePath(entry.menuFoot.href, locale),
+			}
+		: undefined,
+}));
 
 /*
-	The switcher, and it is links now rather than buttons.
-
-	It used to be two buttons that moved `aria-pressed` and changed nothing else.
-	Switching language is a navigation — it changes the URL, and the result has to
-	be shareable, bookmarkable and reachable by a crawler — so it is an anchor.
-	That also means it works with JS disabled, which the old control never did.
+	The switcher, and it is links rather than buttons: switching language is a
+	navigation — it changes the URL, and the result has to be shareable,
+	bookmarkable and reachable by a crawler. That also means it works with JS
+	disabled.
 
 	Each chip points at THIS page in the other locale, not at that locale's home
 	page: someone reading the pricing page in English who taps De expects German
@@ -84,9 +106,8 @@ const langLinks = LOCALES.map((lang) => ({
 		The 404 is the exception, and it has to be special-cased: it is served at
 		whatever URL the visitor mistyped, so "this page in the other language" is
 		not a thing that exists. Astro also emits it as `404.html` rather than as a
-		directory, so `/404/` is not even a route — the link audit caught it as
-		broken. Both locales' 404s send the switcher to that locale's home instead,
-		which is the only page we can promise is there.
+		directory, so `/404/` is not even a route. Both locales' 404s send the
+		switcher to that locale's home instead.
 	*/
 	href: /(^|\/)404\/?$/.test(Astro.url.pathname)
 		? localizePath('/', lang.code)
@@ -107,22 +128,24 @@ const homeHref = withSlash(localizePath('/', locale));
 
 /*
 	A section lights for its children too — reading /resources/qr-follow-kit/
-	still means you are in Resources. Home is exempt from the prefix test for
-	the obvious reason: every path on the site starts with it, so it would
-	light on every page.
+	still means you are in Resources. Home is exempt from the prefix test for the
+	obvious reason: every path on the site starts with it.
+
+	A stop with a panel also lights for anything inside the panel, so Products
+	lights on /social-media/ and on /molar-tv/ even though neither is a prefix of
+	its own href.
 */
-const isCurrent = (href: string) => {
-	const target = withSlash(href);
+const matches = (href: string) => {
+	/* Query strings are filters on a page, not pages. Strip before comparing or
+	   `/resources/?category=…` never matches `/resources/`. */
+	const target = withSlash(href.split('?')[0]);
 	if (here === target) return true;
 	return target !== homeHref && here.startsWith(target);
 };
 
-const {
-	links = NAV_LINKS,
-	cta = { label: t('cta.start'), href: localizePath(CTA.primary.href, locale) },
-	transparent = false,
-	class: className = '',
-} = Astro.props;
+const isCurrent = (link: (typeof links)[number]) =>
+	matches(link.href) || (link.menu?.some((item) => matches(item.href)) ?? false);
+
 ---
 
 <header
@@ -146,20 +169,19 @@ const {
 			*/}
 			<a href={localizePath('/', locale)} class="nav__brand">
 				{/*
-					Decorative: the wordmark beside it already names the company, so
-					announcing the mark as well would just make a screen reader say
-					"MOLAR AI" twice.
+					The lockup IS the wordmark now, so it carries the company name and
+					the sr-only line below carries the destination. Decorative here
+					would leave the link unnamed.
 				*/}
 				<Image
-					src={logoMark}
-					alt=""
-					height={36}
+					src={logoWordmark}
+					alt="MOLAR"
+					height={22}
 					densities={[1, 2]}
 					loading="eager"
 					decoding="sync"
 					class="nav__mark"
 				/>
-				<span class="nav__wordmark">MOLAR <span class="nav__wordmark-ai">AI</span></span>
 				<span class="sr-only">{t('nav.toHome')}</span>
 			</a>
 		</slot>
@@ -169,14 +191,65 @@ const {
 				<ul class="nav__links">
 					{
 						links.map((link) => (
-							<li>
-								<a
-									href={link.href}
-									class="nav__link"
-									aria-current={isCurrent(link.href) ? 'page' : undefined}
-								>
-									{link.label}
-								</a>
+							<li class:list={['nav__item', link.menu && 'nav__item--menu']} data-nav-item>
+								<div class="nav__row">
+									<a
+										href={link.href}
+										class="nav__link"
+										aria-current={isCurrent(link) ? 'page' : undefined}
+									>
+										{link.label}
+									</a>
+
+									{link.menu && (
+										<button
+											type="button"
+											class="nav__disc"
+											aria-expanded="false"
+											aria-controls={`nav-panel-${link.key}`}
+											aria-label={t('nav.openMenu', { name: link.label })}
+											data-nav-disc
+										>
+											<svg
+												viewBox="0 0 12 12"
+												fill="none"
+												stroke="currentColor"
+												stroke-width="1.6"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												aria-hidden="true"
+											>
+												<path d="m3 4.75 3 3 3-3" />
+											</svg>
+										</button>
+									)}
+								</div>
+
+								{link.menu && (
+									<div class="mega" id={`nav-panel-${link.key}`} data-nav-panel>
+										<ul class="mega__list">
+											{link.menu.map((item) => (
+												<li>
+													<a class="mega__item" href={item.href}>
+														<span class="mega__icon" aria-hidden="true">
+															<Glyph name={item.icon} />
+														</span>
+														<span class="mega__body">
+															<span class="mega__label">{item.label}</span>
+															<span class="mega__sub">{item.sub}</span>
+														</span>
+													</a>
+												</li>
+											))}
+										</ul>
+
+										{link.menuFoot && (
+											<a class="mega__foot" href={link.menuFoot.href}>
+												{link.menuFoot.label} <span aria-hidden="true">→</span>
+											</a>
+										)}
+									</div>
+								)}
 							</li>
 						))
 					}
@@ -226,8 +299,14 @@ const {
 					}
 				</div>
 
-				<a href={cta.href} class="nav__cta">
-					<span>{cta.label}</span>
+				{/*
+					Rendered only once there is somewhere for it to go. `PORTAL_LOGIN`
+					is empty in this repo and the client portal's URL is not in it — a
+					header link to a page that does not load is worse than no link at
+					all. See the note on the constant in ~/data/site.
+				*/}
+				<a href={localizePath(CTA.primary.href, locale)} class="nav__cta">
+					<span>{t('cta.start')}</span>
 					{/* Decorative twin of the label — the link already reads "Start now". */}
 					<span class="nav__cta-badge" aria-hidden="true">
 						<svg
@@ -268,13 +347,44 @@ const {
 
 <script>
 	/*
-		Mobile dropdown. `data-nav-open` on the header is the single source of
-		truth — CSS reads it and aria-expanded is mirrored from it, so the two
-		cannot drift apart.
+		Two disclosures, and they are separate mechanisms on purpose.
+
+		  · the mobile dropdown — `data-nav-open` on the header
+		  · the two mega panels — `data-open` on their own <li>
+
+		Both are single sources of truth that CSS reads and `aria-expanded` is
+		mirrored from, so markup and state cannot drift apart. Neither is required
+		for the panels to work with a mouse or a keyboard: `:hover` and
+		`:focus-within` already open them above the breakpoint. This is what makes
+		them reachable by touch, where there is no hover.
 	*/
 	const nav = document.querySelector<HTMLElement>('[data-nav]');
 	const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
 	const menu = document.querySelector<HTMLElement>('[data-nav-menu]');
+	const items = [...document.querySelectorAll<HTMLElement>('[data-nav-item]')].filter((item) =>
+		item.querySelector('[data-nav-disc]'),
+	);
+
+	const closeAllPanels = (except?: HTMLElement) => {
+		items.forEach((item) => {
+			if (item === except) return;
+			item.removeAttribute('data-open');
+			item.querySelector('[data-nav-disc]')?.setAttribute('aria-expanded', 'false');
+		});
+	};
+
+	items.forEach((item) => {
+		const disc = item.querySelector<HTMLButtonElement>('[data-nav-disc]');
+		if (!disc) return;
+
+		disc.addEventListener('click', () => {
+			const open = !item.hasAttribute('data-open');
+			/* One panel at a time. Two open at once overlap on a narrow desktop. */
+			closeAllPanels(item);
+			item.toggleAttribute('data-open', open);
+			disc.setAttribute('aria-expanded', String(open));
+		});
+	});
 
 	if (nav && toggle && menu) {
 		const desktop = window.matchMedia('(min-width: 1100px)');
@@ -282,27 +392,41 @@ const {
 		const setOpen = (open: boolean) => {
 			nav.toggleAttribute('data-nav-open', open);
 			toggle.setAttribute('aria-expanded', String(open));
+			if (!open) closeAllPanels();
 		};
 
 		toggle.addEventListener('click', () => {
 			setOpen(!nav.hasAttribute('data-nav-open'));
 		});
 
-		/* Following a link closes the panel — every target is on the same page. */
+		/* Following a link closes everything. The disclosure buttons are not
+		   links, so their clicks must not trip this. */
 		menu.addEventListener('click', (event) => {
 			if ((event.target as HTMLElement).closest('a')) setOpen(false);
 		});
 
 		document.addEventListener('keydown', (event) => {
-			if (event.key !== 'Escape' || !nav.hasAttribute('data-nav-open')) return;
+			if (event.key !== 'Escape') return;
+
+			/* An open mega panel is the innermost thing, so it closes first — and
+			   focus goes back to the button that opened it rather than being
+			   stranded inside a panel that just vanished. */
+			const openItem = items.find((item) => item.hasAttribute('data-open'));
+			if (openItem) {
+				closeAllPanels();
+				openItem.querySelector<HTMLButtonElement>('[data-nav-disc]')?.focus();
+				return;
+			}
+
+			if (!nav.hasAttribute('data-nav-open')) return;
 			setOpen(false);
-			/* Escape must not strand focus inside a panel that just vanished. */
 			toggle.focus();
 		});
 
 		document.addEventListener('pointerdown', (event) => {
-			if (!nav.hasAttribute('data-nav-open')) return;
-			if (!nav.contains(event.target as Node)) setOpen(false);
+			if (nav.contains(event.target as Node)) return;
+			closeAllPanels();
+			if (nav.hasAttribute('data-nav-open')) setOpen(false);
 		});
 
 		/*
@@ -313,7 +437,6 @@ const {
 			if (event.matches) setOpen(false);
 		});
 	}
-
 </script>
 
 <style>
@@ -345,14 +468,17 @@ const {
 			                only ever goes darker, and glass catches light.
 			  --pill-edge   the lit top edge, at the threshold of visible.
 		*/
-		--pill-bg: color-mix(in oklab, var(--color-ink-950) 44%, transparent);
+		--pill-bg: color-mix(in oklab, var(--color-ink-950) 8%, transparent);
 		--pill-sheen: linear-gradient(
 			180deg,
-			color-mix(in oklab, #a3adbd 13%, transparent) 0%,
-			color-mix(in oklab, #a3adbd 5%, transparent) 100%
+			color-mix(in oklab, #cfe0f5 10%, transparent) 0%,
+			color-mix(in oklab, #a3adbd 4%, transparent) 58%,
+			color-mix(in oklab, #7aa2d8 7%, transparent) 100%
 		);
-		--pill-edge: inset 0 1px 0 color-mix(in oklab, #e6ecf5 9%, transparent);
-		--pill-blur: blur(18px) saturate(135%);
+		--pill-edge: inset 0 1px 0 color-mix(in oklab, #e6ecf5 16%, transparent);
+		/* Heavier than before, and it has to be: with this little ink left, the
+		   blur is the only thing keeping light copy off a moving frame. */
+		--pill-blur: blur(10px) saturate(150%);
 	}
 
 	/*
@@ -361,7 +487,7 @@ const {
 		moving video without darkening the pill until it reads as a solid chip.
 	*/
 	.nav[data-nav-transparent] {
-		--pill-bg: color-mix(in oklab, var(--color-ink-950) 24%, transparent);
+		--pill-bg: color-mix(in oklab, var(--color-ink-950) 10%, transparent);
 	}
 
 	/*
@@ -404,16 +530,29 @@ const {
 	*/
 	.nav__inner {
 		position: relative;
-		width: 100%;
-		max-width: 108rem;
+		/* The bar is the only thing up here that takes a click — the air either
+		   side of it stays transparent to the page. */
+		pointer-events: auto;
+		width: calc(100% - var(--gutter) * 2);
+		max-width: 112rem;
 		margin-inline: auto;
-		/* The dropdown's `inset-inline: var(--gutter)` resolves against this
-		   padding box; the two have to stay the same value. */
-		padding-inline: var(--gutter);
+		height: 3.5rem;
+		padding-inline: 1.125rem 0.4375rem;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in oklab, #cfe0f5 11%, transparent);
+		background-color: var(--pill-bg);
+		background-image: var(--pill-sheen);
+		backdrop-filter: var(--pill-blur);
+		box-shadow:
+			var(--pill-edge),
+			/* The underside, so the sheet reads as having a thickness. */ inset 0 -1px 0
+				color-mix(in oklab, #05070d 30%, transparent),
+			0 24px 60px -34px #000;
+		transition: background-color 0.4s var(--ease-out-quint);
 	}
 
 	/* ── Brand ───────────────────────────────────────────────────────────── */
@@ -431,26 +570,27 @@ const {
 	}
 
 	/*
-		No tile behind it. The mark is already a lit object on transparency — box
-		it in frosted glass and it reads as an app icon rather than as a logo. It
-		sits bare, and its own glow is what separates it from the video.
+		No tile behind it. The lockup is white type on transparency — box it in
+		frosted glass and it reads as an app icon rather than as a logo. It sits
+		bare, and a soft glow is what separates it from the hero video running
+		underneath the transparent nav.
+
+		1.375rem, not the 2.25rem the old tooth mark took. That mark was a square
+		object whose height was its whole size; this is a 7.2:1 wordmark, and at
+		2.25rem it would run 260px wide and crowd the links.
 	*/
 	.nav__mark {
 		flex: none;
 		width: auto;
-		height: 2.25rem;
+		height: 1.375rem;
 		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 45%, transparent));
 		transition: filter 0.24s var(--ease-out-quint);
 	}
 
-	/* Hover feedback moved onto the glow, since there is no longer a border to
+	/* Hover feedback lives on the glow, since there is no longer a border to
 	   pick up. */
 	.nav__brand:hover .nav__mark {
 		filter: drop-shadow(0 0 14px color-mix(in oklab, var(--color-arc-400) 70%, transparent));
-	}
-
-	.nav__wordmark-ai {
-		color: var(--color-arc-400);
 	}
 
 	/* ── Links ───────────────────────────────────────────────────────────── */
@@ -471,6 +611,15 @@ const {
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	.nav__item {
+		position: relative;
+	}
+
+	.nav__row {
+		display: flex;
+		align-items: center;
 	}
 
 	.nav__link {
@@ -509,6 +658,127 @@ const {
 		background: color-mix(in oklab, var(--color-arc-500) 20%, transparent);
 	}
 
+	/* ── The disclosure ──────────────────────────────────────────────────── */
+	/*
+		A caret, and a real button. It sits tight against its link so the two read
+		as one control, but it is a second tab stop — which is correct: they do
+		different things, and a keyboard user needs to be able to open the panel
+		without navigating away from the page they are on.
+	*/
+	.nav__disc {
+		display: grid;
+		place-items: center;
+		width: 1.75rem;
+		height: 2.125rem;
+		margin-inline-start: -0.4375rem;
+		padding: 0;
+		border: 0;
+		border-radius: 0.5rem;
+		background: none;
+		color: var(--color-bone-400);
+		cursor: pointer;
+		transition:
+			color 0.24s var(--ease-out-quint),
+			transform 0.24s var(--ease-out-quint);
+	}
+
+	.nav__disc svg {
+		width: 0.75rem;
+		height: 0.75rem;
+	}
+
+	.nav__disc:hover {
+		color: var(--color-bone-50);
+	}
+
+	.nav__item[data-open] .nav__disc,
+	.nav__item:hover .nav__disc {
+		transform: rotate(180deg);
+		color: var(--color-bone-50);
+	}
+
+	/* ── The panel ───────────────────────────────────────────────────────── */
+	/*
+		In the mobile dropdown the panel is simply a nested block that appears
+		under its parent when open. It becomes the floating mega panel at the
+		desktop breakpoint — one element, two behaviours, never two copies.
+	*/
+	.mega {
+		display: none;
+		padding: 0.375rem 0 0.25rem 0.75rem;
+	}
+
+	.nav__item[data-open] .mega {
+		display: block;
+	}
+
+	.mega__list {
+		display: grid;
+		gap: 0.125rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.mega__item {
+		display: flex;
+		align-items: start;
+		gap: 0.6875rem;
+		padding: 0.5rem 0.625rem;
+		border-radius: 0.625rem;
+		text-decoration: none;
+		transition: background-color 0.22s var(--ease-out-quint);
+	}
+
+	.mega__item:hover,
+	.mega__item:focus-visible {
+		background: color-mix(in oklab, var(--color-bone-50) 9%, transparent);
+	}
+
+	.mega__icon {
+		flex: none;
+		width: 1.125rem;
+		height: 1.125rem;
+		margin-block-start: 0.1rem;
+		color: var(--color-arc-300);
+	}
+
+	.mega__body {
+		display: grid;
+		gap: 0.125rem;
+	}
+
+	.mega__label {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--color-bone-50);
+	}
+
+	.mega__sub {
+		font-size: var(--text-xs);
+		line-height: 1.45;
+		color: var(--color-bone-400);
+	}
+
+	.mega__foot {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		margin-block-start: 0.375rem;
+		padding: 0.5rem 0.625rem;
+		font-family: var(--font-display);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: var(--color-arc-300);
+		text-decoration: none;
+	}
+
+	.mega__foot:hover {
+		color: var(--color-arc-200);
+	}
+
 	/* ── Actions ─────────────────────────────────────────────────────────── */
 	.nav__actions {
 		pointer-events: auto;
@@ -521,23 +791,18 @@ const {
 	.nav__lang {
 		display: flex;
 		align-items: center;
-		gap: 0.1875rem;
-		padding: 0.25rem;
-		border-radius: 0.75rem;
-		border: 1px solid var(--color-line);
-		background-color: var(--pill-bg);
-		background-image: var(--pill-sheen);
-		backdrop-filter: var(--pill-blur);
-		box-shadow: var(--pill-edge);
-		transition: background-color 0.4s var(--ease-out-quint);
+		gap: 0.125rem;
+		padding: 0;
+		border: 0;
+		background: none;
 	}
 
 	.nav__lang-btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		min-width: 2.125rem;
-		height: 2.125rem;
+		min-width: 1.875rem;
+		height: 1.875rem;
 		padding-inline: 0.4375rem;
 		border: 0;
 		border-radius: 0.5rem;
@@ -558,7 +823,7 @@ const {
 		color: var(--color-bone-100);
 	}
 
-	/* The lit chip. aria-pressed is the state, so there is nothing else to
+	/* The lit chip. aria-current is the state, so there is nothing else to
 	   keep in sync — style the ARIA directly. */
 	.nav__lang-btn[aria-current] {
 		background: color-mix(in oklab, var(--color-bone-50) 15%, transparent);
@@ -578,12 +843,12 @@ const {
 	.nav__cta {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.625rem;
-		height: 2.75rem;
-		padding-inline: 1.125rem 0.375rem;
-		border-radius: 0.75rem;
-		background: var(--color-bone-50);
-		color: var(--color-ink-950);
+		gap: 0.5rem;
+		height: 2.375rem;
+		padding-inline: 0.9375rem 0.3125rem;
+		border-radius: 0.625rem;
+		background: var(--color-arc-500);
+		color: #fff;
 		font-family: var(--font-display);
 		font-size: var(--text-sm);
 		font-weight: 600;
@@ -598,7 +863,7 @@ const {
 	}
 
 	.nav__cta:hover {
-		background: #fff;
+		background: var(--color-arc-400);
 		transform: translateY(-1px);
 		box-shadow: 0 14px 34px -14px color-mix(in oklab, var(--color-arc-400) 75%, transparent);
 	}
@@ -611,11 +876,11 @@ const {
 		flex: none;
 		display: grid;
 		place-items: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: 0.5rem;
-		background: var(--color-ink-950);
-		color: var(--color-bone-50);
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 999px;
+		background: color-mix(in oklab, #fff 22%, transparent);
+		color: #fff;
 	}
 
 	.nav__cta-badge svg {
@@ -627,13 +892,13 @@ const {
 		transform: translateX(2px);
 	}
 
-	/* ── Menu toggle (below 900px only) ──────────────────────────────────── */
+	/* ── Menu toggle (below 1100px only) ─────────────────────────────────── */
 	.nav__toggle {
 		flex: none;
 		display: grid;
 		place-items: center;
-		width: 2.75rem;
-		height: 2.75rem;
+		width: 2.375rem;
+		height: 2.375rem;
 		padding: 0;
 		border-radius: 0.625rem;
 		border: 1px solid var(--color-line);
@@ -677,13 +942,17 @@ const {
 	.nav__nav {
 		position: absolute;
 		/*
-			`.nav__inner` is a .container-content, so an absolute child resolves
-			against its padding box. Offsetting by the gutter lands the panel on the
-			content edge, flush with the brand and the CTA.
+			`.nav__inner` carries the gutter as padding, so an absolute child
+			resolves against its padding box. Offsetting by the gutter lands the
+			panel on the content edge, flush with the brand and the CTA.
 		*/
-		inset-inline: var(--gutter);
-		inset-block-start: calc(100% + 0.75rem);
+		inset-inline: 0;
+		inset-block-start: calc(100% + 0.5rem);
 		display: none;
+		/* Six stops with two expandable panels can outrun a phone in landscape. */
+		max-height: calc(100dvh - var(--nav-h) - 1.5rem);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		padding: 0.5rem;
 		border-radius: 0.875rem;
 		border: 1px solid var(--color-line-strong);
@@ -713,8 +982,15 @@ const {
 	}
 
 	.nav__nav .nav__link {
+		flex: 1;
 		height: 2.75rem;
 		font-size: var(--text-base);
+	}
+
+	.nav__nav .nav__disc {
+		height: 2.75rem;
+		width: 2.75rem;
+		margin-inline-start: 0;
 	}
 
 	.nav__lang--menu {
@@ -744,6 +1020,8 @@ const {
 		.nav__nav {
 			position: static;
 			display: block;
+			max-height: none;
+			overflow: visible;
 			padding: 0;
 			border: 0;
 			border-radius: 0;
@@ -753,36 +1031,118 @@ const {
 		}
 
 		/*
-			The glass, and it lives here — on the pill behind the four links, not
-			on a band across the window. The sheen, the blur and the lit edge
-			together are what make a rounded rectangle read as a piece of frosted
-			material instead of a flat translucent panel.
+			The glass, and it lives here — on the pill behind the links, not on a
+			band across the window. The sheen, the blur and the lit edge together
+			are what make a rounded rectangle read as a piece of frosted material
+			instead of a flat translucent panel.
 		*/
 		.nav__links {
 			flex-direction: row;
-			gap: 0.25rem;
-			padding: 0.3125rem;
-			border-radius: 0.875rem;
-			border: 1px solid var(--color-line);
-			background-color: var(--pill-bg);
-			background-image: var(--pill-sheen);
-			backdrop-filter: var(--pill-blur);
-			box-shadow: var(--pill-edge);
-			transition: background-color 0.4s var(--ease-out-quint);
+			gap: 0.125rem;
+			padding: 0;
+			border: 0;
+			background: none;
 		}
 
 		.nav__nav .nav__link {
+			flex: none;
 			height: 2.125rem;
 			font-size: var(--text-sm);
 		}
 
-		/*
-			The page you are on, on the pill: a lit filament under the word and
-			the haze it throws.
+		.nav__nav .nav__disc {
+			height: 2.125rem;
+			width: 1.5rem;
+			margin-inline-start: -0.5rem;
+		}
 
-			No chip behind it up here. A filled chip inside the pill would read
-			as a second, smaller pill — the pill IS the container, and what it
-			needs is a mark on one word, not a box around it.
+		/*
+			The mega panel: a floating card under the pill, hung off its own stop
+			and centred on it. `visibility` rather than `display` so it can
+			transition, and so `:focus-within` has something focusable to find —
+			`display: none` removes the panel's links from the tab order entirely,
+			which is exactly the bug that makes most mega menus unusable by
+			keyboard.
+		*/
+		.mega {
+			position: absolute;
+			z-index: 1;
+			inset-block-start: calc(100% + 0.9375rem);
+			inset-inline-start: 50%;
+			display: block;
+			visibility: hidden;
+			opacity: 0;
+			width: max-content;
+			max-width: min(26rem, 90vw);
+			padding: 0.5rem;
+			transform: translate(-50%, -0.375rem);
+			border-radius: 0.875rem;
+			border: 1px solid var(--color-line-strong);
+			/*
+				Nearly opaque, unlike the pills. On the home page this panel opens
+				over a 6rem headline in motion, and the blur is doing the work of
+				separating two layers of large light type — which it cannot do on
+				its own where `backdrop-filter` is unsupported or disabled. The
+				ground has to carry the legibility by itself.
+			*/
+			background: color-mix(in oklab, var(--color-ink-950) 97%, transparent);
+			backdrop-filter: blur(22px) saturate(165%);
+			box-shadow:
+				inset 0 1px 0 color-mix(in oklab, #dbe8ff 12%, transparent),
+				0 30px 70px -34px #000;
+			transition:
+				opacity 0.22s var(--ease-out-quint),
+				transform 0.22s var(--ease-out-quint),
+				visibility 0.22s;
+		}
+
+		/*
+			The gap between the pill and the panel is dead space a pointer crosses
+			on its way down, and crossing it would close the panel. This bridges it
+			— an invisible strip the same height as the offset above.
+		*/
+		.mega::before {
+			content: '';
+			position: absolute;
+			inset-block-start: -0.9375rem;
+			inset-inline: 0;
+			height: 0.9375rem;
+		}
+
+		.nav__item--menu:hover .mega,
+		.nav__item--menu:focus-within .mega,
+		.nav__item[data-open] .mega {
+			visibility: visible;
+			opacity: 1;
+			transform: translate(-50%, 0);
+		}
+
+		/* Two columns for the six-item Resources panel, one for the four-item
+		   Products panel. `auto-fit` cannot know the difference, so it is set
+		   from the count that is actually there. */
+		#nav-panel-resources .mega__list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		#nav-panel-resources {
+			max-width: min(38rem, 92vw);
+		}
+
+		.mega__foot {
+			margin-block-start: 0.25rem;
+			padding-block-start: 0.625rem;
+			border-block-start: 1px solid var(--color-line);
+			width: 100%;
+			border-radius: 0;
+		}
+
+		/*
+			The page you are on, on the pill: a lit filament under the word and the
+			haze it throws.
+
+			No chip behind it up here. A filled chip inside the pill would read as a
+			second, smaller pill — the pill IS the container, and what it needs is a
+			mark on one word, not a box around it.
 		*/
 		.nav__link[aria-current] {
 			background: none;
@@ -791,8 +1151,8 @@ const {
 
 		/*
 			The filament. It fades out at both ends because a rule with hard ends
-			reads as a border; light does not stop, it falls off. Inset by half
-			the link's own padding so it hugs the word rather than the box.
+			reads as a border; light does not stop, it falls off. Inset by half the
+			link's own padding so it hugs the word rather than the box.
 		*/
 		.nav__link[aria-current]::after {
 			content: '';
@@ -818,8 +1178,7 @@ const {
 			The haze, and it is a separate element because a box-shadow spreads
 			evenly in every direction — this has to rise into the word and spill
 			past the pill's bottom edge, which is what makes it read as emitted
-			light rather than as a thick underline. Centred on the filament: the
-			box hangs equal distances above and below it.
+			light rather than as a thick underline.
 		*/
 		.nav__link[aria-current]::before {
 			content: '';
@@ -828,8 +1187,7 @@ const {
 				Behind the word. A positioned pseudo-element paints above its
 				parent's text by default, which would leave a blue veil over the
 				label; -1 drops it to the negative layer of the nearest stacking
-				context, which is the pill itself — so the haze lands on the
-				glass and the type stays crisp on top of it.
+				context, so the haze lands on the glass and the type stays crisp.
 			*/
 			z-index: -1;
 			inset-block-end: -1.125rem;

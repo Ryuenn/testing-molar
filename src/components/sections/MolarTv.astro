@@ -1,0 +1,507 @@
+---
+/**
+ * Section 10 — MOLAR TV.
+ *
+ * A section of its own, not a bullet under the library. The strategy is
+ * emphatic about that and it is right: the waiting-room screen is the one
+ * surface a practice already owns, already pays for and is currently wasting,
+ * and that is an argument, not a feature.
+ *
+ * The visual is a screen on a wall, drawn in CSS rather than photographed.
+ * There is no photograph of a MOLAR-branded waiting room in this repo, and a
+ * stock dental interior with a screenshot pasted onto the television is exactly
+ * the "generic AI-generated dentist stock imagery" the design direction rules
+ * out. What is on the screen instead is real: three clips from
+ * `public/videos/library/`, muted and looping, which is how a waiting-room
+ * screen actually behaves.
+ *
+ * The loop autoplays because a still picture of a television is a picture of a
+ * television. It is muted, `playsinline`, and carries no audio track worth
+ * having — and under `prefers-reduced-motion` the whole thing is replaced by
+ * its first frame; see the media query at the foot of this file.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import { TV_FEATURES, TV_PLAYLIST, TV_LOOP } from '~/data/tv';
+import { CTA } from '~/data/site';
+import { productById } from '~/data/products';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+export interface Props {
+	/** Render the eyebrow, headline and lede. Off on /molar-tv/, whose <h1>
+	    already carries this exact line. */
+	head?: boolean;
+}
+
+const { head = true } = Astro.props;
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const cap = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
+
+const PLAYLIST = TV_PLAYLIST.map((entry) => t(`tv.play${cap(entry)}` as 'tv.playEducation'));
+
+const FEATURES = TV_FEATURES.map((feature) => ({
+	icon: feature.icon,
+	name: t(`tv.feat${cap(feature.key)}` as 'tv.featLogo'),
+	sub: t(`tv.feat${cap(feature.key)}Sub` as 'tv.featLogoSub'),
+}));
+
+const href = localizePath(productById('tv').href, locale);
+---
+
+<section
+	id="molar-tv"
+	class="section section-rule tv"
+	aria-labelledby={head ? 'tv-heading' : undefined}
+	aria-label={head ? undefined : t('tv.eyebrow')}
+>
+	<div class="tv__glow" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
+
+	<div class="container-content tv__inner">
+		{
+			head && (
+				<header class="tv__head">
+					<p class="eyebrow" data-reveal="fade">
+						{t('tv.eyebrow')}
+					</p>
+					<h2 id="tv-heading" class="tv__title" data-reveal>
+						{t('tv.heading')}
+					</h2>
+					<p class="tv__lede measure-wide" data-reveal>
+						{t('tv.lede')}
+					</p>
+				</header>
+			)
+		}
+
+		<div class="tv__stage" data-reveal>
+			{/* ── The screen ──────────────────────────────────────────────── */}
+			<div class="screen">
+				<div class="screen__bezel">
+					<div class="screen__panel">
+						<video
+							class="screen__video"
+							autoplay
+							muted
+							loop
+							playsinline
+							preload="metadata"
+							aria-hidden="true"
+							tabindex="-1"
+							disablepictureinpicture
+							disableRemotePlayback
+						>
+							{/*
+								Three sources on one <video> is a fallback chain, not a
+								playlist — the browser takes the first it can play. That is
+								deliberate: a real playlist needs a script to advance it, and
+								a decorative loop on a marketing page does not justify one.
+								Swapping the running clip is a matter of reordering `TV_LOOP`.
+							*/}
+							{TV_LOOP.map((src) => <source src={src} type="video/mp4" />)}
+						</video>
+
+						{/* The practice's brand furniture, over the content. This is what
+						    the section is actually claiming, so it is drawn, not implied. */}
+						<div class="screen__brand">
+							<span class="screen__logo" aria-hidden="true"><Glyph name="tooth" /></span>
+							<span class="screen__wordmark">Your practice</span>
+						</div>
+
+						<p class="screen__now">
+							<span class="screen__dot" aria-hidden="true"></span>
+							{t('tv.nowPlaying')}
+						</p>
+
+						<span class="sr-only">{t('tv.screenAlt')}</span>
+					</div>
+				</div>
+
+				{/* The wall mount. Two elements: the arm and the shadow it casts. */}
+				<span class="screen__mount" aria-hidden="true"></span>
+			</div>
+
+			{/* ── What is on it ───────────────────────────────────────────── */}
+			<div class="tv__side">
+				<ul class="tv__playlist">
+					{
+						PLAYLIST.map((entry) => (
+							<li class="tv__track">
+								<span class="tv__bars" aria-hidden="true">
+									<span /><span /><span />
+								</span>
+								{entry}
+							</li>
+						))
+					}
+				</ul>
+
+				<blockquote class="tv__key">
+					<p>{t('tv.key1')}</p>
+					<p>{t('tv.key2')}</p>
+				</blockquote>
+			</div>
+		</div>
+
+		<ul class="tv__features" data-reveal-stagger>
+			{
+				FEATURES.map((feature) => (
+					<li class="tvf" data-reveal data-reveal-group>
+						<span class="tvf__icon" aria-hidden="true">
+							<Glyph name={feature.icon} />
+						</span>
+						<span class="tvf__body">
+							<span class="tvf__name">{feature.name}</span>
+							<span class="tvf__sub">{feature.sub}</span>
+						</span>
+					</li>
+				))
+			}
+		</ul>
+
+		<div class="tv__actions" data-reveal>
+			<a class="btn btn-primary" href={href}>{t('tv.cta')} <span aria-hidden="true">→</span></a>
+			{/* Quoted rather than bought — there is no checkout for this offer, so
+			    the second ask is a conversation. */}
+			<a class="btn btn-ghost" href={CTA.sales.href} target="_blank" rel="noopener">
+				{t('cta.talk')}
+				<span class="sr-only">{t('footer.newTab')}</span>
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	.tv {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		background: linear-gradient(180deg, var(--color-ink-950), var(--color-ink-900) 60%, var(--color-ink-950));
+	}
+
+	/* The light the screen throws into the room. Centred on the screen itself
+	   rather than on the section, which is what makes it read as emitted. */
+	.tv__glow {
+		position: absolute;
+		z-index: -1;
+		inset-block-start: 28%;
+		inset-inline-start: 28%;
+		width: min(52rem, 78%);
+		height: 26rem;
+		transform: translate(-50%, -20%);
+		border-radius: 50%;
+		pointer-events: none;
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--color-arc-500) 26%, transparent),
+			color-mix(in oklab, var(--color-arc-700) 14%, transparent) 48%,
+			transparent 76%
+		);
+		filter: blur(72px);
+	}
+
+	.tv__inner {
+		position: relative;
+	}
+
+	.tv__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+	}
+
+	.tv__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.tv__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.tv__stage {
+		display: grid;
+		gap: clamp(1.75rem, 4vw, 3rem);
+		align-items: center;
+	}
+
+	@media (min-width: 62rem) {
+		.tv__stage {
+			grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+		}
+	}
+
+	/* ── The screen ──────────────────────────────────────────────────────── */
+	.screen {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	/*
+		Bezel and panel are separate elements so the frame can have its own
+		material — a dark satin edge catching a highlight along the top — without
+		that highlight sitting on top of the picture.
+	*/
+	.screen__bezel {
+		width: 100%;
+		padding: clamp(0.5rem, 1vw, 0.75rem);
+		border-radius: clamp(0.5rem, 1vw, 0.875rem);
+		background: linear-gradient(180deg, #1c2b4b, #0e1628 55%, #05070d);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe0ff 22%, transparent),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+			0 40px 80px -40px #000;
+	}
+
+	.screen__panel {
+		position: relative;
+		aspect-ratio: 16 / 9;
+		border-radius: clamp(0.25rem, 0.5vw, 0.375rem);
+		background: #000;
+		overflow: clip;
+	}
+
+	.screen__video {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		/*
+			The clips are 9:16 phone video on a 16:9 screen, so a cover crop takes
+			the middle of the frame. Positioned a little above centre because the
+			subject in these is consistently in the upper half.
+		*/
+		object-position: 50% 35%;
+	}
+
+	/* The practice's lockup, top-left, over a short scrim so it survives a
+	   bright frame passing underneath. */
+	.screen__brand {
+		position: absolute;
+		inset-block-start: 0;
+		inset-inline: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: clamp(0.625rem, 1.4vw, 1rem);
+		background: linear-gradient(180deg, rgba(4, 7, 14, 0.78), transparent);
+	}
+
+	.screen__logo {
+		width: 1.25rem;
+		height: 1.25rem;
+		color: var(--color-arc-300);
+	}
+
+	.screen__wordmark {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: #fff;
+	}
+
+	.screen__now {
+		position: absolute;
+		inset-block-end: clamp(0.625rem, 1.4vw, 1rem);
+		inset-inline-start: clamp(0.625rem, 1.4vw, 1rem);
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4375rem;
+		margin: 0;
+		padding: 0.3125rem 0.625rem;
+		border-radius: 999px;
+		background: rgba(4, 7, 14, 0.72);
+		backdrop-filter: blur(6px);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: #fff;
+	}
+
+	.screen__dot {
+		width: 0.375rem;
+		height: 0.375rem;
+		border-radius: 999px;
+		background: var(--color-arc-400);
+		box-shadow: 0 0 8px var(--color-arc-400);
+	}
+
+	/* Arm and plate, so the panel reads as hung rather than as floating. */
+	.screen__mount {
+		width: 2.5rem;
+		height: 1.75rem;
+		background: linear-gradient(180deg, #141f36, #0e1628);
+		/* A trapezium widening downward — the arm seen head-on. Clipped rather
+		   than bordered so it has no edge to catch light the bezel would not. */
+		clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+	}
+
+	/* ── Playlist and pull-quote ─────────────────────────────────────────── */
+	.tv__side {
+		display: grid;
+		gap: clamp(1.25rem, 2.5vw, 1.75rem);
+		align-content: center;
+	}
+
+	.tv__playlist {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tv__track {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.6875rem 0.875rem;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-800) 62%, transparent);
+		font-size: var(--text-sm);
+		color: var(--color-bone-100);
+	}
+
+	/* Three bars at three heights. Static — an equaliser that animates on five
+	   rows at once is a distraction beside a screen that is already moving. */
+	.tv__bars {
+		display: flex;
+		align-items: end;
+		gap: 2px;
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	.tv__bars span {
+		flex: 1;
+		border-radius: 1px;
+		background: var(--color-arc-400);
+	}
+
+	.tv__bars span:nth-child(1) {
+		height: 45%;
+	}
+
+	.tv__bars span:nth-child(2) {
+		height: 100%;
+	}
+
+	.tv__bars span:nth-child(3) {
+		height: 68%;
+	}
+
+	.tv__key {
+		display: grid;
+		gap: 0.75rem;
+		margin: 0;
+		padding-inline-start: 1.125rem;
+		border-inline-start: 2px solid color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+	}
+
+	.tv__key p {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 500;
+		line-height: 1.45;
+		color: var(--color-bone-100);
+	}
+
+	.tv__key p + p {
+		font-family: var(--font-sans);
+		font-size: var(--text-sm);
+		font-weight: 400;
+		color: var(--color-bone-400);
+	}
+
+	/* ── Features ────────────────────────────────────────────────────────── */
+	.tv__features {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+		gap: clamp(0.75rem, 2vw, 1.25rem);
+		margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.tvf {
+		display: flex;
+		align-items: start;
+		gap: 0.75rem;
+	}
+
+	.tvf__icon {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0.5rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-800) 70%, transparent);
+		color: var(--color-arc-300);
+	}
+
+	.tvf__body {
+		display: grid;
+		gap: 0.1875rem;
+	}
+
+	.tvf__name {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+
+	.tvf__sub {
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		color: var(--color-bone-400);
+	}
+
+	.tv__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.625rem;
+		margin-block-start: clamp(2rem, 4vw, 3rem);
+	}
+
+	/*
+		Reduced motion: the loop is decoration, and a moving picture is the one
+		thing this preference is actually about. The video element still holds the
+		first decoded frame, which is the picture the section needs.
+	*/
+	@media (prefers-reduced-motion: reduce) {
+		.screen__video {
+			/* Paused by the attribute the browser honours for autoplay; belt and
+			   braces for engines that ignore it. */
+			animation-play-state: paused;
+		}
+	}
+</style>
+
+<script>
+	/*
+		Autoplay is a default, not a decision. Anyone who has asked their system
+		for reduced motion gets the first frame and nothing more — which the
+		markup cannot express, because `autoplay` has no media-query form.
+	*/
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		document.querySelectorAll<HTMLVideoElement>('.screen__video').forEach((video) => {
+			video.autoplay = false;
+			video.pause();
+		});
+	}
+</script>

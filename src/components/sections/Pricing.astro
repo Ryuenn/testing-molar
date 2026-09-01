@@ -21,7 +21,7 @@ export interface Props {
 const { head = true } = Astro.props;
 
 /**
- * The plans. Three glass panes over a field of arc light, the middle one lit.
+ * The plans. Three panes over a field of arc light, the middle one lit.
  *
  * Every button here leaves the site — two into Stripe Checkout, one into a
  * booking calendar — so each carries `rel="noopener"` and says where it goes.
@@ -36,14 +36,6 @@ const { head = true } = Astro.props;
 	aria-labelledby={head ? 'plans-heading' : undefined}
 	aria-label={head ? undefined : 'Plans and pricing'}
 >
-	{/*
-		Glass needs something behind it or it is a translucent grey box. Three
-		wide arc blooms, low enough to read as light in the room, which the cards
-		then blur and saturate.
-	*/}
-	<div class="plans__aurora" aria-hidden="true"></div>
-	<div class="grain" aria-hidden="true"></div>
-
 	<div class="container-content plans__inner">
 		{
 			head && (
@@ -146,35 +138,40 @@ const { head = true } = Astro.props;
 </section>
 
 <style>
+	/*
+		The ground: `public/images/section-bg.webp` — hex lattice with a blue
+		bloom along the top and bottom edges.
+
+		Straight onto the section, which is the whole point of the file. The
+		master (`public/images/section_bg.png`) is near-black navy, a shade off
+		the page ground it sits on, so it used to be carried by its own
+		absolutely-positioned layer wearing a `filter` lift and a `mask-image`
+		feather. Both are baked into the WebP now — see
+		`scripts/generate-section-bg.mjs`, re-run it to retune — which leaves no
+		filtered compositing layer to re-rasterise, no extra element, and an 18KB
+		download in place of a 1.1MB one.
+
+		The lift is deliberately small (1.5×, no added saturation). It only has to
+		separate the band from the page ground; past that the field goes electric
+		blue and stops looking like the still it came from.
+
+		Stretched to the box rather than `cover`: the still is at its darkest
+		through the middle, so `cover` on a section this shape crops to exactly
+		the part of it that looks like nothing. Soft gradient, no hard detail —
+		it takes the stretch without showing it.
+
+		`--plans-ground` lets an ancestor turn this off by setting it to `none`.
+		PageIntro's `ground="plans"` does exactly that: it paints the same picture
+		across its heading and this grid together, and a second copy in here would
+		put the still's blooms in the band twice. Unset everywhere else, so the
+		grid brings its own ground wherever it is dropped.
+	*/
 	.plans {
 		position: relative;
 		isolation: isolate;
 		overflow: clip;
 		padding-block: clamp(2.5rem, 4.5vw, 4rem) clamp(3rem, 5vw, 4.5rem);
-		background: var(--color-ink-950);
-	}
-
-	.plans__aurora {
-		position: absolute;
-		inset: -15% 0;
-		z-index: -1;
-		background:
-			radial-gradient(
-				38% 46% at 14% 18%,
-				color-mix(in oklab, var(--color-arc-600) 28%, transparent),
-				transparent 72%
-			),
-			radial-gradient(
-				42% 40% at 50% 4%,
-				color-mix(in oklab, var(--color-arc-500) 20%, transparent),
-				transparent 74%
-			),
-			radial-gradient(
-				56% 44% at 86% 88%,
-				color-mix(in oklab, var(--color-arc-700) 34%, transparent),
-				transparent 72%
-			);
-		filter: blur(26px);
+		background: var(--plans-ground, url('/images/section-bg.webp')) 50% 50% / 100% 100% no-repeat;
 	}
 
 	/*
@@ -183,8 +180,8 @@ const { head = true } = Astro.props;
 
 		It used to take a 1.25rem top pad on the reasoning that the page heading had
 		already set the rhythm. That was wrong in practice — this section paints its
-		own ground and aurora, so there is a visible edge above the cards, and 20px
-		of clearance under it against 48–72px below left the row sitting hard
+		own ground, so there is a visible edge above the cards, and 20px of
+		clearance under it against 48–72px below left the row sitting hard
 		against the seam. Matching the bottom is what makes the band read as
 		deliberate rather than as content that overflowed into place.
 
@@ -247,13 +244,18 @@ const { head = true } = Astro.props;
 	}
 
 	/*
-		The glass, worn by all three so they read as one material:
+		The pane, worn by all three so they read as one material.
 
-		  ground   only enough ink to hold the copy over whatever light is
-		           behind it — the blur does most of that work
-		  sheen    a wash of cool grey, which is what makes a pane read as glass
-		           rather than as tinted navy. Ink alone only ever goes darker
-		  edge     the lit top edge, at the threshold of visible
+		Flat ink, and deliberately so. These were glass — `backdrop-filter:
+		blur(22px) saturate(140%)`, with more of it on the badge and on all three
+		buttons — which meant seven layers each re-reading and re-blurring the
+		backdrop behind them on every frame the page scrolled. That is what made
+		the section drag. A near-opaque fill over the picture costs one composite
+		and reads much the same at this value.
+
+		Left a few points short of solid so the ground still shows through: enough
+		that the cards sit IN the field rather than on top of it, not enough for
+		the lattice to interfere with the copy.
 	*/
 	.plan {
 		position: relative;
@@ -262,44 +264,20 @@ const { head = true } = Astro.props;
 		padding: clamp(1.5rem, 2.4vw, 2rem);
 		border: 1px solid var(--color-line);
 		border-radius: clamp(0.875rem, 1.1vw, 1.125rem);
-		background-color: color-mix(in oklab, var(--color-ink-950) 46%, transparent);
-		background-image: linear-gradient(
-			180deg,
-			color-mix(in oklab, #a3adbd 13%, transparent) 0%,
-			color-mix(in oklab, #a3adbd 4%, transparent) 100%
-		);
-		backdrop-filter: blur(22px) saturate(140%);
-		box-shadow:
-			inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent),
-			0 30px 60px -40px #000;
-	}
-
-	/* Without a backdrop to sample, translucency reads as washed out rather than
-	   as glass. Give those engines a solid pane instead. */
-	@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-		.plan {
-			background-color: color-mix(in oklab, var(--color-ink-800) 92%, transparent);
-		}
+		background-color: color-mix(in oklab, var(--color-ink-950) 88%, transparent);
+		box-shadow: 0 30px 60px -40px #000;
 	}
 
 	/*
 		The one the eye should land on. Lit rather than enlarged — scaling the
 		middle card breaks the shared baseline the three prices sit on, and at one
 		column it would just be the odd one out.
+
+		It also carries a comet travelling its perimeter — see below.
 	*/
 	.plan--featured {
-		border-color: color-mix(in oklab, var(--color-arc-400) 46%, transparent);
-		background-image:
-			linear-gradient(
-				180deg,
-				color-mix(in oklab, var(--color-arc-400) 12%, transparent) 0%,
-				transparent 42%
-			),
-			linear-gradient(
-				180deg,
-				color-mix(in oklab, #a3adbd 14%, transparent) 0%,
-				color-mix(in oklab, #a3adbd 4%, transparent) 100%
-			);
+		border-color: color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		background-color: color-mix(in oklab, var(--color-ink-900) 86%, transparent);
 		box-shadow:
 			inset 0 1px 0 color-mix(in oklab, #cfe4ff 20%, transparent),
 			0 40px 90px -46px color-mix(in oklab, var(--color-arc-600) 85%, transparent);
@@ -324,6 +302,17 @@ const { head = true } = Astro.props;
 		safe because the mask leaves the middle fully transparent — it cannot
 		obscure anything — and because a ring painted underneath would be hidden by
 		the card's own translucent background. The badge is lifted past it.
+
+		A conic gradient cannot be composited, so this repaints every frame it
+		runs, and `contain: paint` is what holds that cost down — it fences the
+		invalidation to this element's box rather than letting it walk up into the
+		card.
+
+		What actually makes it affordable, though, is what is NOT underneath it any
+		more. The cards used to be glass, and a repaint here forced every
+		`backdrop-filter` in the section to re-sample its backdrop; the ring was
+		paying for six other elements as well as itself. They are flat ink now, so
+		this repaints one 1px band and nothing else.
 	*/
 	.plan--featured::after {
 		content: '';
@@ -350,6 +339,7 @@ const { head = true } = Astro.props;
 			linear-gradient(#000 0 0) content-box,
 			linear-gradient(#000 0 0);
 		-webkit-mask-composite: xor;
+		contain: paint;
 		/*
 			Slow. At anything under about three seconds a light circling a card stops
 			reading as a highlight and starts reading as a loading state.
@@ -387,8 +377,9 @@ const { head = true } = Astro.props;
 		padding: 0.3rem 0.7rem;
 		border: 1px solid color-mix(in oklab, var(--color-arc-300) 45%, transparent);
 		border-radius: 99px;
-		background: color-mix(in oklab, var(--color-arc-600) 72%, transparent);
-		backdrop-filter: blur(10px);
+		/* Solid: it straddles the card's top edge, so it has the picture behind
+		   half of it and needs to read against both. */
+		background: var(--color-arc-600);
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
 		letter-spacing: 0.14em;
@@ -508,7 +499,6 @@ const { head = true } = Astro.props;
 		border: 1px solid var(--color-line-strong);
 		border-radius: 0.75rem;
 		background-color: color-mix(in oklab, var(--color-bone-50) 8%, transparent);
-		backdrop-filter: blur(10px);
 		font-family: var(--font-display);
 		font-size: var(--text-sm);
 		font-weight: 600;
@@ -516,11 +506,13 @@ const { head = true } = Astro.props;
 		text-align: center;
 		text-decoration: none;
 		color: var(--color-bone-50);
+		/* No `box-shadow` here on purpose: the featured button's is a 44px blur,
+		   and animating one of those repaints the button every frame of the
+		   hover. It snaps instead, which at this size is not readable as a snap. */
 		transition:
 			background-color 0.28s var(--ease-out-quint),
 			border-color 0.28s var(--ease-out-quint),
-			transform 0.28s var(--ease-out-quint),
-			box-shadow 0.28s var(--ease-out-quint);
+			transform 0.28s var(--ease-out-quint);
 	}
 
 	.plan__cta:hover {

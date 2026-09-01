@@ -1,0 +1,64 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import PageIntro from '~/components/PageIntro.astro';
+import Ecosystem from '~/components/sections/Ecosystem.astro';
+import ChoosePath from '~/components/sections/ChoosePath.astro';
+import PatientJourney from '~/components/sections/PatientJourney.astro';
+import CustomerStories from '~/components/sections/CustomerStories.astro';
+import WhyMolar from '~/components/sections/WhyMolar.astro';
+import ProductSelector from '~/components/sections/ProductSelector.astro';
+import Faq from '~/components/sections/Faq.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
+import { breadcrumbSchema } from '~/data/schema';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	MOLAR Complete — the whole ecosystem, and the page the "Products" stop in
+	the nav points at.
+
+	It is the argument the home page makes, with the individual product pitches
+	taken out: the diagram, the three ways in, the journey, the proof, the six
+	reasons, and the selector. Someone who arrives here from the nav wants to
+	understand the shape of the thing before they pick a corner of it.
+
+	No price. Complete is quoted — it is a bundle whose composition depends on
+	how many locations and how many screens — so the close asks for a
+	conversation rather than opening a checkout.
+*/
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<BaseLayout
+	title={t('pages.completeTitle')}
+	description={t('pages.completeDesc')}
+	ogImage={{
+		src: '/images/og/home.png',
+		alt: 'MOLAR Complete — the content ecosystem for dental practices',
+		width: 1200,
+		height: 630,
+	}}
+	schema={[
+		breadcrumbSchema([
+			{ name: t('crumbs.home'), path: '/' },
+			{ name: t('nav.menuComplete'), path: '/molar-complete/' },
+		]),
+	]}
+>
+	<PageIntro
+		eyebrow={t('products.eyebrow')}
+		title={t('pages.completeIntro')}
+		lede={t('pages.completeLede')}
+		crumb={t('nav.menuComplete')}
+	/>
+
+	<Ecosystem />
+	<ChoosePath />
+	{/* Headless: the page <h1> above already carries this section's headline. */}
+	<PatientJourney head={false} />
+	<CustomerStories />
+	<WhyMolar />
+	<Faq />
+	<ProductSelector />
+	<FinalCta />
+</BaseLayout>

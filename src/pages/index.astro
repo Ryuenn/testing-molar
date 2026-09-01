@@ -3,32 +3,57 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 import Hero from '~/components/sections/Hero.astro';
-import VideoReel from '~/components/sections/VideoReel.astro';
+import TrustBand from '~/components/sections/TrustBand.astro';
+import Ecosystem from '~/components/sections/Ecosystem.astro';
+import SocialPlans from '~/components/sections/SocialPlans.astro';
+import ContentShowcase from '~/components/sections/ContentShowcase.astro';
+import ClientProof from '~/components/sections/ClientProof.astro';
 import GlobalReach from '~/components/sections/GlobalReach.astro';
-import AssetFilm from '~/components/sections/AssetFilm.astro';
-import Comparison from '~/components/sections/Comparison.astro';
+import GeoBand from '~/components/sections/GeoBand.astro';
+import EducationLibrary from '~/components/sections/EducationLibrary.astro';
+import MolarTv from '~/components/sections/MolarTv.astro';
+import PatientJourney from '~/components/sections/PatientJourney.astro';
+import CustomerStories from '~/components/sections/CustomerStories.astro';
+import Testimonials from '~/components/sections/Testimonials.astro';
+import ResourceHub from '~/components/sections/ResourceHub.astro';
+import WhyMolar from '~/components/sections/WhyMolar.astro';
 import Faq from '~/components/sections/Faq.astro';
-import { faqSchema } from '~/data/schema';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import ProductSelector from '~/components/sections/ProductSelector.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 
+import { faqSchema, productSchema } from '~/data/schema';
 
 /*
-	The page is the hero, the reel, the reach band, the film, the agency
-	comparison and the footer — nothing else.
-	The sections that used to run below them still exist under
-	`src/components/sections/`, unimported; the scaffold routes left in the nav
-	are where that material is headed.
+	The home page is the hub of the funnel, in the order the master strategy
+	sets out: state the category, prove it, offer the three ways in, then walk
+	the whole ecosystem product by product and close.
 
-	No outcome claim on this page any more. The proof band that used to sit under
-	the reel has been removed — the numbers and the screenshots live on /results/,
-	which the nav already points at, and the home page is the work rather than the
-	argument about it.
+	Every section below is a stop a visitor can be routed to. Four of them are
+	the products — social, education, TV, complete — and each has a page of its
+	own; the sections here are the argument for clicking through, not a
+	replacement for the page.
 
-	No `productSchema()` or `faqSchema()` here any more. Both describe content —
-	prices, offers, questions and answers — that is no longer on the page, and
-	structured data that a visitor cannot see is a manual action waiting to
-	happen. Organization and WebSite are still added by the layout, for every
-	page, and neither depends on what the body holds.
+	Two things are on this page that the strategy's section list does not name,
+	and both are deliberate:
+
+	  Faq         it already existed, it is linked from the Resources menu as
+	              /#faq, and netlify.toml redirects /faq to that fragment. The
+	              FAQPage structured data below is generated from the same array
+	              the section renders, so the two cannot drift.
+	  productSchema  the social plans are now on this page, with their prices
+	              visible, so Product/Offer markup describes something a visitor
+	              can actually see. That was not true of the old home page,
+	              which is why the schema used to live only on /pricing/.
+
+	What is NOT here: the agency comparison, the testimonial film, and the
+	three-doors `ChoosePath` band. The comparison is a pricing argument and runs
+	on /pricing/; the film runs on /social-media/, where the claim it makes
+	belongs; and ChoosePath was a second price list stacked directly on top of
+	the real one — two grids of figures back to back, the first of them a
+	summary of the second. The page states its prices once, in `SocialPlans`,
+	and `ProductSelector` further down still asks the three-doors question at the
+	point where a visitor is choosing. ChoosePath itself still runs on
+	/molar-complete/, where nothing else carries a price.
 */
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -36,22 +61,33 @@ const t = useTranslations(locale);
 
 <BaseLayout
 	title={t('pages.homeTitle')}
-	description={t('site.description')}
+	description={t('pages.homeDesc')}
 	ogImage={{
 		src: '/images/og/home.png',
-		alt: 'MOLAR AI — the easiest way to educate patients online',
+		alt: 'MOLAR — the content engine for modern dental practices',
 		width: 1200,
 		height: 630,
 	}}
 	type="website"
 	transparentNav
-	schema={[faqSchema()]}
+	schema={[productSchema(locale), faqSchema()]}
 >
 	<Hero />
-	<VideoReel />
+	<TrustBand />
+	<Ecosystem />
+	<SocialPlans />
+	<ContentShowcase />
+	<ClientProof />
 	<GlobalReach />
-	<AssetFilm />
-	<Comparison />
+	<GeoBand />
+	<EducationLibrary />
+	<MolarTv />
+	<PatientJourney />
+	<CustomerStories />
+	<Testimonials />
+	<ResourceHub />
+	<WhyMolar />
 	<Faq />
-	<ClosingCta />
+	<ProductSelector />
+	<FinalCta />
 </BaseLayout>

@@ -1,0 +1,51 @@
+---
+/**
+ * Section 05 — the social media plans.
+ *
+ * A band around the existing `Pricing` grid rather than a second copy of it.
+ * Those three cards carry live Stripe Payment Links; there must only ever be
+ * one component rendering them, or the day a price changes there are two
+ * places to change it and one of them will be missed.
+ *
+ * `head={false}` because this section supplies its own eyebrow and headline —
+ * the strategy's, which is about the practice rather than about the price
+ * list. Pricing's own heading ("Pick your level") still runs on /pricing/.
+ */
+import Pricing from '~/components/sections/Pricing.astro';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+---
+
+<section id="social" class="section section-rule plans-band" aria-labelledby="social-heading">
+	<div class="container-content">
+		<header class="plans-band__head">
+			<p class="eyebrow" data-reveal="fade">{t('social.eyebrow')}</p>
+			<h2 id="social-heading" class="plans-band__title" data-reveal>{t('social.heading')}</h2>
+			<p class="plans-band__lede measure-wide" data-reveal>{t('social.lede')}</p>
+		</header>
+	</div>
+
+	<Pricing head={false} />
+</section>
+
+<style>
+	.plans-band__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+	}
+
+	.plans-band__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.plans-band__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+</style>

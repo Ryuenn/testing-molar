@@ -3,8 +3,16 @@
  *
  *   node scripts/generate-icons.mjs
  *
- * Master: `src/assets/brand/logo-molar.png` — the crystalline tooth on
- * transparency. Replace that file and re-run; nothing else needs editing.
+ * Master: `src/assets/brand/logo-icon.png` — the MOLAR tile: the wordmark's
+ * chevron, white over blue on a dark rounded square. Delivered art, square, and
+ * already carrying its own padding and ground, which is why every derivative
+ * below takes it whole. Replace that file and re-run; nothing else needs
+ * editing.
+ *
+ * `BRAND_ICON_MASTER=<path>` overrides it for a one-off run. The in-page mark
+ * is only rewritten when the run is against the icon master itself — a wordmark
+ * written into `logo-mark.png` would replace the square mark the hero's CTA
+ * badge renders.
  *
  * Uses the `sharp` that Astro already depends on, so there is no extra
  * devDependency for a script that runs a handful of times a year.
@@ -12,7 +20,8 @@
 import sharp from 'sharp';
 import { mkdir, stat } from 'node:fs/promises';
 
-const MASTER = 'src/assets/brand/logo-molar.png';
+const ICON_MASTER = 'src/assets/brand/logo-molar.png';
+const MASTER = process.env.BRAND_ICON_MASTER || 'src/assets/brand/logo-icon.png';
 const PUBLIC = 'public';
 
 /** Page ground. Icons that cannot be transparent sit on this. */
@@ -81,29 +90,37 @@ async function icon({ size, out, bg, padding = 0.08 }) {
 	a responsive WebP — and it needs the margin already gone, or the lockup ends up
 	with invisible padding that no amount of CSS can see.
 */
-await mkdir('src/assets/brand', { recursive: true });
-await sharp(artwork).png({ compressionLevel: 9, effort: 10 }).toFile('src/assets/brand/logo-mark.png');
-const mark = await stat('src/assets/brand/logo-mark.png');
-console.log(`In-page mark:\n  src/assets/brand/logo-mark.png${' '.repeat(12)} ${String(Math.round(mark.size / 1024)).padStart(4)} KiB\n`);
+if (MASTER === ICON_MASTER) {
+	await mkdir('src/assets/brand', { recursive: true });
+	await sharp(artwork)
+		.png({ compressionLevel: 9, effort: 10 })
+		.toFile('src/assets/brand/logo-mark.png');
+	const mark = await stat('src/assets/brand/logo-mark.png');
+	console.log(
+		`In-page mark:\n  src/assets/brand/logo-mark.png${' '.repeat(12)} ${String(Math.round(mark.size / 1024)).padStart(4)} KiB\n`,
+	);
+}
 
 console.log('Brand derivatives:');
 
 // Organization structured data + webmanifest. Transparent, so it composites on
 // whatever ground a consumer puts behind it.
-await icon({ size: 512, out: 'images/logo-molar.png', bg: TRANSPARENT, padding: 0.04 });
+await icon({ size: 512, out: 'images/logo-molar.png', bg: TRANSPARENT, padding: 0 });
 
 // Maskable manifest icon: safe-zone padding, opaque, because a maskable icon is
 // cropped to whatever shape the launcher wants.
-await icon({ size: 512, out: 'images/logo-molar-maskable.png', bg: INK, padding: 0.16 });
+await icon({ size: 512, out: 'images/logo-molar-maskable.png', bg: INK, padding: 0.12 });
 
 // iOS home screen. Never transparent — iOS composites it on black.
-await icon({ size: 180, out: 'apple-touch-icon.png', bg: INK, padding: 0.1 });
+await icon({ size: 180, out: 'apple-touch-icon.png', bg: INK, padding: 0 });
 
 // Browser tabs. Small sizes get less padding so the mark stays legible.
-await icon({ size: 16, out: 'favicon-16.png', bg: TRANSPARENT, padding: 0.02 });
-await icon({ size: 32, out: 'favicon-32.png', bg: TRANSPARENT, padding: 0.02 });
-await icon({ size: 48, out: 'favicon-48.png', bg: TRANSPARENT, padding: 0.03 });
-await icon({ size: 96, out: 'favicon-96.png', bg: TRANSPARENT, padding: 0.04 });
-await icon({ size: 192, out: 'images/logo-molar-192.png', bg: TRANSPARENT, padding: 0.04 });
+/* Transparent: the tile brings its own dark ground, and a second one behind
+   it only shows up as square corners around a rounded mark. */
+await icon({ size: 16, out: 'favicon-16.png', bg: TRANSPARENT, padding: 0 });
+await icon({ size: 32, out: 'favicon-32.png', bg: TRANSPARENT, padding: 0 });
+await icon({ size: 48, out: 'favicon-48.png', bg: TRANSPARENT, padding: 0 });
+await icon({ size: 96, out: 'favicon-96.png', bg: TRANSPARENT, padding: 0 });
+await icon({ size: 192, out: 'images/logo-molar-192.png', bg: TRANSPARENT, padding: 0 });
 
 console.log('\nDone. favicon.ico is assembled separately — see scripts/build-ico.mjs');

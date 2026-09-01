@@ -1,0 +1,235 @@
+---
+/**
+ * "What's inside" — the section the live /educate funnel leads its body with.
+ *
+ * Two halves. On the left, four questions a patient actually asks, set as
+ * search rows; on the right, the treatment categories the library browses by.
+ * Between them they answer the only question a visitor has at this point,
+ * which is "will it have the one I need?".
+ *
+ * The search rows are renderings, not controls. A real input here would be a
+ * field that searches nothing — worse than a picture of one — so they are
+ * marked `aria-hidden` and the copy above carries the meaning. The rows do
+ * link, though: each one goes to the video library, which is a real search
+ * over real videos.
+ *
+ * The category names are NOT translated. They are the library's own labels —
+ * the strings a subscriber types into the real search — and a German practice
+ * still searches "Invisalign". The questions above them ARE translated,
+ * because those are a patient's own words. See `~/data/education`.
+ */
+import Glyph from '~/components/ui/Glyph.astro';
+import { EDUCATION_TOPICS, EDUCATION_QUESTION_COUNT } from '~/data/education';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+const QUESTIONS = Array.from({ length: EDUCATION_QUESTION_COUNT }, (_, i) =>
+	t(`edu.q${i + 1}` as 'edu.q1'),
+);
+
+const libraryHref = localizePath('/resources/video-library/', locale);
+---
+
+<section id="inside" class="section section-rule inside" aria-labelledby="inside-heading">
+	<div class="container-content">
+		<header class="inside__head">
+			<p class="eyebrow" data-reveal="fade">{t('edu.insideEyebrow')}</p>
+			<h2 id="inside-heading" class="inside__title" data-reveal>{t('edu.insideHeading')}</h2>
+			<p class="inside__lede measure-wide" data-reveal>{t('edu.insideLede')}</p>
+		</header>
+
+		<div class="inside__cols">
+			<div class="asks" data-reveal>
+				<p class="asks__prompt">{t('edu.insidePrompt')}</p>
+
+				<ul class="asks__list">
+					{
+						QUESTIONS.map((question) => (
+							<li>
+								<a class="ask" href={libraryHref}>
+									<span class="ask__icon" aria-hidden="true">
+										<Glyph name="search" />
+									</span>
+									<span class="ask__text">{question}</span>
+									<span class="ask__go" aria-hidden="true">
+										→
+									</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+
+			<div class="topics" data-reveal>
+				<h3 class="topics__label">{t('edu.topicsLabel')}</h3>
+				<ul class="topics__list">
+					{
+						EDUCATION_TOPICS.map((topic) => (
+							<li>
+								{/*
+									`lang="en"` on every one: these are the catalogue's English
+									category names and they render unchanged on the German page,
+									so a screen reader set to German should switch voice for
+									them rather than read "Whitening" as a German word.
+								*/}
+								<a class="topic" href={libraryHref} lang="en">
+									{topic}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.inside__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.inside__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.inside__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
+	}
+
+	.inside__cols {
+		display: grid;
+		gap: clamp(1.75rem, 4vw, 3rem);
+	}
+
+	@media (min-width: 60rem) {
+		.inside__cols {
+			grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+			align-items: start;
+		}
+	}
+
+	/* ── The questions ───────────────────────────────────────────────────── */
+	.asks__prompt {
+		margin: 0 0 0.875rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.asks__list {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/*
+		Shaped like the search field in the panel above — same height, same
+		radius, same ground — so the two read as the same control seen twice
+		rather than as a search box and a list of links.
+	*/
+	.ask {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		min-height: 3rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: 0.625rem;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-900) 70%, transparent);
+		text-decoration: none;
+		transition:
+			border-color 0.28s var(--ease-out-quint),
+			background-color 0.28s var(--ease-out-quint);
+	}
+
+	.ask:hover,
+	.ask:focus-visible {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		background: color-mix(in oklab, var(--color-ink-800) 82%, transparent);
+	}
+
+	.ask__icon {
+		flex: none;
+		width: 1.0625rem;
+		height: 1.0625rem;
+		color: var(--color-bone-500);
+	}
+
+	.ask__text {
+		font-size: var(--text-sm);
+		line-height: 1.4;
+		color: var(--color-bone-100);
+	}
+
+	.ask__go {
+		margin-inline-start: auto;
+		color: var(--color-arc-300);
+		opacity: 0;
+		transition: opacity 0.28s var(--ease-out-quint);
+	}
+
+	.ask:hover .ask__go,
+	.ask:focus-visible .ask__go {
+		opacity: 1;
+	}
+
+	/* ── The treatments ──────────────────────────────────────────────────── */
+	.topics__label {
+		margin: 0 0 0.875rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.topics__list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.topic {
+		display: inline-flex;
+		align-items: center;
+		height: 2.25rem;
+		padding-inline: 0.875rem;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: color-mix(in oklab, var(--color-ink-800) 62%, transparent);
+		font-size: var(--text-sm);
+		line-height: 1;
+		white-space: nowrap;
+		text-decoration: none;
+		color: var(--color-bone-100);
+		transition:
+			border-color 0.24s var(--ease-out-quint),
+			color 0.24s var(--ease-out-quint);
+	}
+
+	.topic:hover,
+	.topic:focus-visible {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		color: var(--color-bone-50);
+	}
+</style>

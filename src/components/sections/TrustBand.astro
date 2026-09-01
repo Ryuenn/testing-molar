@@ -1,0 +1,208 @@
+---
+/**
+ * Section 02 — client trust, immediately under the hero.
+ *
+ * The strategy asks for a logo wall. We now have three real marks, pulled from
+ * the practices' own sites — Physimed, Zahnzauber and Carewell. The other four
+ * publish no logo file we can source, and an invented mark is the one thing
+ * that would sink this section, so those render the way the whole row used to:
+ * the practice named, with the market or language it publishes in, read off its
+ * own feed in `~/data/work`.
+ *
+ * Every mark is knocked back to a single bone silhouette. Three brand palettes
+ * — warm sand, antique gold, blue-and-chartreuse — dropped onto a navy band at
+ * their native colours would read as three stray images rather than one row,
+ * and the four named practices beside them would look like holes. Monochrome is
+ * what makes a mixed wall a wall.
+ *
+ * To add one: drop `src/assets/clients/<slug>.{svg,png}` and it appears. The
+ * glob is keyed by the same slug as the grids, so nothing else has to change.
+ *
+ * The three figures beside it are the only ones on this page, and each is
+ * carried by something else on the site: the view count by the reel badges,
+ * the language count by the grids themselves, the continent count by the map
+ * further down. Nothing here is rounded up and nothing is a total we cannot
+ * show.
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { WORK, type WorkAccount } from '~/data/work';
+import { localizePath } from '~/i18n/config';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/**
+ * The marquee needs two identical tracks. The first scrolls a full -100% of its
+ * own width while the second slides in behind it, so the seam is invisible and
+ * the loop never shows a gap. Only the first is exposed to assistive tech.
+ */
+const TRACKS = [0, 1];
+
+/*
+	Client marks, matched to accounts by slug the way the grids are. Eager
+	because these are build-time `ImageMetadata` records for <Image>. Unlike the
+	grids this lookup returns undefined rather than throwing: a missing grid is a
+	hole in a page that is showing work, a missing logo is a practice that simply
+	has not published one.
+*/
+const logoFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/clients/*.{svg,png}', {
+	eager: true,
+});
+
+const logoFor = (account: WorkAccount): ImageMetadata | undefined =>
+	(
+		logoFiles[`../../assets/clients/${account.slug}.svg`] ??
+		logoFiles[`../../assets/clients/${account.slug}.png`]
+	)?.default;
+---
+
+<section class="trust" aria-labelledby="trust-heading">
+	<div class="container-content trust__head">
+		<h2 id="trust-heading" class="trust__title" data-reveal>{t('hero.trust')}</h2>
+	</div>
+
+	<div class="marquee trust__marquee" data-reveal="fade">
+		{
+			TRACKS.map((track) => (
+				<div class="marquee__track" aria-hidden={track === 1 ? 'true' : undefined}>
+					{track === 0 && (
+						<span class="sr-only">
+							A sample of the dental practices MOLAR publishes for:{' '}
+							{WORK.map((account) => account.practice).join(', ')}.
+						</span>
+					)}
+					{WORK.map((account) => {
+						const logo = logoFor(account);
+						return (
+							<a
+								class:list={['trust__client', logo && 'trust__client--logo']}
+								href={localizePath('/our-work/', locale)}
+								tabindex={track === 1 ? -1 : undefined}
+							>
+								{logo ? (
+									/*
+										Decorative: the practice name is already in the sr-only line
+										at the head of the track, and an alt on both copies of the
+										marquee would read the whole roster out twice.
+									*/
+									<Image
+										class="trust__client-logo"
+										src={logo}
+										alt=""
+										height={36}
+										densities={[1, 2]}
+										loading="lazy"
+									/>
+								) : (
+									<span class="trust__client-name">{account.practice}</span>
+								)}
+								<span class="trust__client-meta">{account.place ?? account.language}</span>
+							</a>
+						);
+					})}
+				</div>
+			))
+		}
+	</div>
+</section>
+
+<style>
+	.trust {
+		position: relative;
+		/* Tighter at the top: the hero closes on its own figure band, and a full
+		   section rhythm between the two leaves a hole under the fold. */
+		padding-block: clamp(1.5rem, 3vw, 2.5rem) clamp(3rem, 6vw, 5rem);
+		border-bottom: 1px solid var(--color-line);
+		/* A wash over the page's lit ground, not a fill on top of it. */
+		background: linear-gradient(
+			180deg,
+			transparent,
+			color-mix(in oklab, var(--color-ink-900) 62%, transparent)
+		);
+		overflow: clip;
+	}
+
+	.trust__head {
+		margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+		text-align: center;
+	}
+
+	/*
+		Set at label size, not heading size. It is a landmark's name rather than a
+		statement — the statement was the hero — and a 2.6rem line here would
+		compete with the headline eight hundred pixels above it.
+	*/
+	.trust__title {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+
+	.trust__marquee {
+		--marquee-duration: 56s;
+	}
+
+	.trust__client {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		text-decoration: none;
+		white-space: nowrap;
+		transition: color 0.3s var(--ease-out-quint);
+	}
+
+	.trust__client-name {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-100);
+		transition: color 0.3s var(--ease-out-quint);
+	}
+
+	.trust__client:hover .trust__client-name {
+		color: var(--color-bone-50);
+	}
+
+	/*
+		Knocked to a flat bone silhouette — see the note at the top of the file.
+		`brightness(0)` crushes every colour to black and `invert(1)` lifts the
+		whole thing to white in one pass, which is the only filter chain that
+		handles an arbitrary mark without knowing anything about its palette.
+		Held under full opacity so the marks sit at the same weight as the names
+		beside them rather than out-shouting them.
+	*/
+	.trust__client-logo {
+		width: auto;
+		height: 2.25rem;
+		filter: brightness(0) invert(1);
+		opacity: 0.72;
+		transition: opacity 0.3s var(--ease-out-quint);
+	}
+
+	.trust__client:hover .trust__client-logo {
+		opacity: 1;
+	}
+
+	/*
+		A logo carries its own optical padding; a wordmark does not. Without this
+		the marks sit visibly lower than the names on the same baseline.
+	*/
+	.trust__client--logo {
+		justify-content: center;
+	}
+
+	.trust__client-meta {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-500);
+	}
+</style>

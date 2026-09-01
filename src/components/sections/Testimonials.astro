@@ -1,0 +1,186 @@
+---
+/**
+ * What clients have said, from `~/data/testimonials`.
+ *
+ * The quotes are verbatim and untranslated — see the note at the top of that
+ * file. Everything around them is translated, which is the same line the site
+ * already draws for the work grids and the inbound DMs: a real artefact is
+ * reproduced, its framing is localised.
+ *
+ * Attribution is the whole reliability of this section. One of the three
+ * carries a name because the live funnel attributes it; the other two run
+ * anonymous and SAY SO, with a line explaining that the name is withheld rather
+ * than leaving a reader to wonder whether there was ever a person. Never invent
+ * an attribution to fill that gap.
+ *
+ * No Review or aggregateRating JSON-LD, deliberately, and for the same reason
+ * /results/ has none: Google's review-snippet guidelines exclude reviews a
+ * business collects about itself. The section is honest without the markup;
+ * with it, it would be a manual action waiting to happen.
+ */
+import { TESTIMONIALS } from '~/data/testimonials';
+import { WORK } from '~/data/work';
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+export interface Props {
+	/** Heading level. Pages that run this under their own h1 pass 'h3'. */
+	as?: 'h2' | 'h3';
+}
+
+const { as: Heading = 'h2' } = Astro.props;
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	Where a quote names its practice, pull that practice's own record so the
+	card can show the market and the specialty rather than a bare name. Matched
+	by slug, so a renamed account in `work.ts` breaks the link visibly rather
+	than silently attaching the quote to nothing.
+*/
+const QUOTES = TESTIMONIALS.map((entry) => ({
+	...entry,
+	account: entry.accountSlug ? WORK.find((a) => a.slug === entry.accountSlug) : undefined,
+}));
+---
+
+<section id="testimonials" class="section section-rule tm" aria-labelledby="tm-heading">
+	<div class="container-content">
+		<header class="tm__head">
+			<p class="eyebrow" data-reveal="fade">{t('testimonials.eyebrow')}</p>
+			<Heading id="tm-heading" class="tm__title" data-reveal>{t('testimonials.heading')}</Heading>
+		</header>
+
+		<ul class="tm__grid" data-reveal-stagger>
+			{
+				QUOTES.map((entry) => (
+					<li class="quote panel" data-reveal data-reveal-group>
+						{/*
+							<blockquote> with the attribution OUTSIDE it, in a <figcaption>.
+							A <cite> inside the blockquote would make the person's name part
+							of the quotation, which is not what they said.
+						*/}
+						<figure class="quote__fig">
+							<span class="quote__mark" aria-hidden="true">
+								&ldquo;
+							</span>
+							<blockquote class="quote__body">
+								<p>{entry.quote}</p>
+							</blockquote>
+
+							<figcaption class="quote__by">
+								{entry.name ? (
+									<>
+										<span class="quote__name">{entry.name}</span>
+										{entry.role && <span class="quote__role">{entry.role}</span>}
+										{entry.account?.place && (
+											<span class="quote__place">{entry.account.place}</span>
+										)}
+									</>
+								) : (
+									<>
+										<span class="quote__name quote__name--anon">
+											{t('testimonials.anonymous')}
+										</span>
+										<span class="quote__role">{t('testimonials.nameWithheld')}</span>
+									</>
+								)}
+							</figcaption>
+						</figure>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.tm__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.9rem;
+		margin-bottom: clamp(2.5rem, 5vw, 4rem);
+	}
+
+	.tm__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.tm__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
+		gap: clamp(1rem, 2.5vw, 1.5rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.quote {
+		padding: clamp(1.5rem, 3vw, 2rem);
+	}
+
+	.quote__fig {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		height: 100%;
+		margin: 0;
+	}
+
+	/*
+		A display quotation mark, set large and dim. Decorative — the <blockquote>
+		already carries the semantics, and a screen reader announcing a stray
+		double-prime before every quotation helps nobody.
+	*/
+	.quote__mark {
+		font-family: var(--font-display);
+		font-size: 3rem;
+		font-weight: 700;
+		line-height: 0.6;
+		color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+	}
+
+	.quote__body {
+		margin: 0;
+	}
+
+	.quote__body p {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 500;
+		line-height: 1.5;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-50);
+	}
+
+	/* Pushed to the foot so the attributions line up across cards whose quotes
+	   run to different lengths. */
+	.quote__by {
+		display: grid;
+		gap: 0.1875rem;
+		margin-block-start: auto;
+		padding-block-start: 1rem;
+		border-block-start: 1px solid var(--color-line);
+	}
+
+	.quote__name {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+
+	/* An unnamed source should not be dressed as a named one. */
+	.quote__name--anon {
+		color: var(--color-bone-300);
+	}
+
+	.quote__role,
+	.quote__place {
+		font-size: var(--text-xs);
+		line-height: 1.45;
+		color: var(--color-bone-500);
+	}
+</style>

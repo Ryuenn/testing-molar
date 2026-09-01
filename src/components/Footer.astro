@@ -1,9 +1,10 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import logoMark from '~/assets/brand/logo-mark.png';
+import logoLockup from '~/assets/brand/logo-lockup.png';
 import SocialIcon from '~/components/ui/SocialIcon.astro';
-import { SITE, PROMO, CTA } from '~/data/site';
+import { SITE, PROMO, CTA, PORTAL_LOGIN } from '~/data/site';
+import { PRODUCTS } from '~/data/products';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
@@ -20,15 +21,27 @@ import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
-const PRODUCT_LINKS = [
-	// Pages, matching the nav.
+/*
+	The four products, from the one place they are defined. A product that
+	exists in ~/data/products appears here without anybody remembering to add
+	it, which is the whole reason that file is the spine of the site.
+*/
+const PRODUCT_LINKS = PRODUCTS.map((product) => ({
+	label: t(`products.${product.key}Name` as 'products.socialName'),
+	href: localizePath(product.href, locale),
+}));
+
+/* Everything that is not a product: the pages that explain, prove and price. */
+const COMPANY_LINKS = [
 	{ label: t('nav.how'), href: localizePath('/how-it-works/', locale) },
+	{ label: t('nav.customers'), href: localizePath('/customers/', locale) },
 	{ label: t('nav.work'), href: localizePath('/our-work/', locale) },
 	{ label: t('nav.results'), href: localizePath('/results/', locale) },
 	{ label: t('nav.pricing'), href: localizePath('/pricing/', locale) },
-	{ label: t('nav.resources'), href: localizePath('/resources/', locale) },
 	// The one home-page section with no page of its own.
 	{ label: t('footer.reach'), href: localizePath('/', locale) + '#reach' },
+	/* Only once there is somewhere for it to go — see PORTAL_LOGIN. */
+	...(PORTAL_LOGIN ? [{ label: t('nav.login'), href: PORTAL_LOGIN }] : []),
 ];
 
 /*
@@ -60,7 +73,7 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="footer">
-	<div class="container-content footer__inner">
+	<div class="footer__inner">
 		<div class="footer__top">
 			{/* ── Brand ─────────────────────────────────────────────────────── */}
 			<div class="footer__brand">
@@ -71,15 +84,14 @@ const year = new Date().getFullYear();
 				*/}
 				<div class="footer__lockup">
 					<Image
-						src={logoMark}
-						alt=""
-						height={40}
+						src={logoLockup}
+						alt="MOLAR — dental content, intelligently delivered."
+						height={52}
 						densities={[1, 2]}
 						loading="lazy"
 						decoding="async"
 						class="footer__mark"
 					/>
-					<span class="footer__wordmark">MOLAR <span class="footer__wordmark-ai">AI</span></span>
 				</div>
 
 				<p class="footer__pitch">{t('site.positioning')}</p>
@@ -103,10 +115,25 @@ const year = new Date().getFullYear();
 			{/* ── Link columns ──────────────────────────────────────────────── */}
 			<nav aria-label="Footer" class="footer__nav">
 				<div class="footer__col">
-					<h2 class="footer__heading" id="footer-product">{t('footer.product')}</h2>
-					<ul class="footer__list" aria-labelledby="footer-product">
+					<h2 class="footer__heading" id="footer-products">{t('footer.products')}</h2>
+					<ul class="footer__list" aria-labelledby="footer-products">
 						{
 							PRODUCT_LINKS.map((link) => (
+								<li>
+									<a href={link.href} class="footer__link">
+										{link.label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+
+				<div class="footer__col">
+					<h2 class="footer__heading" id="footer-company">{t('footer.company')}</h2>
+					<ul class="footer__list" aria-labelledby="footer-company">
+						{
+							COMPANY_LINKS.map((link) => (
 								<li>
 									<a href={link.href} class="footer__link">
 										{link.label}
@@ -213,6 +240,19 @@ const year = new Date().getFullYear();
 		padding-block: clamp(3rem, 6vw, 5rem) clamp(1.75rem, 3vw, 2.5rem);
 	}
 
+	/*
+		Its own measure rather than `.container-content`'s 76rem. The footer is
+		furniture like the nav and the hero band, and it takes the same 112rem
+		shell they do — held to the reading measure it leaves a third of a wide
+		window empty at the sides while squeezing four link columns into 11rem
+		each, which is what wraps every second label.
+	*/
+	.footer__inner {
+		width: calc(100% - var(--gutter) * 2);
+		max-width: 112rem;
+		margin-inline: auto;
+	}
+
 	.footer__top {
 		display: grid;
 		gap: clamp(2.5rem, 5vw, 4rem);
@@ -229,24 +269,20 @@ const year = new Date().getFullYear();
 	.footer__lockup {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.65rem;
-		font-family: var(--font-display);
-		font-weight: 700;
-		/* Larger than the nav's. Down here the lockup is the only thing holding
-		   the left column, so it has to carry the weight the nav shares. */
-		font-size: 1.5rem;
-		letter-spacing: 0.01em;
-		color: var(--color-bone-50);
 	}
 
+	/*
+		The full lockup, tagline included — the nav carries the wordmark alone
+		because 5px type is not type, but down here there is room to set it and
+		the strapline is the last thing the page says.
+
+		Taller than the nav's, at 3.25rem: this is the only thing holding the left
+		column, so it carries the weight the nav shares with its links.
+	*/
 	.footer__mark {
 		width: auto;
-		height: 2.5rem;
+		height: 3.25rem;
 		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 40%, transparent));
-	}
-
-	.footer__wordmark-ai {
-		color: var(--color-arc-400);
 	}
 
 	.footer__pitch {
@@ -297,8 +333,8 @@ const year = new Date().getFullYear();
 	/* ── Link columns ────────────────────────────────────────────────────── */
 	.footer__nav {
 		display: grid;
-		gap: 2.25rem 2rem;
-		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+		gap: 2.25rem 3rem;
+		grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
 	}
 
 	.footer__col {
@@ -439,12 +475,15 @@ const year = new Date().getFullYear();
 	*/
 	@media (min-width: 900px) {
 		.footer__top {
-			grid-template-columns: minmax(16rem, 22rem) 1fr;
-			gap: clamp(3rem, 6vw, 6rem);
+			grid-template-columns: minmax(18rem, 26rem) 1fr;
+			gap: clamp(3rem, 7vw, 8rem);
 		}
 
 		.footer__nav {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+			/* Four columns now that products and company are separate lists.
+			   The resource column runs longest, so it is the one that decides
+			   the row height either way. */
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 </style>
