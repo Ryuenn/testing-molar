@@ -51,16 +51,18 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 }));
 
 /*
-	The library, not the product page.
+	The free resources hub — not the product page, and not the video library.
 
-	`productById('tv').href` is /molar-tv/, which is where this used to go — and
-	on /molar-tv/ itself, where this section also renders, that was a button
-	linking to the page you are already on. Sending it to the catalogue gives it
-	somewhere to go from both places, and the catalogue is gated, so the click
-	lands on the password page for anyone without access rather than on a pitch
-	they have already read.
+	It pointed at /molar-tv/ first, which on /molar-tv/ itself was a button
+	linking to the page you were already on. Then at the video library, which is
+	gated: a visitor who has not subscribed clicked "see what plays" and got a
+	password screen. A dead end is worse than a weak link.
+
+	The hub is the honest secondary. It costs nothing, it is genuinely useful, and
+	someone who downloads a guide from it has given a reason to come back — which
+	is a step toward buying rather than a bounce.
 */
-const href = localizePath('/resources/video-library/', locale);
+const href = localizePath('/resources/', locale);
 ---
 
 <section

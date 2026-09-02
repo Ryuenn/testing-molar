@@ -67,19 +67,7 @@ export const WORK: readonly WorkAccount[] = [
 		],
 		caseStudy: { href: '/results/', label: 'Read the case: 159 to 10.2K followers' },
 	},
-	{
-		slug: 'zeidman-orthodontics',
-		practice: 'Dr Alon Zeidman',
-		specialty: 'Orthodontics and Invisalign',
-		language: 'Hebrew',
-		languageCode: 'he',
-		note: 'Gold on near-black, and the whole grid set right-to-left. Every headline, every arrow and every logo lockup is laid out for a Hebrew reader rather than translated into one.',
-		palette: [
-			{ hex: '#0D0B08', name: 'Near black' },
-			{ hex: '#C9A961', name: 'Antique gold' },
-			{ hex: '#E7DBC7', name: 'Champagne' },
-		],
-	},
+
 	{
 		slug: 'zahnzauber-zahnspangen',
 		practice: 'Zahnzauber Zahnspangen',

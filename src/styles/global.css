@@ -93,7 +93,17 @@
 	:root {
 		color-scheme: dark;
 		--gutter: clamp(1.25rem, 4vw, 3.5rem);
-		--section-y: clamp(4.5rem, 9vw, 9rem);
+		/*
+			Section rhythm, top and bottom.
+
+			Was `clamp(4.5rem, 9vw, 9rem)` — up to 144px at each end, so two adjacent
+			sections put nearly 300px of empty ground between one section's last line
+			and the next one's eyebrow. That reads as a gap rather than as rhythm, and
+			it was being overridden section by section to compensate. Lowered here
+			instead: a section that genuinely wants more can still say so, and several
+			that want less already do.
+		*/
+		--section-y: clamp(3rem, 6vw, 5.5rem);
 		accent-color: var(--color-arc-500);
 
 		/*

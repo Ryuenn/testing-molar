@@ -51,8 +51,8 @@ export const EDUCATION_FAQ: FaqItem[] = [
 		a: "On the monthly plan, the library plays as-is. Choose annual billing and your waiting room TV loop is branded with your logo, colors, and practice name at no extra cost. If you want videos custom-filmed for your practice specifically, that's what MOLAR Premium is built for — ask us about combining the two.",
 	},
 	{
-		q: 'What happens after my free month?',
-		a: "This applies to the monthly plan only. You'll be billed $97 automatically at the start of month two unless you cancel first. We'll notify you a few days before your free month ends.",
+		q: 'What happens after my free trial?',
+		a: "This applies to the monthly plan only. You'll be billed $97 automatically when the trial ends unless you cancel first. We'll notify you a few days before it does.",
 	},
 	{
 		q: 'Does the free trial apply to annual billing too?',

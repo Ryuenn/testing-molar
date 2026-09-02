@@ -24,11 +24,33 @@
  * back up. No JS, reduced motion, or a scroll past before hydration all leave
  * the real number on screen, which is the only state that has to be correct.
  */
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
+import filmThumb from '~/assets/film/thumbnail-testimonial.png';
 import beforeShot from '~/assets/results/patricia-before.webp';
 import afterShot from '~/assets/results/patricia-after.webp';
 import { GROWTH } from '~/data/results';
 import { getLocale, useTranslations } from '~/i18n/utils';
+
+/*
+	Her testimonial. Nothing is fetched until the play button is pressed — see
+	the note on the block below.
+
+	The same cut `AssetFilm` runs on /social-media/, so the two surfaces play one
+	file rather than two encodes of the same interview.
+
+	⚠️ 8.4MB, and its `moov` atom sits at the tail — a browser has to range-request
+	the end of the file before it can show a frame, so playback starts slower than
+	it should. `public/videos/README.md` carries the one-line remux that fixes it.
+	Worth doing: this is now on the home page, not just /social-media/.
+*/
+const FILM_SRC = '/videos/molar-testimonial-0721.mp4';
+
+/*
+	The same still the poster attribute needs as a URL rather than as an
+	`ImageMetadata` record. `getImage` runs Astro's optimiser and hands back the
+	processed src, so the 1.8MB PNG is not what a browser downloads.
+*/
+const filmPoster = await getImage({ src: filmThumb, format: 'webp', width: 1432 });
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -191,9 +213,89 @@ const headline = GROWTH.metrics[0];
 					{t('growth.source', { handle: GROWTH.handle })}
 				</figcaption>
 			</figure>
+
+			{/*
+				Her, saying it.
+
+				The screenshots above are evidence and the numbers are transcribed, but
+				neither is a person — and the one thing a case exhibit cannot do on its
+				own is sound like somebody. The film sits under the figure rather than
+				beside it so the argument still reads numbers-then-voice.
+
+				 and a poster: the clip is 1.8MB and most visitors will
+				scroll past it, so nothing is fetched until the button is pressed. The
+				button is a real <button> over the poster rather than the video's own
+				controls, because a bare play triangle on a designed thumbnail is the
+				only affordance this needs before it starts.
+			*/}
+			<div class="film">
+				<p class="film__label">{t('growth.filmLabel')}</p>
+
+				<div class="film__frame" data-film>
+					<Image
+						class="film__poster"
+						src={filmThumb}
+						alt=""
+						widths={[640, 1000, 1432]}
+						sizes="(min-width: 62rem) 46rem, 92vw"
+						loading="lazy"
+					/>
+
+					<video
+						class="film__video"
+						src={FILM_SRC}
+						poster={filmPoster.src}
+						preload="none"
+						playsinline
+						controls
+						data-film-video
+						hidden
+					></video>
+
+					<button type="button" class="film__play" data-film-play>
+						<span class="film__play-disc" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 6.5v11l9-5.5-9-5.5Z" /></svg>
+						</span>
+						<span class="sr-only">{t('growth.filmPlay', { name: GROWTH.name })}</span>
+					</button>
+				</div>
+
+				<p class="film__caption">
+					<span class="film__name">{GROWTH.name}</span>
+					<span class="film__role">{GROWTH.place}</span>
+				</p>
+			</div>
 		</div>
 	</div>
 </section>
+
+<script>
+	/*
+		One press: swap the poster for the video and start it.
+
+		The <video> ships with `preload="none"` and `hidden`, so until this runs the
+		browser has fetched nothing but the poster image. Revealing it and calling
+		`play()` inside the click is what keeps the gesture — a play started later,
+		from a promise or a timeout, is one browsers are entitled to refuse.
+
+		No JS: the poster and the button render, the button does nothing, and the
+		video stays hidden. That is a still image of a testimonial rather than a
+		broken player.
+	*/
+	for (const frame of document.querySelectorAll<HTMLElement>('[data-film]')) {
+		const video = frame.querySelector<HTMLVideoElement>('[data-film-video]');
+		const button = frame.querySelector<HTMLButtonElement>('[data-film-play]');
+		if (!video || !button) continue;
+
+		button.addEventListener('click', () => {
+			frame.setAttribute('data-playing', '');
+			video.hidden = false;
+			void video.play().catch(() => {
+				/* Refused — the controls are visible now, so it can be started by hand. */
+			});
+		});
+	}
+</script>
 
 <script>
 	/*
@@ -741,6 +843,119 @@ const headline = GROWTH.metrics[0];
 
 		.exhibit__arrow svg {
 			transform: rotate(90deg);
+		}
+	}
+
+	/* ── Her testimonial ─────────────────────────────────────────────────── */
+	/*
+		Under the figure, at the figure's own measure. It is the same exhibit — the
+		numbers and then the person — so it sits inside the frame rather than
+		starting a section of its own.
+	*/
+	.film {
+		display: grid;
+		gap: 0.9rem;
+		margin-block-start: clamp(2rem, 4vw, 3rem);
+	}
+
+	.film__label {
+		margin: 0;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-arc-300);
+	}
+
+	/* The poster and the video stack in one cell, so swapping them cannot
+	   reflow the page under the reader. */
+	.film__frame {
+		position: relative;
+		display: grid;
+		overflow: clip;
+		border: 1px solid var(--color-line);
+		border-radius: clamp(0.75rem, 1.4vw, 1.125rem);
+		background: var(--color-ink-950);
+	}
+
+	.film__poster,
+	.film__video {
+		grid-area: 1 / 1;
+		width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	/* Once it is playing the poster has done its job and the video is the only
+	   thing in the cell. */
+	.film__frame[data-playing] .film__poster,
+	.film__frame[data-playing] .film__play {
+		display: none;
+	}
+
+	.film__play {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		border: 0;
+		background: transparent;
+		cursor: pointer;
+	}
+
+	/* The disc, not the whole overlay — a scrim over a designed thumbnail would
+	   dim the one thing it is there to show. */
+	.film__play-disc {
+		display: grid;
+		place-items: center;
+		width: clamp(3.25rem, 6vw, 4.5rem);
+		height: clamp(3.25rem, 6vw, 4.5rem);
+		border-radius: 50%;
+		background: color-mix(in oklab, var(--color-ink-950) 62%, transparent);
+		border: 1px solid color-mix(in oklab, #dbe8ff 34%, transparent);
+		backdrop-filter: blur(6px);
+		color: var(--color-bone-50);
+		box-shadow: 0 18px 44px -18px #000;
+		transition:
+			transform 0.3s var(--ease-out-quint),
+			background-color 0.3s var(--ease-out-quint);
+	}
+
+	.film__play-disc svg {
+		width: 45%;
+		height: 45%;
+		/* The triangle sits visually left of centre in its own box. */
+		translate: 6% 0;
+	}
+
+	.film__play:hover .film__play-disc,
+	.film__play:focus-visible .film__play-disc {
+		transform: scale(1.06);
+		background: color-mix(in oklab, var(--color-arc-600) 72%, transparent);
+	}
+
+	.film__caption {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.6rem;
+		margin: 0;
+		font-size: var(--text-sm);
+	}
+
+	.film__name {
+		font-family: var(--font-display);
+		font-weight: 600;
+		color: var(--color-bone-50);
+	}
+
+	.film__role {
+		color: var(--color-bone-400);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.film__play:hover .film__play-disc,
+		.film__play:focus-visible .film__play-disc {
+			transform: none;
 		}
 	}
 </style>

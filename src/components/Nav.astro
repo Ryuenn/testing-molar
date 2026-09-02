@@ -564,11 +564,21 @@ const isCurrent = (link: (typeof links)[number]) =>
 		/* The bar is the only thing up here that takes a click — the air either
 		   side of it stays transparent to the page. */
 		pointer-events: auto;
-		width: calc(100% - var(--gutter) * 2);
-		max-width: 112rem;
+		/*
+			The same box as `.container-content`, so the brand starts exactly where
+			every page heading below it does.
+
+			It used to run to 112rem against the page's 76rem, which put the wordmark
+			about three hundred pixels left of the first letter of every <h1> — the bar
+			and the page read as two grids rather than one. Matching the measure is what
+			lines them up; `--gutter` on both sides is the same padding the container
+			carries, so the alignment holds at every width rather than only at one.
+		*/
+		width: 100%;
+		max-width: var(--container-content);
 		margin-inline: auto;
 		height: 3.5rem;
-		padding-inline: 1.125rem 0.4375rem;
+		padding-inline: var(--gutter);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

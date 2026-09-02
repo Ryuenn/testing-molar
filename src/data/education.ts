@@ -6,7 +6,7 @@
  * molarai.studio/educate, which is the page this site is merging in. The
  * figures are therefore the offer as it is currently sold, not estimates: 300+
  * videos, 40+ treatments, 5+ added daily, unlimited devices on one location,
- * $97/month after a 30-day free month, or $849/year.
+ * $97/month after a 14-day free trial, or $849/year.
  *
  * That page is the source of truth for all of it. When the offer changes there,
  * it changes here — and every surface that renders it follows, because nothing
@@ -57,15 +57,24 @@ export const EDUCATION_PRICE_ANNUAL = '$849';
 export const EDUCATION_ANNUAL_MONTHLY = '$70.75';
 /** Annual against twelve months of monthly. Checked below. */
 export const EDUCATION_ANNUAL_SAVING = '$315';
-/** Days of the free month on the monthly plan. Annual has no trial. */
-export const EDUCATION_TRIAL_DAYS = 30;
+/**
+ * Days of free trial on the monthly plan. Annual has no trial.
+ *
+ * ⚠️ 14 per the repositioning brief, down from 30. **The Stripe Payment Link in
+ * `~/data/site` has not been changed yet** — it is still configured for a
+ * 30-day trial, so until that is updated in the Stripe dashboard this page
+ * advertises fourteen days and the checkout grants thirty. Advertising less
+ * than is given is the safe direction of the two, but they must be reconciled
+ * before launch.
+ */
+export const EDUCATION_TRIAL_DAYS = 14;
 
 /**
  * The monthly plan's feature list, as keys into `edu.plan1`…`edu.plan6`.
  *
  * SIX, not the seven the live page's own bullet list appears to show, and
  * emphatically not eight. The live monthly card leads with a highlighted
- * "Full access today — $0 for your first 30 days" line, which is the offer
+ * "Full access today — $0 for your first 14 days" line, which is the offer
  * rather than a feature and is rendered separately here; and the branded
  * waiting-room loop is NOT a monthly feature at all. The live FAQ is explicit:
  * "On the monthly plan, the library plays as-is. Choose annual billing and your

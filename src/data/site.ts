@@ -166,9 +166,10 @@ export const PORTAL_LOGIN = '';
  * link that 404s and a link that charges the wrong amount look identical from
  * here.
  *
- * It opens the 30-day free month and bills $97 at the start of month two; see
- * `EDUCATION_TRIAL_DAYS` in `~/data/education` and the FAQ entry "What happens
- * after my free month?".
+ * ⚠️ It is still configured in Stripe for a THIRTY-day trial. The site now
+ * advertises fourteen, per the repositioning brief — see `EDUCATION_TRIAL_DAYS`
+ * in `~/data/education` and the FAQ entry "What happens after my free trial?".
+ * Reconcile the two in the Stripe dashboard before launch.
  *
  * There is no annual equivalent. The live page advertises $849/year in its FAQ
  * but carries no button for it, so neither does this site — every annual
