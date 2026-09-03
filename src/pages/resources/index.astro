@@ -662,14 +662,27 @@ const scriptStrings = JSON.stringify({
 		padding-inline: 0.875rem;
 		border: 1px solid var(--color-line);
 		border-radius: 99px;
-		background-color: color-mix(in oklab, var(--color-ink-950) 40%, transparent);
+		/*
+			Ink and arc, not grey.
+
+			The sheen on these was two stops of `#a3adbd` — a neutral cool grey that
+			appears nowhere else on the site. Over a navy ground it desaturates
+			every control in the toolbar, so the one row a visitor has to operate
+			was also the one row that did not look like the brand.
+
+			Same construction, palette colours: the fill is `--color-ink-800`, the
+			top-to-bottom sheen is a whisper of `--color-arc-500`, and the lit lip
+			is the blue-white `#cfe4ff` the nav and the plan cards already use
+			rather than a neutral near-white.
+		*/
+		background-color: color-mix(in oklab, var(--color-ink-800) 62%, transparent);
 		background-image: linear-gradient(
 			180deg,
-			color-mix(in oklab, #a3adbd 11%, transparent),
-			color-mix(in oklab, #a3adbd 3%, transparent)
+			color-mix(in oklab, var(--color-arc-500) 12%, transparent),
+			color-mix(in oklab, var(--color-arc-600) 4%, transparent)
 		);
 		backdrop-filter: blur(14px) saturate(140%);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 12%, transparent);
 		transition: border-color 0.25s var(--ease-out-quint);
 	}
 
@@ -792,14 +805,16 @@ const scriptStrings = JSON.stringify({
 		padding: 0.5rem 0.85rem;
 		border: 1px solid var(--color-line);
 		border-radius: 99px;
-		background-color: color-mix(in oklab, var(--color-ink-950) 40%, transparent);
+		background-color: color-mix(in oklab, var(--color-ink-800) 62%, transparent);
+		/* Ink and arc — the same surface as the search and sort controls above.
+		   See the note there for what this replaced. */
 		background-image: linear-gradient(
 			180deg,
-			color-mix(in oklab, #a3adbd 11%, transparent),
-			color-mix(in oklab, #a3adbd 3%, transparent)
+			color-mix(in oklab, var(--color-arc-500) 12%, transparent),
+			color-mix(in oklab, var(--color-arc-600) 4%, transparent)
 		);
 		backdrop-filter: blur(14px) saturate(140%);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 12%, transparent);
 		/*
 			bone-100, not bone-400.
 

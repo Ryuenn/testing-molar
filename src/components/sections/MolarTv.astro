@@ -134,10 +134,19 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 
 			{/* ── What is on it ───────────────────────────────────────────── */}
 			<div class="tv__side">
-				<ul class="tv__playlist">
+				{/*
+					The rows arrive one after another, inside a stage that is itself
+					revealed. Two nested reveals on purpose: the stage rises as one object
+					so the screen and the column beside it arrive together, and then the
+					playlist fills in behind that — which is what the column is describing,
+					a list of things queued up to play. The stagger's own trigger fires a
+					little after the stage's, so the two land in that order rather than on
+					top of each other.
+				*/}
+				<ul class="tv__playlist" data-reveal-stagger>
 					{
 						PLAYLIST.map((entry) => (
-							<li class="tv__track">
+							<li class="tv__track" data-reveal data-reveal-group>
 								<span class="tv__track-icon" aria-hidden="true">
 									<Glyph name={entry.icon} />
 								</span>

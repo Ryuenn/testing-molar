@@ -28,7 +28,6 @@ import { Image } from 'astro:assets';
 import beforeShot from '~/assets/results/patricia-before.webp';
 import afterShot from '~/assets/results/patricia-after.webp';
 import { GROWTH } from '~/data/results';
-import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 /*
@@ -260,8 +259,33 @@ const headline = GROWTH.metrics[0];
 				<p class="film__label">{t('growth.filmLabel')}</p>
 
 				<div class="film__frame">
+					{/*
+						The tile is the control — once there is a script to make it one.
+
+						The button ships `hidden` and the <video> ships with `controls`, so a
+						visitor without JS gets exactly what was here before: her own first
+						frame, native controls, playing in place. The script unhides the button
+						and takes the controls off, and from then on a press opens the film
+						large over the page rather than starting a 40rem clip in the middle of
+						a case study. Nothing here degrades into a dead tile.
+
+						Not a return of the play button that went with the branded thumbnail.
+						That one existed to keep a designed card visible until somebody pressed
+						it; there is no card in front of the film now, and this one exists to
+						open the clip rather than to reveal it.
+					*/}
+					<button class="film__play" type="button" data-growth-open hidden>
+						<span class="sr-only">{t('growth.filmPlay', { name: GROWTH.name })}</span>
+						<span class="film__play-disc" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M9 6.5v11l9-5.5-9-5.5Z" />
+							</svg>
+						</span>
+					</button>
+
 					<video
 						class="film__video"
+						data-growth-tile
 						src={FILM_SRC}
 						preload="metadata"
 						playsinline
@@ -275,37 +299,116 @@ const headline = GROWTH.metrics[0];
 				</p>
 			</div>
 		</div>
-
-		{/*
-			The close. One line, then one button.
-
-			The line is the section's argument stated once, at the point the evidence
-			has just been shown — the followers are the visible result and the
-			authority is what they are evidence OF. Above the button rather than in
-			it, because a CTA that carries an argument is a CTA nobody reads.
-
-			The button is the only one on this section and it goes to /social-media/,
-			which is where the rest of this case lives: the other practices, the
-			written cases, and the unsolicited DMs from other dentists.
-		*/}
-		<div class="growth__close container-content" data-reveal>
-			<p class="growth__punch">{t('growth.punch')}</p>
-			<a class="btn btn-primary" href={localizePath('/social-media/', locale)}>
-				{t('growth.cta')} <span aria-hidden="true">→</span>
-			</a>
-		</div>
 	</div>
+
 </section>
-
 {/*
-	The poster-swap script is gone with the poster.
+	The player, in the top layer.
 
-	It existed to reveal a `hidden` <video> and call `play()` inside the click
-	when someone pressed a hand-built button over the designed thumbnail. There
-	is no thumbnail and no button now — the video renders its own first frame and
-	carries native controls, which is one fewer script, one fewer failure mode,
-	and works identically with JS disabled.
+	A real <dialog> opened with `showModal()`: the page behind it goes inert,
+	focus is trapped, Escape closes it and the backdrop is the browser's own —
+	none of which is worth hand-writing.
+
+	Its own <video> rather than the tile's, moved. Moving a playing element
+	between two parents restarts it in most engines and drops the buffer in the
+	rest; a second element on the same URL costs one entry in the HTTP cache,
+	and `preload="none"` means it costs nothing at all until somebody presses
+	play.
 */}
+<dialog class="fdlg" data-growth-dialog aria-label={`${t('growth.filmLabel')}: ${GROWTH.name}`}>
+	<div class="fdlg__frame">
+		<video
+			class="fdlg__video"
+			data-growth-video
+			src={FILM_SRC}
+			preload="none"
+			playsinline
+			controls></video>
+
+		<button class="fdlg__close" type="button" data-growth-close>
+			<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<path
+					d="m7 7 10 10M17 7 7 17"
+					stroke="currentColor"
+					stroke-width="1.7"
+					stroke-linecap="round"
+				/>
+			</svg>
+			<span class="sr-only">{t('growth.close')}</span>
+		</button>
+	</div>
+</dialog>
+
+<script>
+	/*
+		Opens the film.
+
+		`data-growth-*` rather than `data-film-*`, which is what the testimonial
+		wall upstream on this page already uses for its own modal. Both scripts
+		query the whole document, so shared names would have crossed the wires:
+		this one would have bound to the wall's first tile and its own button would
+		never have been unhidden.
+
+		The enhancement is the first two lines: the button is unhidden and the
+		tile's controls come off, so the markup's no-JS state — a plain <video>
+		playing in place — is what stands until this runs. Everything after them is
+		the modal, and everything the platform already does is left to it.
+
+		On close the film is paused and wound back rather than unloaded. A closed
+		dialog with a video still talking in it is the failure this listener exists
+		to prevent; dropping the `src` as well would prevent it twice and make the
+		second viewing re-download the clip.
+	*/
+	const dialog = document.querySelector<HTMLDialogElement>('[data-growth-dialog]');
+	const film = document.querySelector<HTMLVideoElement>('[data-growth-video]');
+	const opener = document.querySelector<HTMLButtonElement>('[data-growth-open]');
+	const tile = document.querySelector<HTMLVideoElement>('[data-growth-tile]');
+
+	if (dialog && film && opener && typeof dialog.showModal === 'function') {
+		opener.hidden = false;
+		if (tile) tile.controls = false;
+
+		/*
+			Lenis owns the scroll, so the dialog's own inertness does not stop the
+			page moving behind it — it has to be told. The attribute covers the
+			reduced-motion path, where Lenis never loaded to hear the event.
+		*/
+		const lock = (on: boolean): void => {
+			document.documentElement.toggleAttribute('data-modal-open', on);
+			window.dispatchEvent(new CustomEvent(on ? 'molar:lock-scroll' : 'molar:unlock-scroll'));
+		};
+
+		opener.addEventListener('click', () => {
+			dialog.showModal();
+			lock(true);
+			/*
+				A rejected play is not a failure worth reporting: the controls are
+				right there in the modal, and some engines refuse an unmuted autoplay
+				whatever the gesture behind it.
+			*/
+			void film.play().catch(() => {});
+		});
+
+		const close = () => dialog.close();
+		dialog.querySelector('[data-growth-close]')?.addEventListener('click', close);
+
+		/*
+			A click on the dialog itself is a click on the backdrop: the frame fills
+			it and swallows presses that land on the film or the close button, so
+			anything reaching this listener came from the margin around them.
+		*/
+		dialog.addEventListener('click', (event) => {
+			if (event.target === dialog) close();
+		});
+
+		/* Fires for the close button, the backdrop and Escape alike. */
+		dialog.addEventListener('close', () => {
+			lock(false);
+			film.pause();
+			film.currentTime = 0;
+		});
+	}
+</script>
 
 <script>
 	/*
@@ -464,30 +567,6 @@ const headline = GROWTH.metrics[0];
 		font-size: var(--text-base);
 		line-height: 1.65;
 		color: var(--color-bone-300);
-	}
-
-	/* ── The close ───────────────────────────────────────────────────────── */
-	.growth__close {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: clamp(1.25rem, 3vw, 1.75rem);
-		margin-top: clamp(3rem, 6vw, 5rem);
-		text-align: center;
-	}
-
-	/* A pull quote in everything but the markup — it is our line, not a
-	   quotation, so it is a paragraph rather than a <blockquote>. */
-	.growth__punch {
-		margin: 0;
-		max-width: 34ch;
-		font-family: var(--font-display);
-		font-size: var(--text-xl);
-		font-weight: 600;
-		line-height: 1.35;
-		letter-spacing: -0.01em;
-		text-wrap: balance;
-		color: var(--color-bone-50);
 	}
 
 	/* ── Exhibit ─────────────────────────────────────────────────────────── */
@@ -977,11 +1056,16 @@ const headline = GROWTH.metrics[0];
 		swap now.
 	*/
 	.film__frame {
+		position: relative;
+		isolation: isolate;
 		display: grid;
 		overflow: clip;
 		border: 1px solid var(--color-line);
 		border-radius: clamp(0.75rem, 1.4vw, 1.125rem);
 		background: var(--color-ink-950);
+		transition:
+			border-color 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint);
 	}
 
 	.film__video {
@@ -994,10 +1078,71 @@ const headline = GROWTH.metrics[0];
 	}
 
 	/*
-		`.film__play`, `.film__play-disc` and the `[data-playing]` rules are gone
-		with the hand-built play button. The video's native controls are the
-		affordance now — see the note in the markup.
+		The press, over her first frame.
+
+		Glass on moving footage — one of the few places on this site where a
+		backdrop blur has something real to work with. It covers the whole tile
+		rather than sitting in the middle of it, so the target is the film and the
+		disc only marks where to look. Hidden in the markup and unhidden by the
+		script; see the note there.
 	*/
+	.film__play {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		padding: 0;
+		border: 0;
+		background: radial-gradient(
+			54% 42% at 50% 50%,
+			color-mix(in oklab, var(--color-ink-950) 38%, transparent),
+			transparent 78%
+		);
+		cursor: pointer;
+		opacity: 0.92;
+		transition: opacity 0.35s var(--ease-out-quint);
+	}
+
+	.film__play-disc {
+		display: grid;
+		place-items: center;
+		width: clamp(3rem, 5vw, 4rem);
+		height: clamp(3rem, 5vw, 4rem);
+		border: 1px solid color-mix(in oklab, #e6ecf5 30%, transparent);
+		border-radius: 50%;
+		background-color: color-mix(in oklab, var(--color-ink-950) 38%, transparent);
+		backdrop-filter: blur(10px) saturate(150%);
+		color: var(--color-bone-50);
+		box-shadow: 0 14px 34px -18px #000;
+		transition: transform 0.35s var(--ease-out-quint);
+	}
+
+	.film__play-disc svg {
+		width: 40%;
+		height: 40%;
+		/* The triangle sits visually left of centre in its own box. */
+		translate: 8% 0;
+	}
+
+	.film__play:hover,
+	.film__play:focus-visible {
+		opacity: 1;
+	}
+
+	.film__play:hover .film__play-disc,
+	.film__play:focus-visible .film__play-disc {
+		transform: scale(1.08);
+	}
+
+	/* The whole tile answers the hover, not just the disc — the frame is the
+	   thing being pressed. */
+	.film__frame:has(.film__play:hover),
+	.film__frame:has(.film__play:focus-visible) {
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		box-shadow: 0 30px 70px -40px color-mix(in oklab, var(--color-arc-600) 75%, transparent);
+	}
+
 
 	.film__caption {
 		display: flex;
@@ -1020,10 +1165,166 @@ const headline = GROWTH.metrics[0];
 		color: var(--color-bone-100);
 	}
 
+	/* ── The modal ─────────────────────────────────────────── */
+	/*
+		Fills the viewport and centres its own frame, so a click that lands on the
+		dialog itself is a click on the backdrop and can close it. A dialog sized to
+		its contents has no such area.
+	*/
+	.fdlg {
+		width: 100vw;
+		max-width: 100vw;
+		height: 100dvh;
+		max-height: 100dvh;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		overflow: hidden;
+	}
+
+	.fdlg::backdrop {
+		background: color-mix(in oklab, #02040a 82%, transparent);
+		backdrop-filter: blur(6px);
+	}
+
+	/*
+		The entrance.
+
+		`display` is discrete, so a dialog cannot normally be transitioned in — it
+		is either in the top layer or it is not. `allow-discrete` plus a
+		`@starting-style` block is what makes both ends animatable: the browser
+		holds the element visible through the exit and reads the starting values on
+		the way in. Engines without it get the modal instantly, which is the correct
+		fallback for a control rather than a decoration.
+	*/
+	.fdlg,
+	.fdlg::backdrop {
+		opacity: 0;
+		transition:
+			opacity 0.3s var(--ease-out-quint),
+			display 0.3s allow-discrete,
+			overlay 0.3s allow-discrete;
+	}
+
+	.fdlg[open],
+	.fdlg[open]::backdrop {
+		opacity: 1;
+	}
+
+	@starting-style {
+		.fdlg[open],
+		.fdlg[open]::backdrop {
+			opacity: 0;
+		}
+	}
+
+	.fdlg__frame {
+		--fdlg-pad: clamp(1rem, 4vw, 2.5rem);
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+		padding: var(--fdlg-pad);
+	}
+
+	/*
+		Sized from the ratio, not from a percentage.
+
+		The film is a centred grid item, so its row is auto-sized and a percentage
+		height would have nothing definite to resolve against. The WIDTH is computed
+		instead and the aspect derives the height from it: whichever is smallest of
+		the window less its padding, a 64rem cap so the clip does not fill a cinema
+		display, and the height the window can actually give turned into a width by
+		the clip's own 16:9. That last bound is what keeps the controls on screen on
+		a short window, and because it is a width cap the aspect is never violated.
+
+		The pop is on the same element: it arrives a little small and a little low
+		and settles as the backdrop fades in, then leaves the way it came — the base
+		rule IS the exit state, and `@starting-style` repeats it for the frame
+		before the entrance, which is the only thing a newly displayed element has
+		to transition FROM.
+	*/
+	.fdlg__video {
+		inline-size: min(
+			calc(100vw - var(--fdlg-pad) * 2),
+			64rem,
+			calc((100dvh - var(--fdlg-pad) * 2) * 16 / 9)
+		);
+		block-size: auto;
+		aspect-ratio: 16 / 9;
+		border-radius: clamp(0.75rem, 1.5vw, 1.125rem);
+		background: #000;
+		box-shadow: 0 60px 120px -50px #000;
+		scale: 0.94;
+		translate: 0 1.5rem;
+		transition:
+			scale 0.36s var(--ease-out-quint),
+			translate 0.36s var(--ease-out-quint);
+	}
+
+	.fdlg[open] .fdlg__video {
+		scale: 1;
+		translate: 0 0;
+	}
+
+	@starting-style {
+		.fdlg[open] .fdlg__video {
+			scale: 0.94;
+			translate: 0 1.5rem;
+		}
+	}
+
+	.fdlg__close {
+		position: absolute;
+		inset-block-start: clamp(0.75rem, 2vw, 1.25rem);
+		inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid color-mix(in oklab, #e6ecf5 20%, transparent);
+		border-radius: 50%;
+		background: color-mix(in oklab, var(--color-ink-950) 60%, transparent);
+		backdrop-filter: blur(10px);
+		color: var(--color-bone-50);
+		cursor: pointer;
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			border-color 0.28s var(--ease-out-quint);
+	}
+
+	.fdlg__close:hover,
+	.fdlg__close:focus-visible {
+		border-color: color-mix(in oklab, #e6ecf5 40%, transparent);
+		background: color-mix(in oklab, var(--color-ink-950) 80%, transparent);
+	}
+
+	.fdlg__close svg {
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	/* The lift and the entrance are motion; the modal itself is not. */
 	@media (prefers-reduced-motion: reduce) {
+		.film__frame,
+		.film__play,
+		.film__play-disc,
+		.fdlg,
+		.fdlg::backdrop,
+		.fdlg__video {
+			transition: none;
+		}
+
 		.film__play:hover .film__play-disc,
 		.film__play:focus-visible .film__play-disc {
 			transform: none;
+		}
+
+		.fdlg__video {
+			scale: 1;
+			translate: 0 0;
 		}
 	}
 </style>

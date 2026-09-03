@@ -12,9 +12,17 @@
  * wall to a price without ever stating what the screen is for.
  *
  * The four beats are an ordered list because they are a sequence and the order
- * is the whole argument. The arrows between them are decoration — a screen
- * reader gets the numbers from the list itself — so they are drawn with
- * `aria-hidden` and never as text content.
+ * is the whole argument. Each one sits in a panel — the same surface the rest
+ * of the site is built from — and between every pair there is a joint: a
+ * hairline with a node at its middle, gaining light as the chain runs. That
+ * replaced first the bordered chips with 16px arrows between them (chips read
+ * as controls, and four in a wrapping row read as a filter bar) and then a bare
+ * rail with the labels hanging off it, which was clean but left four short
+ * lines floating in a very large band. The panels give the beats a body; the
+ * joints do what the arrows were failing to do at that size.
+ *
+ * The joints are `aria-hidden` throughout: the <ol> already carries the order,
+ * and four announcements of "arrow" are noise.
  *
  * No CTA. The next section carries one, and the beat this makes is worth
  * leaving to land.
@@ -41,31 +49,36 @@ const CHAIN = STEPS.map((key) => ({
 	<div class="grain" aria-hidden="true"></div>
 
 	<div class="container-content why__inner">
-		<h2 id="why-heading" class="why__title" data-reveal>{t('understand.heading')}</h2>
+		<header class="why__head">
+			<p class="eyebrow" data-reveal="fade">{t('understand.eyebrow')}</p>
+			<h2 id="why-heading" class="why__title" data-reveal>{t('understand.heading')}</h2>
+		</header>
 
 		<ol class="why__chain" data-reveal-stagger>
 			{
 				CHAIN.map((step, i) => (
-					<li class="why__step" data-reveal data-reveal-group>
-						<span class="why__label">{step.label}</span>
+					<li
+						class:list={['beat', i === CHAIN.length - 1 && 'beat--last']}
+						style={`--i:${i}`}
+						data-reveal
+						data-reveal-group
+					>
 						{/*
-							The join, drawn on every item but the last. Decorative: the list
-							is already ordered, and "arrow" read out four times is noise.
+							The joint to the next panel, drawn by the beat it leaves rather
+							than as one line behind the row. A single line under the row runs
+							under all four panels and has to be masked back out of each of
+							them; a joint owned by each beat lives in the gap it crosses and
+							nowhere else, and the last beat simply has none.
 						*/}
 						{i < CHAIN.length - 1 && (
-							<span class="why__arrow" aria-hidden="true">
-								<svg
-									viewBox="0 0 16 16"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.6"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
-								</svg>
+							<span class="beat__link" aria-hidden="true">
+								<span class="beat__node" />
 							</span>
 						)}
+
+						<span class="beat__box panel">
+							<span class="beat__label">{step.label}</span>
+						</span>
 					</li>
 				))
 			}
@@ -78,24 +91,24 @@ const CHAIN = STEPS.map((key) => ({
 		position: relative;
 		isolation: isolate;
 		overflow: clip;
-		text-align: center;
 	}
 
-	/* One soft light behind the headline, so the section reads as a beat rather
-	   than as another band of ground. */
+	/* One soft light behind the statement, so the section reads as a beat rather
+	   than as another band of ground. It sits high and fades out before the
+	   chain, which carries its own light. */
 	.why__glow {
 		position: absolute;
 		z-index: -1;
 		inset-block-start: 0;
 		inset-inline-start: 50%;
-		width: min(56rem, 92%);
-		height: 22rem;
-		transform: translate(-50%, -35%);
+		width: min(64rem, 96%);
+		height: 26rem;
+		transform: translate(-50%, -42%);
 		border-radius: 50%;
 		pointer-events: none;
 		background: radial-gradient(
 			50% 50% at 50% 50%,
-			color-mix(in oklab, var(--color-arc-500) 20%, transparent),
+			color-mix(in oklab, var(--color-arc-500) 18%, transparent),
 			transparent 72%
 		);
 		filter: blur(80px);
@@ -105,65 +118,194 @@ const CHAIN = STEPS.map((key) => ({
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: clamp(2rem, 4vw, 3rem);
+		gap: clamp(2.75rem, 7vw, 5rem);
 	}
 
-	.why__title {
-		margin: 0;
-		max-width: 26ch;
-		font-size: var(--text-3xl);
-		text-wrap: balance;
+	.why__head {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: clamp(0.85rem, 2vw, 1.15rem);
+		text-align: center;
 	}
 
 	/*
-		A wrapping row, not a grid. The four beats are different lengths and a
-		four-track grid would set them all to the width of "Trust the
-		recommendation" — which puts two of them in the middle of an empty cell
-		and breaks the chain the arrows are drawing.
+		A step above the section titles around it, and tracked in.
+
+		This is not a heading over contents — it is the page stopping to say one
+		thing — so it is allowed to be the largest line in the band. At
+		`--text-3xl` it sat at exactly the weight of "Patient Education, Everywhere
+		It Matters." underneath it, which made a statement look like a label for
+		the four beats below it.
+	*/
+	.why__title {
+		margin: 0;
+		max-width: 22ch;
+		font-size: var(--text-4xl);
+		/* Explicit — `--text-4xl--line-height` pairs with the `text-4xl` utility
+		   class, not with `font-size: var(--text-4xl)` set by hand. */
+		line-height: 1.08;
+		letter-spacing: -0.03em;
+		text-wrap: balance;
+	}
+
+	/* ── The chain ───────────────────────────────────────────────────────── */
+	/*
+		Stacked first: one column of panels with the joints running down between
+		them. The gap has to stay wide enough to be a length of line with a node
+		on it rather than a squeezed dot, which is why it is set here and again,
+		larger, once the chain turns horizontal.
 	*/
 	.why__chain {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem clamp(0.75rem, 2vw, 1.25rem);
+		--node: 0.5625rem;
+		--beat-gap: clamp(1.5rem, 4vw, 2rem);
+		display: grid;
+		gap: var(--beat-gap);
+		width: 100%;
+		max-width: 24rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.why__step {
-		display: flex;
-		align-items: center;
-		gap: clamp(0.75rem, 2vw, 1.25rem);
+	.beat {
+		position: relative;
+		display: grid;
 	}
 
-	.why__label {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.625rem 1rem;
-		border-radius: var(--radius-pill);
-		border: 1px solid color-mix(in oklab, var(--color-arc-400) 26%, transparent);
-		background: color-mix(in oklab, var(--color-ink-900) 68%, transparent);
-		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 12%, transparent);
+	/*
+		The panel, and the same surface as everything else on the site — the
+		`panel` class carries the border, the fill and the radius, and this adds
+		only the shape of the box.
+
+		`height: 100%` so all four are the height of the tallest: "Trust the
+		recommendation" takes two lines in its track and a row of panels that
+		disagree about their own height is a row that looks broken rather than
+		composed.
+	*/
+	.beat__box {
+		display: grid;
+		place-items: center;
+		height: 100%;
+		padding: clamp(0.85rem, 2vw, 1.1rem) clamp(1rem, 2.5vw, 1.5rem);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 8%, transparent);
+		text-align: center;
+	}
+
+	/*
+		The last panel is the outcome — the yes the headline is about — so it is
+		the one that is lit. Everything before it is on the way there.
+	*/
+	.beat--last .beat__box {
+		border-color: color-mix(in oklab, var(--color-arc-400) 42%, transparent);
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-600) 22%, transparent),
+			color-mix(in oklab, var(--color-ink-900) 96%, transparent)
+		);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #cfe4ff 16%, transparent),
+			0 20px 50px -30px color-mix(in oklab, var(--color-arc-500) 80%, transparent);
+	}
+
+	.beat__label {
 		font-family: var(--font-display);
 		font-size: var(--text-base);
 		font-weight: 600;
-		line-height: 1.2;
+		line-height: 1.35;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-300);
+	}
+
+	.beat--last .beat__label {
 		color: var(--color-bone-50);
 	}
 
-	.why__arrow {
-		display: grid;
-		place-items: center;
-		flex: none;
-		width: 1rem;
-		height: 1rem;
-		color: var(--color-arc-400);
+	/*
+		The joint: a length of hairline across the gap with a node at its middle.
+
+		Stacked, it runs from the foot of one panel to the head of the next. The
+		element IS the line — 1px wide and the height of the gap — so the node
+		inside it is placed against a box it can be centred on rather than against
+		the panel it hangs below.
+	*/
+	.beat__link {
+		position: absolute;
+		inset-block-start: 100%;
+		inset-inline-start: 50%;
+		width: 1px;
+		height: var(--beat-gap);
+		translate: -50% 0;
 	}
 
-	.why__arrow svg {
-		width: 100%;
-		height: 100%;
+	/*
+		Drawn on a pseudo-element rather than on `.beat__link` itself, so the
+		opacity ramp lands on the LINE and leaves the node at full strength. The
+		chain gains light as it runs: the argument builds rather than repeats.
+	*/
+	.beat__link::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			180deg,
+			color-mix(in oklab, var(--color-arc-400) 22%, transparent),
+			color-mix(in oklab, var(--color-arc-400) 60%, transparent)
+		);
+		opacity: calc(0.55 + var(--i, 0) * 0.15);
+	}
+
+	.beat__node {
+		position: absolute;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		translate: -50% -50%;
+		width: var(--node);
+		height: var(--node);
+		border-radius: 50%;
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 45%, transparent);
+		background: var(--color-ink-950);
+		/* A held breath of ground around the dot, so the line reads as passing
+		   behind it rather than into it. */
+		box-shadow: 0 0 0 3px var(--color-ink-950);
+	}
+
+	/*
+		Horizontal from here, on four equal tracks with the joints crossing the
+		gaps between them.
+
+		Equal tracks were the objection to the old chip row and are the point of
+		this one. Four chips set to the width of "Trust the recommendation" left
+		the two short ones marooned in an empty box; four PANELS at one width are
+		a row, and the even spacing is what lets the joints between them read as a
+		single movement across the band.
+	*/
+	@media (min-width: 52rem) {
+		.why__chain {
+			--beat-gap: clamp(1.75rem, 4vw, 3.25rem);
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			max-width: none;
+		}
+
+		/* Across the gap now rather than down it. */
+		.beat__link {
+			inset-block-start: 50%;
+			inset-inline-start: 100%;
+			width: var(--beat-gap);
+			height: 1px;
+			translate: 0 -50%;
+		}
+
+		.beat__link::before {
+			background: linear-gradient(
+				90deg,
+				color-mix(in oklab, var(--color-arc-400) 22%, transparent),
+				color-mix(in oklab, var(--color-arc-400) 60%, transparent)
+			);
+		}
+
+		.beat__label {
+			max-width: 15ch;
+		}
 	}
 </style>

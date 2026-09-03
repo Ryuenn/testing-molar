@@ -224,28 +224,41 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 					</button>
 				)}
 
-				{lead.vimeo ? (
-					<iframe
-						class="quote__embed"
-						src={playerSrc(lead.vimeo)}
-						title={t('testimonials.watch', { name: leadCaption ?? t('testimonials.anonymous') })}
-						loading="lazy"
-						allow="fullscreen; picture-in-picture"
-						allowfullscreen
-					/>
-				) : lead.selfHosted ? (
-					<video
-						class="quote__video"
-						src={lead.video}
-						poster={lead.poster}
-						preload="none"
-						playsinline
-						controls
-						disablepictureinpicture
-					/>
-				) : (
-					<Placeholder name={leadCaption} />
-				)}
+				{/*
+					The picture, and the box the crop happens in.
+
+					The player is CROPPED in the films-only wall — taller than its frame and
+					clipped by it, see the note in the stylesheet — and an absolutely
+					positioned child is laid out against its ancestor's PADDING box. Clipping
+					on `.quote__film` would therefore run the picture out over the bezel top
+					and bottom and leave the frame with an edge on two sides only. This box is
+					the frame's content area: inset by the bezel because it is in flow, and
+					the clip belongs to it.
+				*/}
+				<div class="quote__pic">
+					{lead.vimeo ? (
+						<iframe
+							class="quote__embed"
+							src={playerSrc(lead.vimeo)}
+							title={t('testimonials.watch', { name: leadCaption ?? t('testimonials.anonymous') })}
+							loading="lazy"
+							allow="fullscreen; picture-in-picture"
+							allowfullscreen
+						/>
+					) : lead.selfHosted ? (
+						<video
+							class="quote__video"
+							src={lead.video}
+							poster={lead.poster}
+							preload="none"
+							playsinline
+							controls
+							disablepictureinpicture
+						/>
+					) : (
+						<Placeholder name={leadCaption} />
+					)}
+				</div>
 			</div>
 
 			{/*
@@ -276,6 +289,10 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 				<figcaption class:list={['quote__by', filmsOnly && 'quote__by--film']}>
 					{leadCaption ? (
 						<>
+							{/* "Featured Testimonial:" only where there is no quotation to
+							    label it — with the quote drawn, the caption is an
+							    attribution and a label in front of it reads as a heading. */}
+							{filmsOnly && <span class="quote__kicker">{t('testimonials.featured')}</span>}
 							<span class="quote__name">{leadCaption}</span>
 							{!filmsOnly && lead.role && <span class="quote__role">{lead.role}</span>}
 							{!filmsOnly && lead.account?.place && (
@@ -329,30 +346,36 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 									</button>
 								)}
 
-								{entry.vimeo ? (
-									<iframe
-										class="quote__embed"
-										src={playerSrc(entry.vimeo)}
-										title={t('testimonials.watch', {
-											name: entry.name ?? t('testimonials.anonymous'),
-										})}
-										loading="lazy"
-										allow="fullscreen; picture-in-picture"
-										allowfullscreen
-									/>
-								) : entry.selfHosted ? (
-									<video
-										class="quote__video"
-										src={entry.video}
-										poster={entry.poster}
-										preload="none"
-										playsinline
-										controls
-										disablepictureinpicture
-									/>
-								) : (
-									<Placeholder name={entry.name} />
-								)}
+								{/*
+									The picture, and the box the crop happens in — see the note on the
+									highlight's.
+								*/}
+								<div class="quote__pic">
+									{entry.vimeo ? (
+										<iframe
+											class="quote__embed"
+											src={playerSrc(entry.vimeo)}
+											title={t('testimonials.watch', {
+												name: entry.name ?? t('testimonials.anonymous'),
+											})}
+											loading="lazy"
+											allow="fullscreen; picture-in-picture"
+											allowfullscreen
+										/>
+									) : entry.selfHosted ? (
+										<video
+											class="quote__video"
+											src={entry.video}
+											poster={entry.poster}
+											preload="none"
+											playsinline
+											controls
+											disablepictureinpicture
+										/>
+									) : (
+										<Placeholder name={entry.name} />
+									)}
+								</div>
 							</div>
 
 							{!filmsOnly && (
@@ -597,17 +620,17 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 
 	/* ── Films-only: the wall ────────────────────────────────────────────── */
 	/*
-		Three portrait clips, and nothing around them.
+		Three clips, and nothing around them.
 
 		The quoted version of this section is a set of cards — bordered, padded,
 		filled — because a card is what a sentence needs to sit in. A film does
 		not: it arrives with its own hard edge, and a panel behind it only shows
-		as a margin of empty ground on either side of a 9:16 frame. What was on
-		the page was a frame inside a frame inside a section, three times over.
+		as a margin of empty ground around the frame. What was on the page was a
+		frame inside a frame inside a section, three times over.
 
 		So in films-only the panels come off (see the note in the markup) and the
-		films carry the whole composition: one large, two smaller under it,
-		centred as a group, each with the same edge and the same shadow.
+		films carry the whole composition: one large, two smaller beside it, each
+		with the same edge and the same shadow.
 	*/
 	.tm--films .quote {
 		padding: 0;
@@ -616,94 +639,188 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 
 	.tm--films .quote--lead {
 		padding: 0;
-		margin-inline: auto;
+		width: 100%;
 	}
 
 	/*
-		Two, centred as a pair rather than stretched across the row.
+		Two, side by side, until the pair moves beside the highlight at 46rem.
 
-		`auto` columns, so each cell is exactly as wide as the film inside it and
-		the gap between them stays constant — `1fr` columns would spread the two
-		films to the section's full width and leave the same dead ground the
-		panels used to.
-
-		`align-items: start` because the two clips are different shapes: one is
-		9:16 and one is 43:20, so they cannot both be the same height. Aligning
-		their TOPS puts one clean line across the pair. Centring them would put no
-		line anywhere.
+		Equal `1fr` tracks rather than `auto` ones: the frames state a shape and
+		fill their track now, so a track sized from the frame and a frame sized
+		from the track would have had nothing to resolve against.
 	*/
 	.tm--films .tm__grid {
-		grid-template-columns: repeat(2, minmax(0, auto));
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 		justify-content: center;
-		align-items: start;
-		gap: clamp(1rem, 3vw, 1.75rem);
-		margin-block-start: clamp(1.5rem, 3.5vw, 2.5rem);
+		align-items: stretch;
+		gap: var(--wall-gap, 1rem);
+		margin-block-start: var(--wall-gap, 1rem);
 	}
 
-	/* Two portrait films side by side stop fitting somewhere around here. */
+	/* Two films side by side stop fitting somewhere around here. */
 	@media (max-width: 30rem) {
 		.tm--films .tm__grid {
 			grid-template-columns: minmax(0, 1fr);
-			justify-items: center;
 		}
 	}
 
 	/*
-		The frame, and the only edge in the section.
+		The frame, one per film — and the only edge in the section.
 
-		Softer and deeper than the shared `.quote__film`: a wider radius, a lit
-		hairline rather than the flat line colour, and a long shadow that lets the
-		films sit above the ground instead of on it.
+		A light bezel rather than a border: the padding IS the frame, so the ring
+		has a width you can see and the film inside keeps a radius of its own
+		instead of butting against a hairline. Lit from the top, shadowed at the
+		bottom, the way a physical mount catches a room.
+
+		`border: 0` because the shared `.quote__film` rule sets one, and a hairline
+		outside a bezel reads as a second frame around the first.
 	*/
 	.tm--films .quote__film {
-		border-radius: 1.125rem;
-		border-color: color-mix(in oklab, #cfe0f5 15%, transparent);
+		padding: clamp(0.3rem, 0.7vw, 0.45rem);
+		border: 0;
+		border-radius: clamp(0.85rem, 1.6vw, 1.15rem);
+		background:
+			linear-gradient(
+				170deg,
+				color-mix(in oklab, #eaf2ff 92%, transparent) 0%,
+				color-mix(in oklab, #b9cbe4 88%, transparent) 48%,
+				color-mix(in oklab, #7e93b3 90%, transparent) 100%
+			);
 		box-shadow:
-			inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent),
-			0 34px 70px -34px #000;
+			inset 0 1px 0 #fff,
+			inset 0 -1px 0 color-mix(in oklab, #0b1020 22%, transparent),
+			0 26px 52px -26px #000;
 	}
 
 	/*
-		The highlight and the pair, side by side.
+		The wall: one large film with two smaller ones stacked beside it.
 
-		The two smaller films used to sit UNDER the highlight, which made the
-		section a tall column of three portrait clips and left the whole right half
-		of the band empty. Beside it they read as what they are: one film being
-		offered and two more available.
+		Every measurement comes off `--wall-lead`. The pair's column is that width
+		over 1.7 and the gap is 3% of it — the proportions of the reference
+		composition, derived rather than clamped independently, so the three tiles
+		hold that arrangement at every width instead of drifting apart as separate
+		clamps resolve at different rates.
 
-		The widths are chosen so the stacked pair comes out close to the
-		highlight's own height — a 9:16 film at 21rem is 37.3rem tall, and 9:16 +
-		43:20 at 9.5rem plus the gap is about the same. Nothing forces it, because
-		forcing it would mean letterboxing a clip inside a box of the wrong shape;
-		they are simply sized to land together.
+		`align-items: start`, with the pair given the highlight's FILM height
+		below. Stretching instead measures the lead's whole column — the film plus
+		the caption under it — and pushes the pair that much taller than the film
+		it is supposed to line up with.
 	*/
 	.tm--films .tm__films {
+		/*
+			The two frame shapes, as ratios rather than pairs so the heights below
+			can be calculated from them. 1.35 is the reference's own proportion, a
+			shade wider than 4:3; 1.65 is whatever the smaller frame has to be for
+			two of them plus a gap to come out level with the tall one.
+		*/
+		--wall-lead-ar: 1.35;
+		--wall-side-ar: 1.65;
+		--wall-lead: clamp(18rem, 52vw, 36rem);
+		--wall-side: calc(var(--wall-lead) / 1.7);
+		--wall-gap: calc(var(--wall-lead) * 0.03);
+		/* How far up the source the visible band sits. See the crop, below. */
+		--film-shift: 8%;
 		display: grid;
-		gap: clamp(1rem, 2.5vw, 1.5rem);
+		grid-template-columns: min(100%, 34rem);
+		gap: var(--wall-gap);
 		justify-content: center;
 		align-items: start;
 	}
 
+	/*
+		Landscape frames, portrait footage.
+
+		Every one of these clips came off a phone — two at 9:16 and one at 20:43,
+		taller still — and the wall is built of wide frames. Dropped in at their
+		own aspect they pillarbox: a stamp of video with dead ground either side,
+		which the old wall avoided by making the FRAMES tall instead and got a
+		column of three phone screens for it.
+
+		So the frame states the shape the composition wants and the player COVERS
+		it — full width, its own height, overflowing the frame and clipped by it.
+		More than half the height of a 9:16 source goes that way, which is why the
+		band is anchored (`--film-focus`) rather than simply centred. Nothing is
+		lost by the crop: the tile is a button, and the modal it opens plays the
+		film whole at its own aspect.
+
+		The portrait wall's width cap comes off in here — the film fills its
+		track, and the track is the layout.
+	*/
+	.tm--films .quote__film--portrait {
+		width: 100%;
+	}
+
+	.tm--films .quote--lead .quote__film {
+		aspect-ratio: var(--wall-lead-ar);
+	}
+
+	.tm--films .tm__grid .quote__film {
+		aspect-ratio: var(--wall-side-ar);
+	}
+
+	/* The content area, and the clip — see the note in the markup. */
+	.tm--films .quote__pic {
+		position: relative;
+		height: 100%;
+		border-radius: clamp(0.55rem, 1.1vw, 0.75rem);
+		background: #0b1020;
+		overflow: hidden;
+	}
+
+	.tm--films .quote__embed,
+	.tm--films .quote__video {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		/*
+			Centred in the frame, then nudged down by a slice of its OWN height —
+			`translate` resolves percentages against the element, so this is a shift
+			through the source and means the same thing to a 9:16 clip as to a 20:43
+			one. Down by 8% shows a band 8% further up the film: a face sits above the
+			middle of a phone video, and a straight centre crop puts it at the frame's
+			top edge.
+		*/
+		translate: 0 calc(-50% + var(--film-shift, 0%));
+		width: 100%;
+		height: auto;
+		aspect-ratio: var(--quote-aspect, 9 / 16);
+	}
+
+	/*
+		The pair beside the highlight rather than under it.
+
+		Under it, the section was a tall column with the whole right half of the
+		band empty. Beside it they read as what they are: one film being offered
+		and two more available.
+	*/
 	@media (min-width: 46rem) {
 		.tm--films .tm__films {
-			grid-template-columns: auto auto;
+			grid-template-columns: var(--wall-lead) var(--wall-side);
 		}
-	}
 
-	/* A step up on the highlight — it is the one that gets watched. */
-	.tm--films .quote--lead .quote__film--portrait {
-		width: min(100%, clamp(16rem, 40vw, 21rem));
-	}
+		/*
+			The pair, exactly as tall as the film beside them.
 
-	.tm--films .tm__grid .quote__film--portrait {
-		width: min(100%, clamp(7.5rem, 18vw, 9.5rem));
-	}
-
-	/* Stacked beside the highlight rather than in a row of their own. */
-	@media (min-width: 46rem) {
+			The height is stated and split into two equal rows rather than left to
+			two aspect-ratios and a gap to add up. Those can be made to come out
+			close, and close is a visible step at the foot of the wall.
+		*/
 		.tm--films .tm__grid {
 			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: 1fr 1fr;
+			height: calc(var(--wall-lead) / var(--wall-lead-ar));
 			margin-block-start: 0;
+		}
+
+		/* Down the chain — row, card, figure, frame — so the row IS the film. */
+		.tm--films .tm__grid > .quote,
+		.tm--films .tm__grid .quote__fig,
+		.tm--films .tm__grid .quote__film {
+			height: 100%;
+		}
+
+		.tm--films .tm__grid .quote__film {
+			aspect-ratio: auto;
 		}
 	}
 
@@ -790,19 +907,29 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 	}
 
 	/*
-		The name under the highlight.
+		The caption.
 
-		Set as a caption rather than as a heading: display face, one step down,
-		letter-spaced, with air above it. It is the only text in the section now,
-		so it can afford to be quiet.
+		"Featured Testimonial:" then the name, on one line and centred under the
+		highlight. The label is quieter and the name carries the emphasis, so the
+		line reads as one sentence rather than as a heading over a value.
 	*/
 	.tm--films .quote__by--film {
-		gap: 0;
-		padding-block-start: clamp(0.75rem, 1.5vw, 1rem);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: center;
+		gap: 0.35rem;
+		padding-block-start: clamp(0.55rem, 1.2vw, 0.85rem);
+	}
+
+	.tm--films .quote__kicker {
+		font-size: var(--text-sm);
+		color: var(--color-bone-300);
 	}
 
 	.tm--films .quote__name {
-		font-size: var(--text-base);
+		font-size: var(--text-sm);
+		font-weight: 700;
 		letter-spacing: 0.01em;
 	}
 

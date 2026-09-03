@@ -121,6 +121,8 @@ const en = {
 		matters. Four links in a chain; the order is the argument.
 	*/
 	understand: {
+		/* Names the beat, the way every other section on the page is named. */
+		eyebrow: 'Why it works',
 		heading: 'Patients Don’t Say Yes To What They Don’t Understand.',
 		see: 'See it',
 		understand: 'Understand it',
@@ -314,9 +316,6 @@ const en = {
 		body: '{name} used consistent patient education to build a global audience of both patients and dental professionals.',
 		bodyTwo:
 			'Today, her content does more than generate views — it positions her as a recognized voice in dentistry, keeps her expertise visible beyond the practice, and builds trust before patients ever sit in the chair.',
-		/* The line above the CTA. Short, and it is the point of the whole section. */
-		punch: 'Patient education builds more than understanding. It builds authority.',
-		cta: 'Explore MOLAR Social',
 		before: 'Before — {n} followers',
 		after: 'After — {n} followers',
 		beforeRead: '1 post · 159 followers',
@@ -324,6 +323,8 @@ const en = {
 		source:
 			'Unretouched screenshots of the public profile at {handle}. The figures beside them are transcribed from the screenshots; the lines underneath are our reading of what changed.',
 		filmLabel: 'In her words',
+		/* The modal's close button — sr-only, beside the ✕ glyph. */
+		close: 'Close the film',
 		filmPlay: 'Play the testimonial from {name}',
 		wasLabel: 'What the account was',
 		becameLabel: 'What it became',
@@ -857,6 +858,8 @@ const en = {
 		cta: 'Start Your 14-Day Free Trial',
 		/* The modal's close button — sr-only, beside the ✕ glyph. */
 		close: 'Close the film',
+		/* Labels the highlight under the wall. The name follows it. */
+		featured: 'Featured Testimonial:',
 	},
 	/* Section 09 — MOLAR TV. */
 	tv: {
