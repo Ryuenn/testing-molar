@@ -132,9 +132,35 @@ const leadCaption = (filmsOnly && lead.speaker) || lead.name;
 */
 const playerSrc = (id: string) =>
 	`https://player.vimeo.com/video/${id}${id.includes('?') ? '&' : '?'}dnt=1&title=0&byline=0&portrait=0`;
+
+/*
+	The attributes that open the modal.
+
+	Films-only turns every tile into a button: the inline player becomes a
+	thumbnail and pressing it opens the clip full size over the page. The script
+	at the foot reads these three off the button rather than keeping a parallel
+	list in JavaScript, so adding a testimonial cannot desynchronise the two.
+
+	`autoplay=1` belongs to the modal and only to the modal — a visitor who
+	presses play has asked for it, which is the one condition under which a
+	person talking should start talking.
+*/
+const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
+	filmsOnly && entry.vimeo
+		? {
+				'data-film-open': '',
+				'data-film-src': `${playerSrc(entry.vimeo)}&autoplay=1`,
+				'data-film-aspect': entry.aspect,
+				'data-film-label': label,
+			}
+		: {};
 ---
 
-<section id="testimonials" class="section section-rule tm" aria-labelledby="tm-heading">
+<section
+	id="testimonials"
+	class:list={['section section-rule tm', filmsOnly && 'tm--films']}
+	aria-labelledby="tm-heading"
+>
 	<div class="container-content">
 		<header class="tm__head">
 			<p class="eyebrow" data-reveal="fade">{t('testimonials.eyebrow')}</p>
@@ -152,14 +178,52 @@ const playerSrc = (id: string) =>
 			speaking and the viewer needs a scrubber and a volume control — unlike
 			the muted decorative loops elsewhere on the site, which have neither.
 		*/}
+		{/*
+			`panel` only when there is prose to hold.
+
+			In films-only the card has nothing in it but the film and a name, and a
+			bordered, padded, filled box around a portrait video is a frame around a
+			frame — it leaves a broad margin of empty panel on either side of a tall
+			clip and makes the film look like an illustration dropped into a card.
+			Without it the film IS the card, and the frame it already carries is the
+			only edge in the composition.
+		*/}
+		<div class="tm__films">
 		<article
-			class:list={['quote quote--lead panel', filmsOnly && 'quote--lead-film']}
+			class:list={['quote quote--lead', !filmsOnly && 'panel', filmsOnly && 'quote--lead-film']}
 			data-reveal
 		>
 			<div
 				class:list={['quote__film', lead.portrait && 'quote__film--portrait']}
 				style={`--quote-aspect:${lead.aspect}`}
 			>
+				{/*
+					The tile's control, in films-only only.
+
+					The <iframe> underneath is Vimeo's own thumbnail — which is why the
+					tile is not a poster image: there is no still for these clips in the
+					repo, and the player already draws one. It is made inert with
+					`pointer-events: none` and this button takes the press instead, so a
+					click opens the modal rather than starting a small silent video in a
+					corner of the page.
+				*/}
+				{filmsOnly && lead.vimeo && (
+					<button
+						class="quote__play"
+						type="button"
+						{...openAttrs(lead, leadCaption ?? t('testimonials.anonymous'))}
+					>
+						<span class="sr-only">
+							{t('testimonials.watch', { name: leadCaption ?? t('testimonials.anonymous') })}
+						</span>
+						<span class="quote__play-disc" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M9 6.5v11l9-5.5-9-5.5Z" />
+							</svg>
+						</span>
+					</button>
+				)}
+
 				{lead.vimeo ? (
 					<iframe
 						class="quote__embed"
@@ -231,7 +295,7 @@ const playerSrc = (id: string) =>
 		<ul class="tm__grid" data-reveal-stagger>
 			{
 				rest.map((entry) => (
-					<li class="quote panel" data-reveal data-reveal-group>
+					<li class:list={['quote', !filmsOnly && 'panel']} data-reveal data-reveal-group>
 						{/*
 							A <figure> either way, and in films-only mode it is the honest
 							markup rather than a compromise: the film is the figure and the
@@ -245,6 +309,26 @@ const playerSrc = (id: string) =>
 								class:list={['quote__film', entry.portrait && 'quote__film--portrait']}
 								style={`--quote-aspect:${entry.aspect}`}
 							>
+								{/* Same control as the highlight — see the note there. */}
+								{filmsOnly && entry.vimeo && (
+									<button
+										class="quote__play"
+										type="button"
+										{...openAttrs(entry, entry.name ?? t('testimonials.anonymous'))}
+									>
+										<span class="sr-only">
+											{t('testimonials.watch', {
+												name: entry.name ?? t('testimonials.anonymous'),
+											})}
+										</span>
+										<span class="quote__play-disc" aria-hidden="true">
+											<svg viewBox="0 0 24 24" fill="currentColor">
+												<path d="M9 6.5v11l9-5.5-9-5.5Z" />
+											</svg>
+										</span>
+									</button>
+								)}
+
 								{entry.vimeo ? (
 									<iframe
 										class="quote__embed"
@@ -319,6 +403,45 @@ const playerSrc = (id: string) =>
 				))
 			}
 		</ul>
+		</div>
+
+		{/*
+			The player, in the top layer.
+
+			A real <dialog> opened with `showModal()`: the page behind it goes
+			inert, focus is trapped, Escape closes it and the backdrop is the
+			browser's own — none of which is worth hand-writing. What the script
+			adds is the part the platform does not do: swapping the film in, holding
+			the frame at the clip's own aspect, and emptying the src on close so a
+			closed modal is not still playing.
+
+			Rendered only in films-only, where the tiles are buttons that need
+			somewhere to open.
+		*/}
+		{filmsOnly && (
+			<dialog class="tmdlg" data-film-dialog aria-label={t('testimonials.heading')}>
+				<div class="tmdlg__frame">
+					<iframe
+						class="tmdlg__embed"
+						data-film-frame
+						title={t('testimonials.heading')}
+						allow="autoplay; fullscreen; picture-in-picture"
+						allowfullscreen
+					/>
+					<button class="tmdlg__close" type="button" data-film-close>
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path
+								d="m7 7 10 10M17 7 7 17"
+								stroke="currentColor"
+								stroke-width="1.7"
+								stroke-linecap="round"
+							/>
+						</svg>
+						<span class="sr-only">{t('testimonials.close')}</span>
+					</button>
+				</div>
+			</dialog>
+		)}
 
 		<div class="tm__actions" data-reveal>
 			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} target="_blank" rel="noopener">
@@ -472,6 +595,350 @@ const playerSrc = (id: string) =>
 		margin-top: clamp(2rem, 4vw, 3rem);
 	}
 
+	/* ── Films-only: the wall ────────────────────────────────────────────── */
+	/*
+		Three portrait clips, and nothing around them.
+
+		The quoted version of this section is a set of cards — bordered, padded,
+		filled — because a card is what a sentence needs to sit in. A film does
+		not: it arrives with its own hard edge, and a panel behind it only shows
+		as a margin of empty ground on either side of a 9:16 frame. What was on
+		the page was a frame inside a frame inside a section, three times over.
+
+		So in films-only the panels come off (see the note in the markup) and the
+		films carry the whole composition: one large, two smaller under it,
+		centred as a group, each with the same edge and the same shadow.
+	*/
+	.tm--films .quote {
+		padding: 0;
+		gap: clamp(0.75rem, 1.5vw, 1rem);
+	}
+
+	.tm--films .quote--lead {
+		padding: 0;
+		margin-inline: auto;
+	}
+
+	/*
+		Two, centred as a pair rather than stretched across the row.
+
+		`auto` columns, so each cell is exactly as wide as the film inside it and
+		the gap between them stays constant — `1fr` columns would spread the two
+		films to the section's full width and leave the same dead ground the
+		panels used to.
+
+		`align-items: start` because the two clips are different shapes: one is
+		9:16 and one is 43:20, so they cannot both be the same height. Aligning
+		their TOPS puts one clean line across the pair. Centring them would put no
+		line anywhere.
+	*/
+	.tm--films .tm__grid {
+		grid-template-columns: repeat(2, minmax(0, auto));
+		justify-content: center;
+		align-items: start;
+		gap: clamp(1rem, 3vw, 1.75rem);
+		margin-block-start: clamp(1.5rem, 3.5vw, 2.5rem);
+	}
+
+	/* Two portrait films side by side stop fitting somewhere around here. */
+	@media (max-width: 30rem) {
+		.tm--films .tm__grid {
+			grid-template-columns: minmax(0, 1fr);
+			justify-items: center;
+		}
+	}
+
+	/*
+		The frame, and the only edge in the section.
+
+		Softer and deeper than the shared `.quote__film`: a wider radius, a lit
+		hairline rather than the flat line colour, and a long shadow that lets the
+		films sit above the ground instead of on it.
+	*/
+	.tm--films .quote__film {
+		border-radius: 1.125rem;
+		border-color: color-mix(in oklab, #cfe0f5 15%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 10%, transparent),
+			0 34px 70px -34px #000;
+	}
+
+	/*
+		The highlight and the pair, side by side.
+
+		The two smaller films used to sit UNDER the highlight, which made the
+		section a tall column of three portrait clips and left the whole right half
+		of the band empty. Beside it they read as what they are: one film being
+		offered and two more available.
+
+		The widths are chosen so the stacked pair comes out close to the
+		highlight's own height — a 9:16 film at 21rem is 37.3rem tall, and 9:16 +
+		43:20 at 9.5rem plus the gap is about the same. Nothing forces it, because
+		forcing it would mean letterboxing a clip inside a box of the wrong shape;
+		they are simply sized to land together.
+	*/
+	.tm--films .tm__films {
+		display: grid;
+		gap: clamp(1rem, 2.5vw, 1.5rem);
+		justify-content: center;
+		align-items: start;
+	}
+
+	@media (min-width: 46rem) {
+		.tm--films .tm__films {
+			grid-template-columns: auto auto;
+		}
+	}
+
+	/* A step up on the highlight — it is the one that gets watched. */
+	.tm--films .quote--lead .quote__film--portrait {
+		width: min(100%, clamp(16rem, 40vw, 21rem));
+	}
+
+	.tm--films .tm__grid .quote__film--portrait {
+		width: min(100%, clamp(7.5rem, 18vw, 9.5rem));
+	}
+
+	/* Stacked beside the highlight rather than in a row of their own. */
+	@media (min-width: 46rem) {
+		.tm--films .tm__grid {
+			grid-template-columns: minmax(0, 1fr);
+			margin-block-start: 0;
+		}
+	}
+
+	/* ── The tile's control ──────────────────────────────────────────────── */
+	/*
+		Covers the whole tile. The player underneath is the picture and this is the
+		press — see the note in the markup.
+	*/
+	.tm--films .quote__film {
+		position: relative;
+		isolation: isolate;
+		transition:
+			transform 0.4s var(--ease-out-quint),
+			box-shadow 0.4s var(--ease-out-quint),
+			border-color 0.4s var(--ease-out-quint);
+	}
+
+	.tm--films .quote__embed,
+	.tm--films .quote__video {
+		/* The tile is the control. Nothing inside it takes a click. */
+		pointer-events: none;
+	}
+
+	.quote__play {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		display: grid;
+		place-items: center;
+		padding: 0;
+		border: 0;
+		background: radial-gradient(
+			54% 42% at 50% 50%,
+			color-mix(in oklab, var(--color-ink-950) 40%, transparent),
+			transparent 78%
+		);
+		cursor: pointer;
+		opacity: 0.92;
+		transition: opacity 0.35s var(--ease-out-quint);
+	}
+
+	/*
+		Glass, over moving footage — the one place on this site where a backdrop
+		blur has something real to work with.
+	*/
+	.quote__play-disc {
+		display: grid;
+		place-items: center;
+		width: clamp(2.5rem, 4.5vw, 3.5rem);
+		height: clamp(2.5rem, 4.5vw, 3.5rem);
+		border: 1px solid color-mix(in oklab, #e6ecf5 30%, transparent);
+		border-radius: 50%;
+		background-color: color-mix(in oklab, var(--color-ink-950) 38%, transparent);
+		backdrop-filter: blur(10px) saturate(150%);
+		color: var(--color-bone-50);
+		box-shadow: 0 14px 34px -18px #000;
+		transition: transform 0.35s var(--ease-out-quint);
+	}
+
+	.quote__play-disc svg {
+		width: 42%;
+		height: 42%;
+		/* The triangle sits visually left of centre in its own box. */
+		translate: 8% 0;
+	}
+
+	.quote__play:hover,
+	.quote__play:focus-visible {
+		opacity: 1;
+	}
+
+	.quote__play:hover .quote__play-disc,
+	.quote__play:focus-visible .quote__play-disc {
+		transform: scale(1.08);
+	}
+
+	.tm--films .quote__film:has(.quote__play:hover),
+	.tm--films .quote__film:has(.quote__play:focus-visible) {
+		transform: translateY(-3px);
+		border-color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #e6ecf5 14%, transparent),
+			0 40px 80px -34px color-mix(in oklab, var(--color-arc-600) 70%, transparent);
+	}
+
+	/*
+		The name under the highlight.
+
+		Set as a caption rather than as a heading: display face, one step down,
+		letter-spaced, with air above it. It is the only text in the section now,
+		so it can afford to be quiet.
+	*/
+	.tm--films .quote__by--film {
+		gap: 0;
+		padding-block-start: clamp(0.75rem, 1.5vw, 1rem);
+	}
+
+	.tm--films .quote__name {
+		font-size: var(--text-base);
+		letter-spacing: 0.01em;
+	}
+
+	/* ── The modal ───────────────────────────────────────────────────────── */
+	/*
+		Fills the viewport and centres its own frame, so a click that lands on the
+		dialog itself is a click on the backdrop and can close it. A dialog sized
+		to its contents has no such area.
+	*/
+	.tmdlg {
+		width: 100vw;
+		max-width: 100vw;
+		height: 100dvh;
+		max-height: 100dvh;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		background: none;
+		overflow: hidden;
+	}
+
+	.tmdlg::backdrop {
+		background: color-mix(in oklab, #02040a 82%, transparent);
+		backdrop-filter: blur(6px);
+	}
+
+	/*
+		The entrance.
+
+		`display` is discrete, so a dialog cannot normally be transitioned in — it
+		is either in the top layer or it is not. `allow-discrete` plus a
+		`@starting-style` block is what makes the two ends animatable: the browser
+		holds the element visible through the exit and reads the starting values on
+		the way in. Engines without it get the modal instantly, which is the
+		correct fallback for a control rather than a decoration.
+	*/
+	.tmdlg,
+	.tmdlg::backdrop {
+		opacity: 0;
+		transition:
+			opacity 0.28s var(--ease-out-quint),
+			display 0.28s allow-discrete,
+			overlay 0.28s allow-discrete;
+	}
+
+	.tmdlg[open],
+	.tmdlg[open]::backdrop {
+		opacity: 1;
+	}
+
+	@starting-style {
+		.tmdlg[open],
+		.tmdlg[open]::backdrop {
+			opacity: 0;
+		}
+	}
+
+	.tmdlg__frame {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+		padding: clamp(1rem, 4vw, 2.5rem);
+	}
+
+	/*
+		Bounded by HEIGHT, not width. These are portrait clips in a landscape
+		window, so the viewport's short edge is what decides how big the film can
+		be; sizing by width would push the bottom of a 9:16 frame off the screen.
+
+		`--film-aspect` is set by the script from the clip's own record, so the
+		frame is the shape of the film before the player has loaded a pixel and
+		nothing letterboxes.
+	*/
+	.tmdlg__embed {
+		width: auto;
+		height: min(100%, 46rem);
+		max-width: 100%;
+		aspect-ratio: var(--film-aspect, 9 / 16);
+		border: 0;
+		border-radius: clamp(0.75rem, 1.5vw, 1.125rem);
+		background: #000;
+		box-shadow: 0 60px 120px -50px #000;
+		/* Rises the last few pixels as the backdrop fades in. */
+		transition: translate 0.32s var(--ease-out-quint);
+	}
+
+	@starting-style {
+		.tmdlg[open] .tmdlg__embed {
+			translate: 0 1.5rem;
+		}
+	}
+
+	.tmdlg__close {
+		position: absolute;
+		inset-block-start: clamp(0.75rem, 2vw, 1.25rem);
+		inset-inline-end: clamp(0.75rem, 2vw, 1.25rem);
+		display: grid;
+		place-items: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid color-mix(in oklab, #e6ecf5 20%, transparent);
+		border-radius: 50%;
+		background: color-mix(in oklab, var(--color-ink-950) 60%, transparent);
+		backdrop-filter: blur(10px);
+		color: var(--color-bone-50);
+		cursor: pointer;
+		transition:
+			background-color 0.28s var(--ease-out-quint),
+			border-color 0.28s var(--ease-out-quint);
+	}
+
+	.tmdlg__close:hover,
+	.tmdlg__close:focus-visible {
+		border-color: color-mix(in oklab, var(--color-arc-400) 60%, transparent);
+		background: color-mix(in oklab, var(--color-ink-900) 82%, transparent);
+	}
+
+	.tmdlg__close svg {
+		width: 1.125rem;
+		height: 1.125rem;
+	}
+
+	/* The lift and the entrance are motion; the modal itself is not. */
+	@media (prefers-reduced-motion: reduce) {
+		.tm--films .quote__film,
+		.quote__play,
+		.quote__play-disc,
+		.tmdlg,
+		.tmdlg::backdrop,
+		.tmdlg__embed {
+			transition: none;
+		}
+	}
+
 	/*
 		`flex: 1` so the figure takes the card's remaining height under the frame,
 		which is what lets `margin-block-start: auto` on `.quote__by` push the
@@ -554,3 +1021,59 @@ const playerSrc = (id: string) =>
 		color: var(--color-bone-500);
 	}
 </style>
+
+<script>
+	/*
+		Opens the film modal.
+
+		Everything the platform already does is left to it: `showModal()` puts the
+		dialog in the top layer, makes the page behind it inert, traps focus and
+		closes on Escape. This adds the three things it does not —
+
+		  the film     the <iframe> has no `src` until a tile is pressed, so three
+		               players are never loaded for a section most visitors scroll
+		               past, and one is never loaded at all if nobody presses one.
+		  the shape    `--film-aspect` comes off the pressed tile, so a 43:20 clip
+		               and a 9:16 clip each get a frame of their own proportions
+		               rather than one letterboxing inside the other.
+		  the silence  clearing `src` on close. A <dialog> that closes with a Vimeo
+		               player still in it is a closed dialog that is still talking.
+
+		No JS, or an engine without <dialog>: nothing here runs, the buttons do
+		nothing, and the tiles remain the inline players they already are. That is
+		why the <iframe> under each tile is a real player rather than a still.
+	*/
+	const dialog = document.querySelector<HTMLDialogElement>('[data-film-dialog]');
+	const frame = document.querySelector<HTMLIFrameElement>('[data-film-frame]');
+
+	if (dialog && frame && typeof dialog.showModal === 'function') {
+		const close = () => dialog.close();
+
+		for (const button of document.querySelectorAll<HTMLElement>('[data-film-open]')) {
+			button.addEventListener('click', () => {
+				const src = button.dataset.filmSrc;
+				if (!src) return;
+				frame.src = src;
+				frame.style.setProperty('--film-aspect', button.dataset.filmAspect ?? '9 / 16');
+				frame.title = button.dataset.filmLabel ?? frame.title;
+				dialog.showModal();
+			});
+		}
+
+		dialog.querySelector('[data-film-close]')?.addEventListener('click', close);
+
+		/*
+			A click on the dialog itself is a click on the backdrop: the frame fills
+			it and swallows presses that land on the film or the close button, so
+			anything reaching this listener came from the margin around them.
+		*/
+		dialog.addEventListener('click', (event) => {
+			if (event.target === dialog) close();
+		});
+
+		/* Fires for the close button, the backdrop and Escape alike. */
+		dialog.addEventListener('close', () => {
+			frame.removeAttribute('src');
+		});
+	}
+</script>

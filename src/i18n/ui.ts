@@ -855,6 +855,8 @@ const en = {
 		nameWithheld: 'Name withheld at the practice\u2019s request',
 		/* The one ask under the wall. Same label as the MOLAR TV section's. */
 		cta: 'Start Your 14-Day Free Trial',
+		/* The modal's close button — sr-only, beside the ✕ glyph. */
+		close: 'Close the film',
 	},
 	/* Section 09 — MOLAR TV. */
 	tv: {
