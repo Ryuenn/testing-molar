@@ -55,6 +55,21 @@ sharp('src/assets/results/source/before drpatricia sharp.png')
 sharp('src/assets/results/source/dr-patricia-10k.png')
   .extract({ left: 200, top: 0, width: 760, height: 760 })
   .webp({ quality: 90 })
+  .toFile('src/assets/results/patricia-after.webp'); // superseded — see below
+```
+
+Re-cut 2026-09 for the 204 posts / 10.7K followers capture. The source PNG for
+THIS cut is 1266x887 — a different resolution from whatever produced the crop
+above, so its numbers do not transfer to a future re-cut any more than the
+original ones transferred to this one. Treat `left`/`top`/`width`/`height` as
+specific to the exact screenshot they were measured against: re-derive them
+(crop, render, compare avatar size to the before frame, adjust) rather than
+reusing either set blind.
+
+```js
+sharp('src/assets/results/source/drpatricia_107.png') // the 2026-09 capture
+  .extract({ left: 350, top: 15, width: 600, height: 600 })
+  .webp({ quality: 90 })
   .toFile('src/assets/results/patricia-after.webp');
 ```
 

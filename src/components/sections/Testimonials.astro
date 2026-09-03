@@ -144,12 +144,20 @@ const playerSrc = (id: string) =>
 	`autoplay=1` belongs to the modal and only to the modal — a visitor who
 	presses play has asked for it, which is the one condition under which a
 	person talking should start talking.
+
+	`muted=1` rides along with it, and that is not a contradiction of "with
+	sound" — it is the only way to GET sound. No browser allows a cross-origin
+	iframe to start playing audio the instant its `src` is set, gesture or not;
+	autoplay is only ever granted muted. The script at the foot starts it this
+	way and then calls the Player SDK's `setMuted(false)` immediately after,
+	inside the same click handler — that unmute is what the click's user
+	gesture actually buys, and it is the standard pattern for this exact case.
 */
 const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 	filmsOnly && entry.vimeo
 		? {
 				'data-film-open': '',
-				'data-film-src': `${playerSrc(entry.vimeo)}&autoplay=1`,
+				'data-film-src': `${playerSrc(entry.vimeo)}&autoplay=1&muted=1`,
 				'data-film-aspect': entry.aspect,
 				'data-film-label': label,
 			}
@@ -1100,10 +1108,16 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 		already carries the semantics, and a screen reader announcing a stray
 		double-prime before every quotation helps nobody.
 	*/
+	/*
+		DM Serif Display, not the site's usual `--font-display` — the one place
+		it runs, alongside `.quote__body p` below. It ships one weight (400)
+		and no bold, so the mark's old 700 comes off; the serif's own contrast
+		is what used to come from the extra weight.
+	*/
 	.quote__mark {
-		font-family: var(--font-display);
+		font-family: var(--font-quote);
 		font-size: 3rem;
-		font-weight: 700;
+		font-weight: 400;
 		line-height: 0.6;
 		color: color-mix(in oklab, var(--color-arc-400) 45%, transparent);
 	}
@@ -1112,13 +1126,15 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 		margin: 0;
 	}
 
+	/* The one place on the site a visitor reads a serif — see the note on
+	   `.quote__mark`. Tracking comes off zero: the -0.01em was closing up
+	   Archivo's counters, and a serif this size does not want it. */
 	.quote__body p {
 		margin: 0;
-		font-family: var(--font-display);
+		font-family: var(--font-quote);
 		font-size: var(--text-lg);
-		font-weight: 500;
+		font-weight: 400;
 		line-height: 1.5;
-		letter-spacing: -0.01em;
 		color: var(--color-bone-50);
 	}
 
@@ -1166,6 +1182,22 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 
 <script>
 	/*
+		The Vimeo Player SDK's shape, for the one method this file calls.
+		`@vimeo/player` ships its own types, but the SDK itself is loaded from
+		Vimeo's CDN rather than bundled — see the note on `loadVimeoSdk` — so
+		there is no import to hang them off. This is the minimal slice instead.
+	*/
+	declare global {
+		interface Window {
+			Vimeo?: {
+				Player: new (element: HTMLIFrameElement) => {
+					setMuted(muted: boolean): Promise<boolean>;
+				};
+			};
+		}
+	}
+
+	/*
 		Opens the film modal.
 
 		Everything the platform already does is left to it: `showModal()` puts the
@@ -1185,6 +1217,47 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 		nothing, and the tiles remain the inline players they already are. That is
 		why the <iframe> under each tile is a real player rather than a still.
 	*/
+	/*
+		The Player SDK, for one call: `setMuted(false)`.
+
+		Sound is the whole point of this modal — a testimonial with no audio is
+		a silent video of someone talking — but no browser starts a cross-origin
+		iframe's audio the instant `src` is set, whatever the URL asks for and
+		whatever gesture asked for it. The one thing every browser DOES honour is
+		unmuting an already-playing player from inside a click handler, which is
+		why `data-film-src` carries `muted=1` and this SDK call is what takes it
+		back off, in the same synchronous handler as the click.
+
+		Loaded lazily, from `https://player.vimeo.com` — already in `script-src`
+		in netlify.toml for exactly this — and only once the section is close
+		enough to reach that a click is plausible, not on every page load. A
+		visitor who never scrolls here never fetches it.
+	*/
+	let vimeoSdk: Promise<void> | undefined;
+	function loadVimeoSdk(): Promise<void> {
+		vimeoSdk ??= new Promise((resolve, reject) => {
+			const script = document.createElement('script');
+			script.src = 'https://player.vimeo.com/api/player.js';
+			script.addEventListener('load', () => resolve());
+			script.addEventListener('error', () => reject(new Error('Vimeo Player SDK failed to load')));
+			document.head.append(script);
+		});
+		return vimeoSdk;
+	}
+
+	const section = document.querySelector<HTMLElement>('#testimonials');
+	if (section) {
+		const preload = new IntersectionObserver(
+			(entries) => {
+				if (!entries.some((entry) => entry.isIntersecting)) return;
+				preload.disconnect();
+				void loadVimeoSdk();
+			},
+			{ rootMargin: '800px 0px' },
+		);
+		preload.observe(section);
+	}
+
 	const dialog = document.querySelector<HTMLDialogElement>('[data-film-dialog]');
 	const frame = document.querySelector<HTMLIFrameElement>('[data-film-frame]');
 
@@ -1208,6 +1281,13 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 				frame.style.setProperty('--film-h', (h ?? '16').trim());
 				frame.title = button.dataset.filmLabel ?? frame.title;
 				dialog.showModal();
+
+				/* Un-silences the clip the moment the SDK can reach it — see the
+				   note above. `frame.src` above already started it muted. */
+				void loadVimeoSdk().then(() => {
+					const player = new window.Vimeo!.Player(frame);
+					void player.setMuted(false);
+				});
 			});
 		}
 

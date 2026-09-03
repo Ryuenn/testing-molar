@@ -79,32 +79,36 @@ export interface Country {
 }
 
 /**
- * The eighteen markets MOLAR publishes in, as stated by the practice
- * (September 2025). North America and Israel anchor the list; the rest is
- * Europe, which is where most of the roster sits.
+ * The eighteen markets MOLAR publishes in, read off the practice's own
+ * customer roster (September 2026) rather than the earlier September 2025
+ * list — the two do not fully overlap; nine of the eighteen changed. Order
+ * follows the roster as given: the anchors (US, Canada, Germany, Israel,
+ * Austria) carried over, and the rest is a wider spread than before —
+ * Lebanon, India, Türkiye, Japan, Ghana, Panama and Singapore joined; several
+ * Western European markets with no evidenced customer dropped off.
  *
  * Adding one means adding its flag at `public/flags/<code>.svg` from
  * HatScripts/circle-flags — the rail reads the file straight off the code.
  */
 export const COUNTRIES: readonly Country[] = [
-	{ code: 'us', name: 'United States', de: 'Vereinigte Staaten' },
-	{ code: 'ca', name: 'Canada', de: 'Kanada' },
-	{ code: 'de', name: 'Germany', de: 'Deutschland' },
-	{ code: 'il', name: 'Israel', de: 'Israel' },
-	{ code: 'at', name: 'Austria', de: 'Österreich' },
-	{ code: 'ch', name: 'Switzerland', de: 'Schweiz' },
-	{ code: 'gb', name: 'United Kingdom', de: 'Vereinigtes Königreich' },
-	{ code: 'ie', name: 'Ireland', de: 'Irland' },
-	{ code: 'fr', name: 'France', de: 'Frankreich' },
-	{ code: 'es', name: 'Spain', de: 'Spanien' },
 	{ code: 'pt', name: 'Portugal', de: 'Portugal' },
-	{ code: 'it', name: 'Italy', de: 'Italien' },
+	{ code: 'de', name: 'Germany', de: 'Deutschland' },
 	{ code: 'nl', name: 'Netherlands', de: 'Niederlande' },
-	{ code: 'be', name: 'Belgium', de: 'Belgien' },
-	{ code: 'se', name: 'Sweden', de: 'Schweden' },
-	{ code: 'no', name: 'Norway', de: 'Norwegen' },
-	{ code: 'dk', name: 'Denmark', de: 'Dänemark' },
-	{ code: 'pl', name: 'Poland', de: 'Polen' },
+	{ code: 'fr', name: 'France', de: 'Frankreich' },
+	{ code: 'gr', name: 'Greece', de: 'Griechenland' },
+	{ code: 'gb', name: 'United Kingdom', de: 'Vereinigtes Königreich' },
+	{ code: 'lb', name: 'Lebanon', de: 'Libanon' },
+	{ code: 'us', name: 'United States', de: 'Vereinigte Staaten' },
+	{ code: 'in', name: 'India', de: 'Indien' },
+	{ code: 'tr', name: 'Türkiye', de: 'Türkei' },
+	{ code: 'ro', name: 'Romania', de: 'Rumänien' },
+	{ code: 'jp', name: 'Japan', de: 'Japan' },
+	{ code: 'ca', name: 'Canada', de: 'Kanada' },
+	{ code: 'gh', name: 'Ghana', de: 'Ghana' },
+	{ code: 'il', name: 'Israel', de: 'Israel' },
+	{ code: 'pa', name: 'Panama', de: 'Panama' },
+	{ code: 'at', name: 'Austria', de: 'Österreich' },
+	{ code: 'sg', name: 'Singapore', de: 'Singapur' },
 ] as const;
 
 /** The country's name in the locale being rendered. */

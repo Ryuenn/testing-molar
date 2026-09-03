@@ -37,14 +37,12 @@ export const CLIENT_LOGOS: readonly ClientLogo[] = [
 	{ slug: 'dutchess-dental-care', name: 'Dutchess Dental Care' },
 	{ slug: 'dr-yolanda-cruz', name: 'Dr Yolanda Cruz' },
 	{ slug: 'pure-dental', name: 'Pure Dental' },
-	{ slug: 'gmu-dental', name: 'gmü dental' },
 	{ slug: 'court-street', name: 'Court Street Dental' },
 	{ slug: 'dennis-sierra-dmd-pa', name: 'Dennis Sierra DMD PA' },
 	/* Both read off the September artwork, which spells out what the previous
 	   screenshots only abbreviated. "Adom Dental" was a guess and wrong. */
 	{ slug: 'adom', name: 'ADOM — Association of Dental Office Managers' },
 	{ slug: 'apacdsm', name: 'APAC DSM' },
-	{ slug: 'dcd', name: 'DCD Dental' },
 ];
 
 /** Counted rather than typed, so a headline figure cannot fall out of step. */

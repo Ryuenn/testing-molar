@@ -16,53 +16,77 @@
    the ones it cannot see being used and the variables would resolve to nothing.
    ──────────────────────────────────────────────────────────────────────────── */
 @theme static {
-	/* Ground — navy-black, not neutral grey. */
-	--color-ink-950: #05070d;
-	--color-ink-900: #070b14;
-	--color-ink-850: #0a101d;
-	--color-ink-800: #0e1628;
-	--color-ink-700: #141f36;
-	--color-ink-600: #1c2b4b;
+	/*
+		The brand kit's six colours, mapped onto the scales the rest of the site
+		already reads through `var()` — Molar Black and Molar Navy anchor `ink`,
+		Molar White and Molar Ice Blue anchor `bone`, and Molar Steel Blue,
+		Molar Ice Blue and Molar Electric Blue anchor `arc`. Every intermediate
+		step is a straight interpolation between two real brand hexes rather
+		than a hand-picked value, so the scale stays smooth without inventing
+		colours the kit never named.
+
+		Electric Blue (#00C8FF) is not on every accent step. It fails contrast
+		outright as a solid fill under white button text — 1.96:1, nowhere near
+		the 4.5:1 floor — so it sits only where the kit's own "tech accents,
+		glow effects" description actually points: `arc-300`, which nothing on
+		this site fills with text on top of. It is text colour, borders and
+		glows there (confirmed against every current use before this changed),
+		never a button's own background. `arc-400`/`arc-500`, which ARE solid
+		CTA fills with white text, stay on the Steel Blue → Navy end instead —
+		both still verified above 4.5:1 with white text (4.85:1 and 6.29:1).
+	*/
+
+	/* Ground — Molar Black to Molar Navy. */
+	--color-ink-950: #03080e; /* Molar Black */
+	--color-ink-900: #060f1a;
+	--color-ink-850: #091726;
+	--color-ink-800: #0b1e32;
+	--color-ink-700: #0e263e;
+	--color-ink-600: #112d4a; /* Molar Navy */
 
 	/*
-		Type.
+		Type — Molar White to Molar Ice Blue.
 
-		The two quiet greys were lifted in the 09/01 pass. Both cleared WCAG AA
-		before — 500 measured 4.9:1 on ink-950 and 400 measured 6.9:1 — and both
-		were still hard to read in practice, which is a different test and the one
-		that matters. AA is a floor for 16px body copy; almost every use of these
-		two is an 11–13px mono label or a caption, where 4.9:1 on a near-black
-		ground reads as disabled text rather than as quiet text.
-
-		Measured against ink-950:
-		  bone-300  10.0:1   body copy in a panel
-		  bone-400   8.7:1   secondary lines, notes  (was 6.9:1)
-		  bone-500   7.0:1   small labels, captions  (was 4.9:1)
-
-		They are still three distinct steps, so nothing that relied on the
-		hierarchy has flattened; the whole scale just moved up off the floor.
+		Every step here reads well above the AA floor against ink-950: bone-50
+		measures ~19:1, bone-300 ~13:1, bone-500 (Molar Ice Blue itself) ~8.3:1
+		— all higher than the greys they replace, so nothing that relied on
+		this hierarchy for legibility loses any of it.
 	*/
-	--color-bone-50: #eef3fb;
-	--color-bone-100: #dbe4f2;
-	--color-bone-300: #a8b7cf;
-	--color-bone-400: #9dabc4;
-	--color-bone-500: #8b99b3;
+	--color-bone-50: #fafaf8; /* Molar White */
+	--color-bone-100: #dde6eb;
+	--color-bone-300: #c0d3dd;
+	--color-bone-400: #a3bfd0;
+	--color-bone-500: #86abc2; /* Molar Ice Blue */
 
-	/* The single accent. */
-	--color-arc-200: #b3d3ff;
-	--color-arc-300: #78b0ff;
-	--color-arc-400: #3d8bff;
-	--color-arc-500: #0a66ff;
-	--color-arc-600: #0a51cc;
-	--color-arc-700: #1e3a8a;
+	/* The accent — see the note above for why Electric Blue sits at 300 and
+	   not spread across the whole scale. */
+	--color-arc-200: #33d3ff;
+	--color-arc-300: #00c8ff; /* Molar Electric Blue */
+	--color-arc-400: #4d76a4;
+	--color-arc-500: #3a6485; /* Molar Steel Blue */
+	--color-arc-600: #264968;
+	--color-arc-700: #112d4a; /* Molar Navy, again — the deepest accent step
+	                              and the lightest ground step are the same
+	                              colour on purpose; it is one brand blue. */
 
-	/* Hairlines — margins should read as machined, not drawn. */
+	/* Hairlines — margins should read as machined, not drawn. Not one of the
+	   kit's six; close enough to Steel Blue/Ice Blue already that changing it
+	   was not worth the extra variable nobody asked for. */
 	--color-line: color-mix(in oklab, #7aa2d8 14%, transparent);
 	--color-line-strong: color-mix(in oklab, #7aa2d8 26%, transparent);
 
-	--font-display: 'Space Grotesk Variable', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-	--font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+	/*
+		The brand kit's fonts — see the imports in `~/layouts/BaseLayout` for
+		which package each one loads and why.
+	*/
+	--font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+	--font-sans: 'HK Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
 	--font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', 'Cascadia Code', monospace;
+	/* The home page's hero headline only — see `.hero__title` in `Hero.astro`. */
+	--font-hero: 'League Gothic', var(--font-display);
+	/* Testimonial pull-quotes only — see `.quote__body` / `.quote__mark` in
+	   `Testimonials.astro`. */
+	--font-quote: 'DM Serif Display', var(--font-display);
 
 	/* A real scale: minor third, fluid between 375 and 1440. */
 	--text-2xs: 0.6875rem;

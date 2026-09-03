@@ -1,0 +1,50 @@
+/**
+ * HK Grotesk — the site's body font, self-hosted.
+ *
+ * Not a Fontsource package: the `hk-grotesk` npm package exists (SIL Open Font
+ * License, the free/open cut rather than the paid "Pro" one the brand kit
+ * actually names — see the note in `~/layouts/BaseLayout`), but its own
+ * bundled stylesheet points every `url()` at `cdn.jsdelivr.net`, which is
+ * exactly the external font request the rest of this site avoids to keep the
+ * CSP's `font-src` locked to `'self'`. So the four weight files are vendored
+ * into `public/fonts/hk-grotesk/` from that package instead, and this is a
+ * hand-written stylesheet pointing at the local copies.
+ *
+ * Four weights, not the package's full seven-plus-italics: 400/500/600/700 is
+ * what the site actually asks for anywhere `--font-sans` is set at a weight
+ * (body copy, `font-medium`/`font-semibold` utilities, bold inline runs). No
+ * italic anywhere on the site either. Add a weight here only once something on
+ * the page actually renders at it — a font file nothing uses is pure weight.
+ */
+
+@font-face {
+	font-family: 'HK Grotesk';
+	src: url('/fonts/hk-grotesk/hkgrotesk-regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'HK Grotesk';
+	src: url('/fonts/hk-grotesk/hkgrotesk-medium.woff2') format('woff2');
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'HK Grotesk';
+	src: url('/fonts/hk-grotesk/hkgrotesk-semibold.woff2') format('woff2');
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'HK Grotesk';
+	src: url('/fonts/hk-grotesk/hkgrotesk-bold.woff2') format('woff2');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}

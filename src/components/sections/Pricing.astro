@@ -3,7 +3,7 @@ import {
 	PLANS,
 	isCheckout,
 } from '~/data/pricing';
-import { PROMO, SALES_CALL } from '~/data/site';
+import { PROMO, EDUCATION_CHECKOUT } from '~/data/site';
 import {
 	EDUCATION_PRICE,
 	EDUCATION_PRICE_ANNUAL,
@@ -50,18 +50,25 @@ const { head = true } = Astro.props;
  * monthly price already chosen, and the script below only swaps which of two
  * server-rendered states is hidden. No JS leaves a working monthly card.
  *
- * ⚠️ THERE IS NO ANNUAL PAYMENT LINK. `EDUCATION_CHECKOUT` in `~/data/site` is
- * the monthly subscription and nothing in this repo can take $849 for a year.
- * So the annual state's button books a call rather than opening a checkout that
- * would charge the wrong amount — the one failure mode worth avoiding here. The
- * moment an annual Payment Link exists, put it in `~/data/education`, point
- * `annualHref` at it, and change the annual label back to a purchase.
+ * ⚠️ THERE IS STILL NO ANNUAL PAYMENT LINK. `EDUCATION_CHECKOUT` in
+ * `~/data/site` is the monthly subscription and nothing in this repo can take
+ * $849 for a year — the annual state's button used to book a call instead of
+ * risking that wrong charge, which is the correct default for this problem.
+ *
+ * By request, it now points at the monthly checkout instead, as a stopgap
+ * until the real annual link is connected: a visitor who presses it gets
+ * MOLAR TV, billed monthly with the 14-day trial, rather than a booking
+ * calendar. The annual PRICE and savings copy on the card are unchanged, so
+ * the card still shows $849/yr while the button underneath quietly opens a
+ * $97/mo checkout — worth reconciling once the annual link exists. The moment
+ * it does, put it in `~/data/education`, point `href` below at it, and swap
+ * the button back to `pricing.annualCta` (still defined, unused for now).
  */
 const annual = {
 	price: EDUCATION_PRICE_ANNUAL,
 	perMonth: EDUCATION_ANNUAL_MONTHLY,
 	saving: EDUCATION_ANNUAL_SAVING,
-	href: SALES_CALL,
+	href: EDUCATION_CHECKOUT,
 };
 ---
 
@@ -96,7 +103,11 @@ const annual = {
 						data-reveal
 						data-reveal-group
 					>
-						{plan.badge && <p class="plan__badge">{t('pricing.badge')}</p>}
+						{plan.badge && (
+							<p class:list={['plan__badge', `plan__badge--${plan.badge}`]}>
+								{t(plan.badge === 'popular' ? 'pricing.badge' : 'pricing.badgeTrial')}
+							</p>
+						)}
 
 						<h3 class="plan__name">{t(`pricing.${plan.key}Name` as never)}</h3>
 
@@ -218,10 +229,10 @@ const annual = {
 								</a>
 
 								{/*
-									The annual button books a call rather than opening a
-									checkout — see the ⚠️ in the frontmatter. There is no annual
-									Payment Link in this repo, and pointing this at the monthly
-									one would show $849 a year and charge $97 a month.
+									Same destination as the monthly button above, for now — see
+									the ⚠️ in the frontmatter for why, and what changes once the
+									annual Payment Link exists. The label matches it too, rather
+									than promising a call this does not book.
 								*/}
 								<a
 									class="plan__cta"
@@ -231,8 +242,8 @@ const annual = {
 									data-billing-pane="annual"
 									hidden
 								>
-									{t('pricing.annualCta')}
-									<span class="sr-only"> — opens a booking calendar {t('footer.newTab')}</span>
+									{t('pricing.educationCta')}
+									<span class="sr-only"> — opens Stripe Checkout {t('footer.newTab')}</span>
 									<span class="plan__cta-arrow" aria-hidden="true">
 										&rarr;
 									</span>
@@ -580,6 +591,15 @@ const annual = {
 		}
 	}
 
+	/*
+		A lapel pin, not a flat label: a deep gradient fill so it has body of its
+		own, a bright rim to draw the eye, a glow to lift it off both the ink
+		behind it and the card below, and an inset highlight along the top edge
+		for the same "lit from above" read every other raised surface on this
+		site gets. The dark ring in the box-shadow is a cutout — a hairline of
+		true ink between the badge and whatever is directly behind it, so it
+		reads as sitting ON the seam rather than smudged across it.
+	*/
 	.plan__badge {
 		position: absolute;
 		/* Above the travelling ring, which crosses the top border it straddles. */
@@ -588,18 +608,74 @@ const annual = {
 		inset-inline-start: 50%;
 		transform: translate(-50%, -50%);
 		margin: 0;
-		padding: 0.3rem 0.7rem;
-		border: 1px solid color-mix(in oklab, var(--color-arc-300) 45%, transparent);
+		padding: 0.4rem 0.9rem;
+		border: 1px solid color-mix(in oklab, var(--color-arc-300) 65%, transparent);
 		border-radius: 99px;
 		/* Solid: it straddles the card's top edge, so it has the picture behind
 		   half of it and needs to read against both. */
-		background: var(--color-arc-600);
+		background: linear-gradient(155deg, var(--color-arc-500) 0%, var(--color-arc-700) 100%);
+		box-shadow:
+			inset 0 1px 0 color-mix(in oklab, #eaf3ff 45%, transparent),
+			0 0 0 4px var(--color-ink-950),
+			0 10px 24px -8px color-mix(in oklab, var(--color-arc-300) 65%, transparent);
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
-		letter-spacing: 0.14em;
+		font-weight: 700;
+		letter-spacing: 0.16em;
 		text-transform: uppercase;
 		white-space: nowrap;
 		color: var(--color-bone-50);
+	}
+
+	/*
+		The "Most Popular" pin only, isolated so its own pseudo-element has
+		something to stack a glow on.
+	*/
+	.plan__badge--popular {
+		isolation: isolate;
+	}
+
+	/*
+		The bright glow, breathing in and out all the way around at once —
+		rather than travelling, like the card's own border ring does.
+
+		A separate layer behind the badge rather than an animated box-shadow on
+		the badge itself: a custom property holding a full shadow value does not
+		interpolate — browsers only ever snap between the two keyframes' literal
+		values, which reads as a flicker, not a breath. `opacity` on its own
+		element is a property browsers genuinely tween, so this fades a fixed,
+		already-bright shadow in and out instead of trying to animate the shadow
+		itself.
+	*/
+	.plan__badge--popular::before {
+		content: '';
+		position: absolute;
+		inset: -0.4rem;
+		z-index: -1;
+		border-radius: inherit;
+		box-shadow: 0 0 24px 8px color-mix(in oklab, var(--color-arc-300) 90%, transparent);
+		opacity: 0;
+		animation: badge-pulse 2.2s ease-in-out infinite;
+	}
+
+	@keyframes badge-pulse {
+		0%,
+		100% {
+			opacity: 0;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.plan__badge--popular::before {
+			animation: none;
+			/* A visitor who asked for less motion still gets the emphasis — held
+			   at its brightest rather than off, since this is not decoration on
+			   top of the badge, it is most of the reason the badge stands out. */
+			opacity: 1;
+		}
 	}
 
 	.plan__name {
@@ -607,6 +683,7 @@ const annual = {
 		font-size: var(--text-lg);
 		font-weight: 600;
 		letter-spacing: -0.01em;
+		color: var(--color-bone-50);
 	}
 
 	.plan__price {
@@ -629,7 +706,7 @@ const annual = {
 	.plan__cadence {
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
-		color: var(--color-bone-400);
+		color: var(--color-bone-50);
 	}
 
 	.plan__promo {
@@ -670,7 +747,7 @@ const annual = {
 	.plan__blurb {
 		margin: 0.35rem 0 0;
 		font-size: var(--text-sm);
-		color: var(--color-bone-400);
+		color: var(--color-bone-50);
 	}
 
 	.plan__features {
@@ -692,7 +769,7 @@ const annual = {
 		align-items: start;
 		font-size: var(--text-sm);
 		line-height: 1.5;
-		color: var(--color-bone-300);
+		color: var(--color-bone-50);
 	}
 
 	.plan__tick {
@@ -710,41 +787,39 @@ const annual = {
 		gap: 0.55rem;
 		min-height: 3rem;
 		padding-inline: 1.25rem;
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid transparent;
 		border-radius: 0.75rem;
-		background-color: color-mix(in oklab, var(--color-bone-50) 8%, transparent);
+		background-color: var(--color-bone-50);
 		font-family: var(--font-display);
 		font-size: var(--text-sm);
 		font-weight: 600;
 		line-height: 1;
 		text-align: center;
 		text-decoration: none;
-		color: var(--color-bone-50);
+		color: var(--color-ink-950);
 		/* No `box-shadow` here on purpose: the featured button's is a 44px blur,
 		   and animating one of those repaints the button every frame of the
 		   hover. It snaps instead, which at this size is not readable as a snap. */
 		transition:
 			background-color 0.28s var(--ease-out-quint),
-			border-color 0.28s var(--ease-out-quint),
 			transform 0.28s var(--ease-out-quint);
 	}
 
 	.plan__cta:hover {
-		background-color: color-mix(in oklab, var(--color-bone-50) 14%, transparent);
-		border-color: color-mix(in oklab, var(--color-arc-300) 50%, transparent);
+		background-color: #fff;
 		transform: translateY(-2px);
 	}
 
+	/*
+		The one thing left to mark the featured plan out, now every button is
+		white: a glow the other three don't carry. See the note above on why it
+		lives only here rather than on the shared rule.
+	*/
 	.plan__cta--featured {
-		border-color: transparent;
-		background-color: var(--color-bone-50);
-		color: var(--color-ink-950);
 		box-shadow: 0 18px 44px -18px color-mix(in oklab, var(--color-arc-400) 80%, transparent);
 	}
 
 	.plan__cta--featured:hover {
-		background-color: #fff;
-		border-color: transparent;
 		box-shadow: 0 22px 56px -18px color-mix(in oklab, var(--color-arc-400) 100%, transparent);
 	}
 

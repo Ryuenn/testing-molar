@@ -44,7 +44,10 @@ export interface Plan {
 	 * this flag rather than off a hardcoded pair of ids.
 	 */
 	social?: boolean;
-	badge?: boolean;
+	/** Keys into `pricing.badge*` — 'popular' → `pricing.badge`, 'trial' →
+	    `pricing.badgeTrial`. Independent of `featured`: a plan can carry a
+	    badge without the full highlight treatment. */
+	badge?: 'popular' | 'trial';
 	featured: boolean;
 	amount: number | null;
 }
@@ -70,6 +73,9 @@ export const PLANS: Plan[] = [
 		perMonth: true,
 		amount: 97,
 		cta: { href: EDUCATION_CHECKOUT },
+		/* A badge, not the full highlight — the trial is the thing worth
+		   calling out here, not "this is the plan to pick". */
+		badge: 'trial',
 		featured: false,
 	},
 	{
@@ -84,7 +90,9 @@ export const PLANS: Plan[] = [
 		/* One of the two social cards. See `isSocial` below — the shared line the
 		   brief asks for runs under both of them. */
 		social: true,
-		featured: false,
+		/* "Most Popular", moved here from Premium by request. */
+		badge: 'popular',
+		featured: true,
 	},
 	{
 		id: 'premium',
@@ -96,8 +104,7 @@ export const PLANS: Plan[] = [
 		amount: 1497,
 		cta: { href: 'https://buy.stripe.com/9B65kD7HZdBuckI5WAeAg02' },
 		social: true,
-		badge: true,
-		featured: true,
+		featured: false,
 	},
 	{
 		id: 'enterprise',

@@ -242,7 +242,7 @@ const en = {
 			'A sample of the accounts we run — nine consecutive posts from each, in {n} languages. Nothing here is a mockup: every grid is what a patient saw when they opened the profile.',
 		resultsTitle: 'Results — what the content did',
 		resultsDesc:
-			'One dental practice went from a single post and 159 followers to 152 posts and 10.2K. The profile screenshots, the numbers, and the messages other practices sent afterwards.',
+			'One dental practice went from a single post and 159 followers to 204 posts and 10.7K. The profile screenshots, the numbers, and the messages other practices sent afterwards.',
 		resultsIntro: 'What the content actually did.',
 		resultsLede:
 			'One account we run, screenshotted before and after — and the messages other practices sent once they saw the work in their feed. No composites, no reconstructions, no rounded-up figures.',
@@ -319,7 +319,7 @@ const en = {
 		before: 'Before — {n} followers',
 		after: 'After — {n} followers',
 		beforeRead: '1 post · 159 followers',
-		afterRead: '152 posts · 10.2K followers',
+		afterRead: '204 posts · 10.7K followers',
 		source:
 			'Unretouched screenshots of the public profile at {handle}. The figures beside them are transcribed from the screenshots; the lines underneath are our reading of what changed.',
 		filmLabel: 'In her words',
@@ -332,7 +332,7 @@ const en = {
 		altBefore:
 			'Instagram profile for {handle} showing 1 post, 159 followers and a single post in the grid.',
 		altAfter:
-			'The same Instagram profile showing 152 posts, 10.2K followers and a full grid of patient education posts.',
+			'The same Instagram profile showing 204 posts, 10.7K followers and a full grid of patient education posts.',
 		was1: 'Easy to overlook',
 		was2: 'Inconsistent online presence',
 		was3: 'Limited patient awareness',
@@ -408,6 +408,7 @@ const en = {
 		lede: 'No long-term contracts. Cancel anytime.',
 		footnote: 'Prices in USD. No long-term contracts. Cancel anytime.',
 		badge: 'Most Popular',
+		badgeTrial: '14 Days Free',
 		perMonth: '/mo',
 		perYear: '/yr',
 		custom: 'Custom',
@@ -419,8 +420,11 @@ const en = {
 		annualSaving: 'About {monthly}/month — a saving of {saving}.',
 		annualNote: 'Billed in full today · No free trial on annual · Cancel anytime',
 		/*
-			Not "Start free trial": annual has no trial, and there is no annual
-			Payment Link in this repo. See the ⚠️ in `~/components/sections/Pricing`.
+			Unused for now — the annual button points at the monthly checkout
+			instead of a booking call until the real annual Payment Link exists.
+			See the ⚠️ in `~/components/sections/Pricing`. Left defined rather than
+			deleted: this is the label the annual button goes back to the moment
+			that link is connected.
 		*/
 		annualCta: 'Talk to MOLAR about annual',
 		/* Across both social cards, under the plan grid. */
@@ -430,7 +434,7 @@ const en = {
 		educationSummary: 'Educate patients. Build trust. Help more say yes.',
 		educationBlurb:
 			'Your own waiting-room channel, plus the whole library to play chairside and in the consult room.',
-		educationCta: 'Start Free Trial',
+		educationCta: 'Get Instant Access',
 		educationNote: '14 days free, then billed monthly · Cancel anytime',
 		l1: 'Custom MOLAR TV',
 		l2: '300+ patient education videos',
@@ -682,7 +686,6 @@ const en = {
 		*/
 		eyebrow: 'Choose how much you want MOLAR to handle',
 		heading: 'Choose How Much You Want MOLAR To Handle.',
-		lede: 'Four plans, one engine. Every one of them publishes branded patient education to your practice on schedule.',
 		notSure: 'Not sure which plan fits your practice?',
 		findPlan: 'Find My Plan',
 	},

@@ -65,7 +65,7 @@ export const WORK: readonly WorkAccount[] = [
 			{ hex: '#EDE3D6', name: 'Warm sand' },
 			{ hex: '#2B4160', name: 'Deep navy' },
 		],
-		caseStudy: { href: '/results/', label: 'Read the case: 159 to 10.2K followers' },
+		caseStudy: { href: '/results/', label: 'Read the case: 159 to 10.7K followers' },
 	},
 
 	{

@@ -174,9 +174,17 @@ const SOCIAL = [
 			<source src={VIDEO.mp4} type="video/mp4" />
 		</video>
 
-		{/* Scrim. The copy column is on the left, so the ink is banked there. */}
+		{/*
+			Scrim. The copy column is on the left, so the ink is banked there.
+
+			No vignette layer any more. It was a radial darkening the corners, eased
+			back four times and then dropped: the footage IS the argument on this
+			fold — the product in the room it is sold for — and every pass of that
+			gradient was taking contrast off the one thing the fold is showing. The
+			scrim below still banks ink where the copy sits, which is the only
+			darkening here doing legibility work.
+		*/}
 		<div class="hero__scrim" data-hero-scrim></div>
-		<div class="hero__vignette" aria-hidden="true"></div>
 		<div class="grain" aria-hidden="true"></div>
 	</div>
 
@@ -188,7 +196,16 @@ const SOCIAL = [
 	<ul class="hero__social" aria-label="Follow MOLAR AI">
 		{
 			SOCIAL.map((link) => (
-				<li>
+				/*
+					`data-hero-in` on the <li>, not the <ul> — the <ul> is centred with
+					its own `transform: translateY(-50%)` (see the CSS), and the
+					pre-paint hidden state and the GSAP tween both write to `transform`
+					too. On the <ul> that would overwrite the centring instead of
+					combining with it. Each icon animating individually reads as a
+					small cascade rather than one block sliding in, which is a better
+					match for three separate icons anyway.
+				*/
+				<li data-hero-in="tail">
 					{/*
 						External, so rel="noopener". No noreferrer — these are the
 						company's own accounts and the referrer is wanted in their
@@ -446,57 +463,58 @@ const SOCIAL = [
 			/*
 				Ink banked down the left, where the copy is.
 
-				Eased back a step: the near edge was FULLY opaque ink, so the left
-				third of the fold was a flat black panel rather than a dark part of
-				the room — the chair and the patient in it disappeared into it
-				entirely. It is a scrim, and a scrim you cannot see through is a
-				background colour.
+				Walked back three times now — 100/92/62/18, then 90/80/54/14, and
+				now this. The last pass changed the SHAPE as much as the strength:
+				the ramp used to still be at 54% ink halfway across the fold and
+				only reached clear at the far edge, which is a wash over the whole
+				picture rather than a scrim behind a paragraph. It now falls off
+				hard and is completely clear by 78%, so the right half of the frame
+				— the screen on the wall, which is the product — has nothing over
+				it at all.
 
-				Deliberately a small move (100/92/62/18 → 90/80/54/14). The headline
-				is white on this and the paragraph under it is not; whatever comes off
-				here comes straight off their contrast, so the room reads through the
-				ink without the copy having to fight it.
+				What is left is sized to the copy column and nothing wider. The
+				headline is white on this and the paragraph under it is not; below
+				about 55% at the near edge the paragraph starts to fight the wall
+				behind it, so that is the floor rather than a preference.
 			*/
 			linear-gradient(
 				90deg,
-				color-mix(in oklab, var(--color-ink-950) 90%, transparent) 0%,
-				color-mix(in oklab, var(--color-ink-950) 80%, transparent) 26%,
-				color-mix(in oklab, var(--color-ink-950) 54%, transparent) 46%,
-				color-mix(in oklab, var(--color-ink-950) 14%, transparent) 66%,
-				transparent 100%
+				color-mix(in oklab, var(--color-ink-950) 68%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 52%, transparent) 24%,
+				color-mix(in oklab, var(--color-ink-950) 22%, transparent) 46%,
+				color-mix(in oklab, var(--color-ink-950) 4%, transparent) 64%,
+				transparent 78%
 			),
+			/*
+				Top and bottom.
+
+				Unlike the band above, this one sits behind the video on the right
+				as much as behind the copy on the left, so every point of it is
+				taken off the footage itself. The top is down to a whisper (62 → 34
+				→ 14) and the bottom ramp, which used to start a sixth of the way up
+				the fold, is now a narrow strip at the very foot.
+
+				The `100%` stop stays and is not negotiable: it is what lets this
+				section meet the reel below it in flat ink with no seam. Starting
+				the ramp at 94% rather than 84% keeps that seam while giving back
+				the ten percent of the picture the falloff was eating.
+			*/
 			linear-gradient(
 				180deg,
-				color-mix(in oklab, var(--color-ink-950) 62%, transparent) 0%,
-				color-mix(in oklab, var(--color-ink-950) 12%, transparent) 34%,
-				color-mix(in oklab, var(--color-ink-950) 72%, transparent) 84%,
+				color-mix(in oklab, var(--color-ink-950) 14%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 3%, transparent) 34%,
+				color-mix(in oklab, var(--color-ink-950) 10%, transparent) 94%,
 				var(--color-ink-950) 100%
 			);
 	}
 
 	/*
-		The vignette, eased back.
-
-		It ran `transparent 32%` to 78% ink at the edge — a third of the frame
-		clear and then two thirds ramping into near-black, which put the treatment
-		room's corners, the doorway and the chair into shadow the footage does not
-		have. The room is the argument here; darkening its edges to focus a reader
-		who is already looking at a screen in the middle of the frame costs more
-		than it buys.
-
-		Clear further out (32% → 46%) and darker only by half at the edge (78% →
-		42%). Still a vignette — the corners settle rather than compete with the
-		headline — but the picture reaches them now.
+		`.hero__vignette` is gone — see the note in the markup. It was a radial
+		darkening the corners of the footage, walked back through 78/42/22/12%
+		ink at the edge and then removed. Do not reintroduce one here without a
+		reason the footage itself gives you: this fold is a picture of the
+		product in the room it is sold for, and the corners are part of it.
 	*/
-	.hero__vignette {
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(
-			120% 86% at 74% 44%,
-			transparent 46%,
-			color-mix(in oklab, var(--color-ink-950) 42%, transparent) 100%
-		);
-	}
 
 	/* ── Layout ──────────────────────────────────────────────────────────── */
 	/*
@@ -531,11 +549,31 @@ const SOCIAL = [
 		/*
 			Sized against the half-width column it now sits in rather than against
 			the window: at the old 6.1vw the line ran straight into the readouts.
+
+			Raised twice for League Gothic: condensed letterforms take less
+			horizontal room per character than Archivo did at the same size, so
+			the column keeps width to spare even at this size —
+			2.35/3.9vw+0.9/4.35 → 2.8/4.7vw+1.1/5.2 → 3.2/5.4vw+1.25/6.
 		*/
-		font-size: clamp(2.35rem, 3.9vw + 0.9rem, 4.35rem);
+		font-size: clamp(3.2rem, 5.4vw + 1.25rem, 6rem);
 		line-height: 1.03;
-		font-weight: 700;
-		letter-spacing: -0.03em;
+		/*
+			League Gothic, not the site's usual `--font-display` — the one place
+			it runs. It only ships one weight (400) and no italic, so there is
+			nothing to bold here: the tall, condensed letterforms carry the
+			weight the old 700 was doing on Archivo.
+
+			Tracking is OPEN, not tight — the opposite of Archivo's -0.03em.
+			That negative value carried straight over here at first (-0.005em)
+			and was wrong: closing up tracking on a face that is already
+			condensed by design compounds it, and the headline read as
+			squeezed rather than as a deliberately tall, narrow display face.
+			+0.02em gives the letters room to breathe without fighting what
+			makes League Gothic look like League Gothic.
+		*/
+		font-family: var(--font-hero);
+		font-weight: 400;
+		letter-spacing: 0.02em;
 		text-wrap: balance;
 		max-width: 19ch;
 	}
@@ -597,8 +635,9 @@ const SOCIAL = [
 		max-width: 52ch;
 		margin: 0;
 		font-size: var(--text-base);
+		font-weight: 500;
 		line-height: 1.65;
-		color: var(--color-bone-300);
+		color: var(--color-bone-50);
 	}
 
 	/* The two promises, lit. Not links — nothing here navigates — so no

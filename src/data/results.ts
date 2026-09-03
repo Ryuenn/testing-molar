@@ -72,32 +72,33 @@ export const GROWTH: GrowthStory = {
 	place: 'Physimed Dentaire, Montréal',
 	metrics: [
 		/*
-			⚠️ 10.2K, NOT the 10.7K the 09/01 brief asks for — and this is the one
-			figure on the site that cannot be updated from a document.
-			`src/assets/results/patricia-after.webp` is a screenshot of the live
-			profile and it reads "10.2K followers" in the picture; the string beside
-			it is a transcription of that picture, and the whole section is built on
-			saying so in its own figcaption.
-			Re-capture the profile at the current count, replace the webp, then
-			update `after`, `afterValue`, `growth.afterRead` and `growth.altAfter`
-			together. Changing the number alone puts a figure on the page that the
+			10.7K, matching the 09/01 brief — re-captured 2026-09 at
+			`src/assets/results/source/drpatricia_107.png` (204 posts, 10.7K
+			followers, 563 following), re-cropped into `patricia-after.webp`. See
+			`src/assets/results/README.md` for the crop recipe.
+
+			The number beside the screenshot is a transcription of it, and the
+			whole section is built on saying so in its own figcaption — so a
+			future re-capture has to update `after`, `afterValue`,
+			`growth.afterRead` and `growth.altAfter` together, the same as this
+			one did. Changing the number alone puts a figure on the page that the
 			evidence beside it contradicts.
 		*/
 		{
 			label: 'Followers',
 			before: '159',
-			after: '10.2K',
+			after: '10.7K',
 			beforeValue: 159,
-			afterValue: 10200,
-			delta: '64×',
+			afterValue: 10700,
+			delta: '67×',
 		},
 		{
 			label: 'Posts published',
 			before: '1',
-			after: '152',
+			after: '204',
 			beforeValue: 1,
-			afterValue: 152,
-			delta: '+151',
+			afterValue: 204,
+			delta: '+203',
 		},
 	],
 	was: [

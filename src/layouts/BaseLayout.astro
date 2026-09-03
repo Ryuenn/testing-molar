@@ -1,11 +1,35 @@
 ---
 /*
-	Self-hosted variable fonts. Bundled by Vite and served same-origin, so there
-	is no third-party font request to allow through the CSP and no render-blocking
-	round trip to fonts.googleapis.com.
+	Self-hosted fonts — the brand kit's, where one is freely self-hostable.
+	Bundled by Vite and served same-origin, so there is no third-party font
+	request to allow through the CSP and no render-blocking round trip to
+	fonts.googleapis.com or any other host.
+
+	Four families now, for four different jobs:
+
+	  Archivo (variable)   `--font-display` — headings, buttons, labels. Was
+	                        Space Grotesk. Covers the full weight axis in one
+	                        file, including the 900/Black cut the kit shows on
+	                        its own — nothing extra needed for that.
+	  HK Grotesk            `--font-sans` — body copy. Was Inter. The kit names
+	                        "HK Grotesk Pro", a paid license; this is the free,
+	                        open-licensed HK Grotesk instead — same family,
+	                        fewer weights. See `~/styles/hk-grotesk.css` for why
+	                        it is hand-vendored rather than imported as a
+	                        package, the way the other three are.
+	  League Gothic         `--font-hero` — the home page's hero headline only.
+	                        One weight, no italic; that is the whole family.
+	  DM Serif Display       `--font-quote` — testimonial pull-quotes. The one
+	                        serif on the site, reserved for quoted speech
+	                        rather than mixed into the UI.
+
+	IBM Plex Mono is unchanged — the kit has no monospace face, and the labels
+	and captions that read it still want one.
 */
-import '@fontsource-variable/space-grotesk';
-import '@fontsource-variable/inter';
+import '@fontsource-variable/archivo';
+import '~/styles/hk-grotesk.css';
+import '@fontsource/league-gothic/400.css';
+import '@fontsource/dm-serif-display/400.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/500.css';
 

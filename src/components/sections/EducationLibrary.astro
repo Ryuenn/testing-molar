@@ -55,9 +55,15 @@ export interface Props {
 	 * blocks on one page invite a reader to wonder which one is the real offer.
 	 */
 	buy?: boolean;
+	/**
+	 * Render the ghost "Explore the Library" button beside "Start Free Trial".
+	 * Off on the home page, by request — one button, the trial, rather than a
+	 * second one beside it pointing at the same product's own page.
+	 */
+	exploreCta?: boolean;
 }
 
-const { head = true, buy = true } = Astro.props;
+const { head = true, buy = true, exploreCta = true } = Astro.props;
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -327,7 +333,9 @@ const buyIsExternal = !buyHref.startsWith('/');
 					)}
 					<span aria-hidden="true">→</span>
 				</a>
-				<a class="btn btn-ghost" href={href}>{t('products.educationCta')}</a>
+				{exploreCta && (
+					<a class="btn btn-ghost" href={href}>{t('products.educationCta')}</a>
+				)}
 			</div>
 
 			<p class="lib__fine">{t('edu.cancelBefore')}</p>

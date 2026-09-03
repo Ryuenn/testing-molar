@@ -147,7 +147,9 @@ export const NAV_LINKS: readonly NavEntry[] = [
 			{ key: 'menuTv', href: '/molar-tv/', icon: 'monitor' },
 			{ key: 'menuSocial', href: '/social-media/', icon: 'share' },
 		],
-		menuFoot: { key: 'menuHow', href: '/how-it-works/' },
+		/* The "How MOLAR works →" foot link is gone, by request — the panel is
+		   the two products alone now. `menuFoot` stays optional on `NavEntry`
+		   in `~/components/Nav`, so a future stop can pick it back up. */
 	},
 	/*
 		No Customers stop. The page it opened is a wall of practice profiles that

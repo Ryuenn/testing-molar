@@ -77,13 +77,14 @@ const t = useTranslations(locale);
 		  Hero              the offer, priced, with one button.
 		  TrustBand         who already pays for it.
 		  MolarTv           what it is — the screen, the channel, what is on it.
-		  EducationLibrary  what plays on it, as the real product UI. Directly
-		                    under MOLAR TV per the 09/01 brief: the library IS the
-		                    channel's content, and it used to sit six sections
-		                    away with the plan grid between them.
+		  Everywhere        the three moments it runs in, right beside the section
+		                    that just said what it is — moved up from after
+		                    EducationLibrary/UnderstandFirst, by request.
+		  EducationLibrary  what plays on it, as the real product UI. Still
+		                    directly under MOLAR TV's own explanation per the
+		                    09/01 brief, just with `Everywhere` between them now.
 		  UnderstandFirst   why any of it matters — see it, understand it, trust
 		                    the recommendation, say yes.
-		  Everywhere        the three moments it runs in.
 		  Testimonials      practices saying so on camera — one highlight, then two
 		                    more. Back on the page and rebuilt around Vimeo embeds.
 		  GrowthStory       the MOLAR Social case study, which is the upgrade this
@@ -108,9 +109,9 @@ const t = useTranslations(locale);
 	<Hero />
 	<TrustBand />
 	<MolarTv />
-	<EducationLibrary />
-	<UnderstandFirst />
 	<Everywhere />
+	<EducationLibrary exploreCta={false} />
+	<UnderstandFirst />
 	{/*
 		`filmsOnly`: the two cards under the highlight are films and a name, with
 		no quotation. This section is a video wall here — the highlight carries the
