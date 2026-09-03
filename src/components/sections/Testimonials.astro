@@ -861,28 +861,43 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 	}
 
 	.tmdlg__frame {
+		--tmdlg-pad: clamp(1rem, 4vw, 2.5rem);
 		position: relative;
 		display: grid;
 		place-items: center;
 		width: 100%;
 		height: 100%;
-		padding: clamp(1rem, 4vw, 2.5rem);
+		padding: var(--tmdlg-pad);
 	}
 
 	/*
-		Bounded by HEIGHT, not width. These are portrait clips in a landscape
-		window, so the viewport's short edge is what decides how big the film can
-		be; sizing by width would push the bottom of a 9:16 frame off the screen.
+		Sized from the ratio, not from a percentage.
 
-		`--film-aspect` is set by the script from the clip's own record, so the
-		frame is the shape of the film before the player has loaded a pixel and
-		nothing letterboxes.
+		This was `height: min(100%, 46rem)` with `width: auto`, and it collapsed:
+		the iframe is a centred grid item, so its row is auto-sized, so a
+		percentage height had nothing definite to resolve against — the player came
+		out at its intrinsic 300x150 or smaller and the modal looked empty.
+
+		So the WIDTH is computed and the aspect ratio derives the height from it.
+		Three bounds, whichever is smallest: the window's width less the padding,
+		a 46rem cap so the film does not fill a cinema display, and the height the
+		window can actually give converted into a width by the clip's own ratio.
+		That last one is what keeps a 9:16 film's bottom on screen, and because it
+		is a width rather than a height cap the aspect ratio is never violated.
+
+		`--film-w` / `--film-h` are set by the script off the pressed tile, so each
+		clip gets its own proportions and nothing letterboxes inside anything.
 	*/
 	.tmdlg__embed {
-		width: auto;
-		height: min(100%, 46rem);
-		max-width: 100%;
-		aspect-ratio: var(--film-aspect, 9 / 16);
+		--film-w: 9;
+		--film-h: 16;
+		inline-size: min(
+			calc(100vw - var(--tmdlg-pad) * 2),
+			46rem,
+			calc((100dvh - var(--tmdlg-pad) * 2) * var(--film-w) / var(--film-h))
+		);
+		block-size: auto;
+		aspect-ratio: var(--film-w) / var(--film-h);
 		border: 0;
 		border-radius: clamp(0.75rem, 1.5vw, 1.125rem);
 		background: #000;
@@ -1054,7 +1069,16 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 				const src = button.dataset.filmSrc;
 				if (!src) return;
 				frame.src = src;
-				frame.style.setProperty('--film-aspect', button.dataset.filmAspect ?? '9 / 16');
+				/*
+					The clip's shape, as two numbers.
+
+					The stylesheet needs the ratio's terms separately — it divides them
+					to turn the height the window can give into a width. `aspect-ratio`
+					takes the pair as well, so one parse feeds both.
+				*/
+				const [w, h] = (button.dataset.filmAspect ?? '9 / 16').split('/');
+				frame.style.setProperty('--film-w', (w ?? '9').trim());
+				frame.style.setProperty('--film-h', (h ?? '16').trim());
 				frame.title = button.dataset.filmLabel ?? frame.title;
 				dialog.showModal();
 			});
