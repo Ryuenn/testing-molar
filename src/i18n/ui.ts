@@ -217,7 +217,21 @@ const en = {
 		libraryTitle: 'Video library — patient education, ready to post',
 		libraryDesc:
 			'A sample of the patient-education videos MOLAR produces: filter by topic and language, and watch them without leaving the page.',
-		homeTitle: 'MOLAR TV — patient education for dental practices, $97/month',
+		/*
+			The COMPANY leads, not the product.
+
+			It was "MOLAR TV — patient education…", and `Seo.astro` appends
+			`SITE.name` to any title that does not already contain it, so the tab
+			read "MOLAR TV — patient education … — MOLAR AI": the brand said twice,
+			the product first, and a browser tab truncating to "MOLAR TV — patient
+			educ…" so the site looked like it was called MOLAR TV.
+
+			Same call the nav wordmark made when it went from MOLAR TV to MOLARAI:
+			MOLAR AI is the company, MOLAR TV is one of the things it sells, and the
+			home page is the company's. Naming `SITE.name` here also suppresses the
+			appended suffix, which is what removes the second dash.
+		*/
+		homeTitle: 'MOLAR AI — patient education for dental practices, $97/month',
 		workTitle: 'Our work — no two feeds alike',
 		workDesc:
 			'A sample of the accounts MOLAR AI runs: nine consecutive posts from each, across {n} languages. Same engine, and no two feeds alike.',

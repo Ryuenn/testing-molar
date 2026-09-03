@@ -359,7 +359,24 @@ const SOCIAL = [
 		justify-content: center;
 		/* dvh, not vh — vh is wrong the moment mobile Safari's chrome moves. */
 		min-height: 100dvh;
-		padding-block: calc(var(--nav-h, 5.25rem) + clamp(1.5rem, 4vh, 3rem)) clamp(1rem, 2vh, 1.75rem);
+		/*
+			The bottom pad is what lifts the block.
+
+			Both pads are load-bearing — see the note above — and the block sits at
+			the midpoint between them. It was `clamp(1rem, 2vh, 1.75rem)` at the
+			foot, which centred the copy in the space under the bar and left it
+			sitting a little low against the fold. Raising the bottom pad alone
+			raises the copy by half the difference, without touching the nav
+			clearance at the top or the height of the section.
+
+			Now at `clamp(6rem, 13vh, 10rem)`, up from 2vh in two steps. On a
+			1080-tall window that lifts the block by roughly 60px against where it
+			started. It stays a clamp rather than a fixed value because this is a
+			`100dvh` section: a laptop at 800px tall and a monitor at 1440 want
+			different amounts of lift, and `vh` is the only unit that knows which
+			one it is on.
+		*/
+		padding-block: calc(var(--nav-h, 5.25rem) + clamp(1.5rem, 4vh, 3rem)) clamp(6rem, 13vh, 10rem);
 		overflow: clip;
 		isolation: isolate;
 	}
