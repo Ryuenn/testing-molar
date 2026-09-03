@@ -1,7 +1,7 @@
 ---
 title: "The Dentist's ChatGPT SOP Playbook"
 blurb: "Talk through the way your practice already works and turn it into an SOP manual the team will actually follow."
-category: Operations
+category: Practice Operations
 file: /pdfs/molar-chatgpt-sop-playbook.pdf
 pages: 8
 updated: 2026-08-30

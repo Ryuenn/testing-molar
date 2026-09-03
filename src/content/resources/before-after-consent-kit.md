@@ -1,7 +1,7 @@
 ---
 title: Before & After Consent Kit
 blurb: Photo release forms, patient-facing plain-language explainers and a shot list for consistent clinical photography.
-category: Operations
+category: Practice Operations
 file: /pdfs/molar-before-after-consent-kit.pdf
 pages: 11
 updated: 2026-05-19

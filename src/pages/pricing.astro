@@ -2,7 +2,7 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import PageIntro from '~/components/PageIntro.astro';
 import Pricing from '~/components/sections/Pricing.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import Faq from '~/components/sections/Faq.astro';
 import { getLocale, useTranslations } from '~/i18n/utils';
 import { breadcrumbSchema, productSchema } from '~/data/schema';
@@ -50,5 +50,5 @@ const t = useTranslations(locale);
 	</PageIntro>
 
 	<Faq />
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>

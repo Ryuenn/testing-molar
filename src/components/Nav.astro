@@ -529,20 +529,33 @@ const isCurrent = (link: (typeof links)[number]) =>
 		   side of it stays transparent to the page. */
 		pointer-events: auto;
 		/*
-			The same box as `.container-content`, so the brand starts exactly where
-			every page heading below it does.
+			The same box as `.container-content`, so the bar's EDGE lands exactly
+			where the page's content edge does.
 
 			It used to run to 112rem against the page's 76rem, which put the wordmark
 			about three hundred pixels left of the first letter of every <h1> — the bar
 			and the page read as two grids rather than one. Matching the measure is what
-			lines them up; `--gutter` on both sides is the same padding the container
-			carries, so the alignment holds at every width rather than only at one.
+			lines them up.
+
+			── The inset is the bar's, not the page's ─────────────────────────────
+			`padding-inline` was `var(--gutter)` — up to 3.5rem, the same padding
+			`.container-content` carries. That is the right inset for a container
+			that is invisible, and the wrong one for a pill you can see: it put 56px
+			of empty glass between the rounded edge and the wordmark, against 9px
+			above and below the button. Air on one axis and none on the other reads
+			as a mistake, because it is one.
+
+			So the pill keeps the container's WIDTH — its edge still lines up with
+			the page — and takes its own inset, sized to clear the 1rem corner
+			radius and to sit near the button's own vertical breathing room. The
+			brand no longer starts on the <h1>'s first letter; the bar it lives in
+			does, which is the alignment a reader can actually see.
 		*/
 		width: 100%;
 		max-width: var(--container-content);
 		margin-inline: auto;
 		height: 3.5rem;
-		padding-inline: var(--gutter);
+		padding-inline: clamp(0.75rem, 1.2vw, 1rem);
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
@@ -953,9 +966,9 @@ const isCurrent = (link: (typeof links)[number]) =>
 	.nav__nav {
 		position: absolute;
 		/*
-			`.nav__inner` carries the gutter as padding, so an absolute child
-			resolves against its padding box. Offsetting by the gutter lands the
-			panel on the content edge, flush with the brand and the CTA.
+			`.nav__inner` carries the bar's inset as padding, so an absolute child
+			resolves against its padding box. `0` therefore lands the panel on that
+			inset — flush with the brand and the CTA, whatever the inset is.
 		*/
 		inset-inline: 0;
 		inset-block-start: calc(100% + 0.5rem);

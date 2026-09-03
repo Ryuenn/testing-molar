@@ -16,8 +16,17 @@ after:
 stat:
   value: "10,600+"
   label: Followers earned through patient education
+# The practice's own testimonial, which replaced a placeholder graphic — a
+# crystalline low-poly tooth over the words "Placeholder still". The study is
+# about Dr Patricia Harrosch's account and this is her talking about it, which
+# is a better exhibit than an illustration admitting it is not one.
+#
+# `image` is kept as the fallback the schema still honours if `video` is
+# cleared; the still itself is unchanged in src/assets/case-studies/.
+video: /videos/harrosch-testimonial.mp4
+poster: /images/harrosch-poster.webp
 image: ../../assets/case-studies/quebec-smile-makeover.png
-imageAlt: Crystalline low-poly tooth rendered in electric blue, representing the practice's content library
+imageAlt: Dr Patricia Harrosch speaking to camera about her practice's patient education content
 order: 1
 ---
 

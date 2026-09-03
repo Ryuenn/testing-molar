@@ -28,12 +28,16 @@ export interface Props {
 	/** Heading level. Pages that run this under their own h1 pass 'h3'. */
 	as?: 'h2' | 'h3';
 	/**
-	 * Render the cards under the highlight as films alone — the frame and who is
-	 * in it, with no quotation.
+	 * Render the section as films alone.
 	 *
-	 * The home page's version of this section is a video wall: one big film and
-	 * two more beneath it, and a paragraph of prose under each of the small ones
-	 * makes those cards top-heavy and competes with the highlight's own quote.
+	 * The home page's version is a video wall: one big film and two more beneath
+	 * it. Prose under each card makes them top-heavy, and three quotations under
+	 * three frames is a page asking to be read when it is offering to be watched.
+	 *
+	 * So the whole section is trimmed to the footage: no quotations anywhere, the
+	 * lead captioned with a name and nothing else, and the two under it captioned
+	 * not at all — they are unattributed, so their caption was a disclaimer rather
+	 * than a name. See the notes at each.
 	 *
 	 * OFF by default, and /patient-education/ relies on that. Nothing there is
 	 * filmed, so films-only would leave it with two placeholder frames and no
@@ -68,10 +72,24 @@ const QUOTES = TESTIMONIALS.map((entry) => {
 	const vimeo = entry.vimeo?.trim() || undefined;
 	const selfHosted = !vimeo && Boolean(entry.video && entry.poster);
 
+	/*
+		The frame's shape, and whether it is a tall one.
+
+		`aspect` goes to CSS as-is. `portrait` is read off it here rather than in a
+		stylesheet, because CSS cannot branch on the value of a custom property —
+		and the lead needs the branch: a full-width 9 / 16 film is a card three
+		screens tall, so a portrait lead is capped by width instead.
+	*/
+	const aspect = entry.aspect?.trim() || '16 / 9';
+	const [w, h] = aspect.split('/').map((n) => Number(n.trim()));
+	const portrait = Number.isFinite(w) && Number.isFinite(h) && h > w;
+
 	return {
 		...entry,
 		vimeo,
 		selfHosted,
+		aspect,
+		portrait,
 		placeholder: !vimeo && !selfHosted,
 		account: entry.accountSlug ? WORK.find((a) => a.slug === entry.accountSlug) : undefined,
 	};
@@ -83,14 +101,23 @@ const QUOTES = TESTIMONIALS.map((entry) => {
 	The lead is whichever entry is marked `featured`; failing that, the first —
 	so the section cannot end up without a highlight however the data is edited.
 
-	⚠️ THE VIMEO IDS ARE NOT IN YET. Every entry carries an empty `vimeo` field
-	waiting for one, and two of the three have no footage at all behind them.
-	Those render as placeholder frames. See the field's note in
-	`~/data/testimonials` for where to paste the id; nothing in this file needs
-	to change when they arrive.
+	All three are hosted now — the placeholder path below is dead code kept for
+	the next entry rather than a state anything on the site is in. A fourth
+	testimonial arrives as a frame at the right size until its id is pasted in.
 */
 const lead = QUOTES.find((entry) => entry.featured) ?? QUOTES[0];
 const rest = QUOTES.filter((entry) => entry !== lead);
+
+/*
+	Who the lead card names.
+
+	Two different people can be involved in one entry — the dentist who said the
+	sentence and the dentist in the film — so which name belongs under the card
+	depends on which of the two is on screen. With the quotation drawn, the
+	caption attributes it and is `name`. Films-only draws no quotation, so it
+	names whoever is in the film. See `speaker` in `~/data/testimonials`.
+*/
+const leadCaption = (filmsOnly && lead.speaker) || lead.name;
 
 /*
 	The player URL.
@@ -125,13 +152,19 @@ const playerSrc = (id: string) =>
 			speaking and the viewer needs a scrubber and a volume control — unlike
 			the muted decorative loops elsewhere on the site, which have neither.
 		*/}
-		<article class="quote quote--lead panel" data-reveal>
-			<div class="quote__film">
+		<article
+			class:list={['quote quote--lead panel', filmsOnly && 'quote--lead-film']}
+			data-reveal
+		>
+			<div
+				class:list={['quote__film', lead.portrait && 'quote__film--portrait']}
+				style={`--quote-aspect:${lead.aspect}`}
+			>
 				{lead.vimeo ? (
 					<iframe
 						class="quote__embed"
 						src={playerSrc(lead.vimeo)}
-						title={t('testimonials.watch', { name: lead.name ?? t('testimonials.anonymous') })}
+						title={t('testimonials.watch', { name: leadCaption ?? t('testimonials.anonymous') })}
 						loading="lazy"
 						allow="fullscreen; picture-in-picture"
 						allowfullscreen
@@ -147,7 +180,7 @@ const playerSrc = (id: string) =>
 						disablepictureinpicture
 					/>
 				) : (
-					<Placeholder name={lead.name} />
+					<Placeholder name={leadCaption} />
 				)}
 			</div>
 
@@ -155,19 +188,35 @@ const playerSrc = (id: string) =>
 				<blockquote> with the attribution OUTSIDE it, in a <figcaption>. A
 				<cite> inside the blockquote would make the person's name part of the
 				quotation, which is not what they said.
+
+				In films-only mode the quotation goes and the caption is cut to the
+				name alone — no role, no city. The lead used to be the exception: the
+				film beside a pull-quote set at `--text-xl`, over a role and a place.
+				That reads as a poster for the testimonial rather than the testimonial,
+				and the quote is the sentence she says out loud in the first ten
+				seconds of the film anyway. Who she is stays; the rest is left to her
+				to say.
 			*/}
 			<figure class="quote__fig">
-				<span class="quote__mark" aria-hidden="true">&ldquo;</span>
-				<blockquote class="quote__body">
-					<p>{lead.quote}</p>
-				</blockquote>
+				{!filmsOnly && (
+					<>
+						<span class="quote__mark" aria-hidden="true">
+							&ldquo;
+						</span>
+						<blockquote class="quote__body">
+							<p>{lead.quote}</p>
+						</blockquote>
+					</>
+				)}
 
-				<figcaption class="quote__by">
-					{lead.name ? (
+				<figcaption class:list={['quote__by', filmsOnly && 'quote__by--film']}>
+					{leadCaption ? (
 						<>
-							<span class="quote__name">{lead.name}</span>
-							{lead.role && <span class="quote__role">{lead.role}</span>}
-							{lead.account?.place && <span class="quote__place">{lead.account.place}</span>}
+							<span class="quote__name">{leadCaption}</span>
+							{!filmsOnly && lead.role && <span class="quote__role">{lead.role}</span>}
+							{!filmsOnly && lead.account?.place && (
+								<span class="quote__place">{lead.account.place}</span>
+							)}
 						</>
 					) : (
 						<>
@@ -192,7 +241,10 @@ const playerSrc = (id: string) =>
 							there would make the person's name part of what they said.
 						*/}
 						<figure class="quote__fig">
-							<div class="quote__film">
+							<div
+								class:list={['quote__film', entry.portrait && 'quote__film--portrait']}
+								style={`--quote-aspect:${entry.aspect}`}
+							>
 								{entry.vimeo ? (
 									<iframe
 										class="quote__embed"
@@ -230,24 +282,38 @@ const playerSrc = (id: string) =>
 								</>
 							)}
 
-							<figcaption class:list={['quote__by', filmsOnly && 'quote__by--film']}>
-								{entry.name ? (
-									<>
-										<span class="quote__name">{entry.name}</span>
-										{entry.role && <span class="quote__role">{entry.role}</span>}
-										{entry.account?.place && (
-											<span class="quote__place">{entry.account.place}</span>
-										)}
-									</>
-								) : (
-									<>
-										<span class="quote__name quote__name--anon">
-											{t('testimonials.anonymous')}
-										</span>
-										<span class="quote__role">{t('testimonials.nameWithheld')}</span>
-									</>
-								)}
-							</figcaption>
+							{/*
+								Films-only: the frame and nothing else.
+
+								These two run anonymous — the live funnel does not attribute
+								them — so the caption here was never a name. It was
+								"Anonymous / name withheld", which is a disclaimer, and three
+								lines of disclaimer under two silent frames is louder than the
+								films they sit under. The honesty it was protecting is still
+								protected: nothing here claims a source, because nothing here
+								says anything. The moment one of these is attributed, drop the
+								`filmsOnly` guard and the name renders.
+							*/}
+							{!filmsOnly && (
+								<figcaption class="quote__by">
+									{entry.name ? (
+										<>
+											<span class="quote__name">{entry.name}</span>
+											{entry.role && <span class="quote__role">{entry.role}</span>}
+											{entry.account?.place && (
+												<span class="quote__place">{entry.account.place}</span>
+											)}
+										</>
+									) : (
+										<>
+											<span class="quote__name quote__name--anon">
+												{t('testimonials.anonymous')}
+											</span>
+											<span class="quote__role">{t('testimonials.nameWithheld')}</span>
+										</>
+									)}
+								</figcaption>
+							)}
 						</figure>
 					</li>
 				))
@@ -255,8 +321,10 @@ const playerSrc = (id: string) =>
 		</ul>
 
 		<div class="tm__actions" data-reveal>
-			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
-				{t('testimonials.cta')} <span aria-hidden="true">→</span>
+			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} target="_blank" rel="noopener">
+				{t('testimonials.cta')}
+				<span class="sr-only"> {t('footer.newTab')}</span>
+				<span aria-hidden="true">→</span>
 			</a>
 		</div>
 	</div>
@@ -313,6 +381,17 @@ const playerSrc = (id: string) =>
 			grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
 			align-items: center;
 		}
+
+		/*
+			Films-only: one column, not two. The second track existed to hold the
+			pull-quote; with the quotation gone all that is left beside the film is
+			a name and a role, and stretching those across 40% of a full-width card
+			makes the film look like an illustration of a caption.
+		*/
+		.quote--lead-film {
+			grid-template-columns: minmax(0, 1fr);
+			justify-items: center;
+		}
 	}
 
 	.quote__film {
@@ -323,16 +402,42 @@ const playerSrc = (id: string) =>
 	}
 
 	/*
+		A tall film gets capped by width, because height is the dimension that runs
+		away: at a card's full width a 9 / 16 frame is most of a laptop screen on
+		its own, and a 43 / 20 one — which is what Vimeo hands back for some of
+		these phone cuts — is more than all of it. Width is the only handle that
+		bounds the height without breaking the aspect, so it is the one used, and
+		the frame is centred in the space it gives back.
+	*/
+	.quote__film--portrait {
+		width: min(100%, clamp(11rem, 34vw, 15rem));
+		margin-inline: auto;
+	}
+
+	/*
+		The highlight gets a bigger cap than the cards under it. It should still
+		read as the highlight — taller than the 16 / 9 frames below, covering more
+		of the page — without being the only thing on screen.
+	*/
+	.quote--lead .quote__film--portrait {
+		width: min(100%, clamp(15rem, 46vw, 20rem));
+	}
+
+	/*
 		One box for all three states — hosted player, self-hosted file, placeholder
 		— so swapping between them never changes the card's height. The aspect is
 		declared here rather than on the iframe alone because an <iframe> has no
 		intrinsic size and would otherwise collapse to its default 150px.
+
+		`--quote-aspect` is set per card from the entry's `aspect`, so a portrait
+		film gets a portrait box instead of being letterboxed inside a landscape
+		one. The fallback is the 16 / 9 this rule used to hard-code.
 	*/
 	.quote__embed,
 	.quote__video {
 		display: block;
 		width: 100%;
-		aspect-ratio: 16 / 9;
+		aspect-ratio: var(--quote-aspect, 16 / 9);
 		background: var(--color-ink-950);
 	}
 
@@ -347,9 +452,18 @@ const playerSrc = (id: string) =>
 	}
 
 	/* The lead's quote is the loudest line in the section — it is the one a
-	   visitor reads before deciding whether to press play. */
+	   visitor reads before deciding whether to press play. Films-only has no
+	   quote to set; see the note in the markup. */
 	.quote--lead .quote__body p {
 		font-size: var(--text-xl);
+	}
+
+	/* Under a centred film, a left-aligned name reads as the start of a column
+	   that is not there. */
+	.quote--lead-film .quote__fig {
+		flex: none;
+		align-items: center;
+		text-align: center;
 	}
 
 	.tm__actions {

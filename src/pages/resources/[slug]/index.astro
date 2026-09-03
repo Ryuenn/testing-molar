@@ -3,7 +3,7 @@ import { getCollection, render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import ResourceCard from '~/components/ResourceCard.astro';
 import { breadcrumbSchema, resourceSchema } from '~/data/schema';
 import { localizePath } from '~/i18n/config';
@@ -177,7 +177,7 @@ const updated = data.updated.toLocaleDateString('en-US', {
 		)
 	}
 
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>
 
 <script>

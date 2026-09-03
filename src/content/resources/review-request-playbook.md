@@ -1,7 +1,7 @@
 ---
 title: The Review Request Playbook
 blurb: When to ask, who should ask, and the exact wording that turns a satisfied patient into a public review.
-category: Practice Growth
+category: CRM & Follow-Up
 file: /pdfs/molar-review-request-playbook.pdf
 pages: 14
 updated: 2026-04-28

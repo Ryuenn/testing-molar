@@ -11,7 +11,7 @@ import AssetFilm from '~/components/sections/AssetFilm.astro';
 import HowItWorks from '~/components/sections/HowItWorks.astro';
 import Comparison from '~/components/sections/Comparison.astro';
 import Faq from '~/components/sections/Faq.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import { breadcrumbSchema, productSchema } from '~/data/schema';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -92,5 +92,5 @@ const t = useTranslations(locale);
 	<InboundWall />
 
 	<Faq />
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>

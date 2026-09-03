@@ -147,7 +147,7 @@ const year = new Date().getFullYear();
 				<div class="footer__lockup">
 					{/*
 						Decorative: the wordmark beside it names the company, and an alt
-						here would have a screen reader say "MOLAR MOLAR".
+						here would have a screen reader say "MOLARAI MOLARAI".
 					*/}
 					<Image
 						src={logoMark}
@@ -158,7 +158,13 @@ const year = new Date().getFullYear();
 						decoding="async"
 						class="footer__mark"
 					/>
-					<span class="footer__wordmark">MOLAR</span>
+					{/*
+						`AI` is a span rather than a second element so the whole thing stays
+						one selectable, copyable string — `MOLARAI`, not `MOLAR` + `AI` with
+						a break the clipboard can find. Only its colour differs. The same
+						construction as `.nav__wordmark`.
+					*/}
+					<span class="footer__wordmark">MOLAR<span class="footer__wordmark-ai">AI</span></span>
 				</div>
 
 				<p class="footer__pitch">{t('footer.pitch')}</p>
@@ -284,8 +290,14 @@ const year = new Date().getFullYear();
 
 					<ul class="footer__list" aria-labelledby="footer-start">
 						<li>
-							<a href={EDUCATION_CHECKOUT} rel="noopener" class="footer__link footer__link--more">
+							<a
+								href={EDUCATION_CHECKOUT}
+								target="_blank"
+								rel="noopener"
+								class="footer__link footer__link--more"
+							>
 								{t('pricing.educationCta')}
+								<span class="sr-only"> {t('footer.newTab')}</span>
 								<span aria-hidden="true">&nbsp;&rarr;</span>
 							</a>
 						</li>
@@ -296,8 +308,14 @@ const year = new Date().getFullYear();
 					<p class="footer__note footer__note--spaced">{t('footer.needMore')}</p>
 					<ul class="footer__list">
 						<li>
-							<a href={CTA.sales.href} class="footer__link footer__link--more">
+							<a
+								href={CTA.sales.href}
+								target="_blank"
+								rel="noopener"
+								class="footer__link footer__link--more"
+							>
 								{t('cta.talk')}
+								<span class="sr-only"> {t('footer.newTab')}</span>
 								<span aria-hidden="true">&nbsp;&rarr;</span>
 							</a>
 						</li>
@@ -313,8 +331,10 @@ const year = new Date().getFullYear();
 			is that it gets simpler, and a strapline in a legal row is a claim in a
 			place nobody reads claims.
 
-			MOLAR AI, not MOLAR TV — the nav wordmark names the product, this names
-			the company that owns it.
+			`SITE.legalName` — "MOLAR AI", with the space, because this is the legal
+			line and that is the registered name. The wordmarks above and in the nav
+			are the brand and set it solid as MOLARAI; the difference between the
+			two spellings is deliberate and is the one place on the site where it is.
 		*/}
 		<div class="footer__bottom">
 			<p class="footer__legal">&copy; {year} {SITE.legalName}</p>
@@ -401,9 +421,15 @@ const year = new Date().getFullYear();
 		Live text, the same decision the nav made. See the note in the markup for
 		what it replaced.
 
-		No `.AI` or ` TV` half here: the nav names the PRODUCT because that is what
-		the page is selling, and the foot of the page names the COMPANY — which is
-		also what the copyright line two rows down says.
+		MOLARAI, the same as the nav — one word, no space and no point, with the
+		`AI` lit in arc-400.
+
+		It read plain `MOLAR` here on the reasoning that the nav names the PRODUCT
+		and the foot of the page names the COMPANY. That distinction stopped being
+		true when the nav went to `MOLARAI`: both now name the company, the
+		copyright line two rows down says `MOLAR AI`, and the only thing the split
+		was achieving was a header and a footer that spelt the brand two ways on
+		one screen.
 	*/
 	.footer__wordmark {
 		font-family: var(--font-display);
@@ -411,7 +437,15 @@ const year = new Date().getFullYear();
 		font-weight: 700;
 		letter-spacing: 0.01em;
 		line-height: 1;
+		white-space: nowrap;
 		color: var(--color-bone-50);
+	}
+
+	/* The one difference between the two halves, and the same value the nav
+	   uses: arc-400 rather than the brighter 300, which beside white at this
+	   weight reads as a highlight rather than as part of the same word. */
+	.footer__wordmark-ai {
+		color: var(--color-arc-400);
 	}
 
 	.footer__pitch {

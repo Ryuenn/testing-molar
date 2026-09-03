@@ -4,8 +4,6 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import ResourceCard from '~/components/ResourceCard.astro';
 import NewsletterSignup from '~/components/NewsletterSignup.astro';
 import { RESOURCE_CATEGORIES } from '~/data/resources';
-import { EDUCATION_CHECKOUT } from '~/data/site';
-import { EDUCATION_PRICE } from '~/data/education';
 import { breadcrumbSchema } from '~/data/schema';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
@@ -73,63 +71,39 @@ const scriptStrings = JSON.stringify({
 			<p class="hero-lite__lede measure-wide">{t('resources.lede2')}</p>
 
 			{/*
-				The video library's doorway, above the grid.
+				The lead capture, in the slot the 09/01 brief puts it in: under the
+				fold's promise, above the grid it is offering.
 
-				This slot held the Dental AI Brief sign-up for one pass. The 09/01
-				brief's line for this page was "Remove the $97 offer. No selling
-				here", and this panel is the only thing on the page that asks for
-				money — so it came off and the email capture took its place.
+				What stood here was the video library's $97 panel — "Unlock the
+				library", a price and a padlock badge — at the top of a page whose
+				whole promise is that everything on it is free. The brief's line for
+				this page is "Remove the $97 offer. No selling here", it came off once
+				for exactly that reason, it went back by request, and it is off again
+				now on the brief's authority.
 
-				It is back by request. The library IS the page's strongest asset and
-				burying its only entrance at the foot of the grid was the wrong trade;
-				the brief's own list also asks for a lead capture, and that still runs,
-				at the bottom under "Stay Ahead Of What's Changing".
+				The library is not hidden by this. It keeps the quiet link under the
+				grid, and the four places on this site that DO sell — the hero, the
+				MOLAR TV section, the plan grid and the closing CTA — are where that
+				argument belongs.
 
-				⚠️ So this page sells again, which contradicts that line of the brief.
-				Deliberate, and worth knowing if the brief is the reference later.
-
-				The grid below is PDFs and every card in it downloads one. The library
-				is a different kind of thing and behaves differently when clicked, so
-				it sits outside the grid rather than pretending to be the thirteenth
-				document.
+				`name` asks for a first name as well as an email, which the brief's
+				own field list does. It is the only sign-up on the site that asks for
+				two things; the one at the foot of this page asks for an email alone,
+				because by then the reader has already declined this one once and a
+				second form should cost them less, not more.
 			*/}
-			<div class="lib-promo">
-				<div class="lib-promo__head">
-					<p class="lib-promo__brand">
-						MOLAR<span class="lib-promo__brand-ai">.AI</span> {t('library.hubTitle')}
-					</p>
-					<p class="lib-promo__badge">
-						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-							<rect x="3.5" y="7" width="9" height="6" rx="1.4"></rect>
-							<path d="M5.75 7V5.25a2.25 2.25 0 0 1 4.5 0V7" stroke-linecap="round"></path>
-						</svg>
-						{t('library.hubAccess')}
-					</p>
-				</div>
+			<div class="brief">
+				<p class="eyebrow brief__eyebrow">{t('resources.briefEyebrow')}</p>
+				<h2 class="brief__title">{t('resources.briefHeading')}</h2>
+				<p class="brief__lede">{t('resources.briefLede')}</p>
+				<p class="brief__topics">{t('resources.briefTopics')}</p>
 
-				<p class="lib-promo__blurb">{t('library.hubBlurb')}</p>
-
-				{/*
-					Two doors, and both are needed.
-
-					The library is gated, so the obvious button is "subscribe" — but a
-					practice that already pays has a password and was being sent to a
-					pricing page to buy something they own. The second button is for
-					them: it goes to the library, hits the password screen, and they
-					are in.
-
-					Order is by audience size rather than by preference: most people
-					reading this have not subscribed.
-				*/}
-				<div class="lib-promo__actions">
-					<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
-						{t('library.hubUnlock')}
-						<span class="lib-promo__price">{EDUCATION_PRICE}/{t('edu.perMonth').replace('/', '')}</span>
-					</a>
-					<a class="btn btn-quiet" href={localizePath('/resources/video-library/', locale)}>
-						{t('library.hubCta')}
-					</a>
-				</div>
+				<NewsletterSignup
+					id="hub-top"
+					name
+					submitLabel={t('resources.briefCta')}
+					note={t('resources.briefNote')}
+				/>
 			</div>
 		</div>
 	</section>
@@ -158,16 +132,8 @@ const scriptStrings = JSON.stringify({
 			</header>
 
 			{/*
-				The $97 card that stood here is gone. It was a "Unlock the library —
-				$97/mo" button plus a "paid access" padlock badge, at the top of a page
-				whose whole promise is that everything on it is free — and the brief is
-				explicit: no selling here.
-
-				The gated video library is still reachable. It is one quiet link at the
-				foot of the grid rather than a merchandised panel at the head of it,
-				and the four places on this site that DO sell — the hero, the MOLAR TV
-				section, the plan grid and the closing CTA — are where that argument
-				belongs.
+				Nothing sells above this bar, and nothing should. Two $97 panels have
+				stood here and been removed — see the note by the lead capture above.
 			*/}
 			<div class="filters" data-filters data-strings={scriptStrings}>
 				{/*
@@ -284,11 +250,14 @@ const scriptStrings = JSON.stringify({
 
 	{/* ── The closing ask ─────────────────────────────────────────────────── */}
 	{/*
-		`ClosingCta` used to run here. It is the site's standard sales close —
-		plans, prices, "talk to MOLAR" — which is exactly what this page is not
-		for. The close is the same free brief the top of the page offers, asking
-		for one field instead of two because by now the reader has seen what is
-		on offer.
+		The site's standard sales close used to run here — `FinalCta`, the same
+		one every other page now ends on. It asks for $97, which is exactly what
+		this page is not for. The close is the same free brief the top of the page
+		offers, asking for one field instead of two because by now the reader has
+		seen what is on offer.
+
+		This is the ONE deliberate exception to "every page closes the same way".
+		A lead-gen page that ends in a checkout button collects no leads.
 	*/}
 	<section class="section hub-ahead" aria-labelledby="ahead-heading">
 		<div class="container-content hub-ahead__inner">
@@ -606,7 +575,7 @@ const scriptStrings = JSON.stringify({
 		font-size: var(--text-2xs);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: var(--color-bone-500);
+		color: var(--color-bone-100);
 	}
 
 	.crumbs__list li + li::before {
@@ -616,7 +585,7 @@ const scriptStrings = JSON.stringify({
 	}
 
 	.crumbs__list a {
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 		text-decoration: none;
 	}
 
@@ -718,7 +687,7 @@ const scriptStrings = JSON.stringify({
 	.search__icon {
 		flex: none;
 		width: 1rem;
-		color: var(--color-bone-500);
+		color: var(--color-bone-100);
 	}
 
 	.search__input {
@@ -731,8 +700,15 @@ const scriptStrings = JSON.stringify({
 		font-size: var(--text-sm);
 	}
 
+	/*
+		bone-300, and the one quiet value left on this page on purpose: a
+		placeholder set as brightly as a typed value reads as a field that already
+		has something in it. At 10:1 on this ground it is comfortably readable —
+		what was wrong with the old value was 4.9:1, not the fact that a
+		placeholder is quieter than the text that replaces it.
+	*/
 	.search__input::placeholder {
-		color: var(--color-bone-500);
+		color: var(--color-bone-300);
 	}
 
 	/*
@@ -778,7 +754,7 @@ const scriptStrings = JSON.stringify({
 		font-size: var(--text-2xs);
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: var(--color-bone-500);
+		color: var(--color-bone-100);
 	}
 
 	.sort__select {
@@ -824,7 +800,17 @@ const scriptStrings = JSON.stringify({
 		);
 		backdrop-filter: blur(14px) saturate(140%);
 		box-shadow: inset 0 1px 0 color-mix(in oklab, #e6ecf5 8%, transparent);
-		color: var(--color-bone-400);
+		/*
+			bone-100, not bone-400.
+
+			These are 10px uppercase mono with 0.1em of tracking, on a translucent
+			pill over a blurred ground — three things already working against
+			legibility before a colour is picked. Dimming them on top of that made a
+			row of controls look disabled. The pressed chip is lit in arc and the
+			rest are not, which is the state difference; brightness was never
+			carrying it.
+		*/
+		color: var(--color-bone-100);
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
 		letter-spacing: 0.1em;
@@ -836,9 +822,10 @@ const scriptStrings = JSON.stringify({
 			background-color 0.25s var(--ease-out-quint);
 	}
 
+	/* The border answers hover now. The colour used to, going bone-400 →
+	   bone-100, and the resting state is bone-100 already. */
 	.chip:hover {
 		border-color: var(--color-line-strong);
-		color: var(--color-bone-100);
 	}
 
 	.chip[aria-pressed='true'] {
@@ -850,8 +837,13 @@ const scriptStrings = JSON.stringify({
 			0 10px 24px -14px color-mix(in oklab, var(--color-arc-500) 80%, transparent);
 	}
 
+	/*
+		Arc rather than a dimmer grey. The count is a different KIND of thing from
+		the label beside it, and hue says so without asking anyone to read 10px
+		type at the bottom of the palette.
+	*/
 	.chip__count {
-		color: var(--color-bone-500);
+		color: var(--color-arc-200);
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -862,87 +854,44 @@ const scriptStrings = JSON.stringify({
 	.filters__status {
 		margin: 0;
 		font-size: var(--text-xs);
-		color: var(--color-bone-500);
+		color: var(--color-bone-100);
 	}
 
-	/* ── The content library's doorway ───────────────────────────────────── */
+	/* ── The lead capture ────────────────────────────────────────────────── */
 	/*
-		A panel rather than a row.
+		It replaced the video library's `.lib-promo` panel — a lit card with a
+		padlock badge, a blurb and two buttons, one of them carrying $97. See the
+		note in the markup for why that came off.
 
-		It was a single-line link — mark, title, blurb, arrow — sitting above the
-		filter bar, which read as the thirteenth document rather than as the one
-		paid thing on a page of free ones. Given its own lit panel it reads as what
-		it is, and it has room for the two doors below.
-
-		Its `margin` moved from the bottom edge to the top: it used to sit inside
-		`.library__inner`, directly over the filter bar. It is in the page header
-		now, under the lede, so the clearance it needs is above it.
+		Quieter than the panel it replaced, on purpose. A form is an ask, and an
+		ask dressed as loudly as an offer reads as one. The lit treatment on this
+		page belongs to the grid now, which is the thing being given away.
 	*/
-	.lib-promo {
+	.brief {
 		display: grid;
-		gap: 0.85rem;
+		gap: 0.7rem;
 		margin: clamp(2rem, 4vw, 3rem) 0 0;
-		padding: clamp(1.1rem, 2.4vw, 1.6rem);
-		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
+		padding: clamp(1.25rem, 2.6vw, 1.75rem);
+		border: 1px solid var(--color-line-strong);
 		border-radius: 1rem;
-		background:
-			radial-gradient(
-				120% 140% at 0% 0%,
-				color-mix(in oklab, var(--color-arc-500) 22%, transparent) 0%,
-				transparent 62%
-			),
-			color-mix(in oklab, var(--color-ink-900) 72%, transparent);
-		box-shadow:
-			inset 0 1px 0 color-mix(in oklab, #cfe4ff 16%, transparent),
-			0 30px 70px -50px #000;
+		background: color-mix(in oklab, var(--color-ink-900) 72%, transparent);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 10%, transparent);
 	}
 
-	.lib-promo__head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-
-	/* Set rather than drawn, same as the nav — see the note there. */
-	.lib-promo__brand {
+	.brief__eyebrow {
 		margin: 0;
-		font-family: var(--font-display);
-		font-size: var(--text-xl);
-		font-weight: 700;
-		letter-spacing: -0.01em;
+	}
+
+	.brief__title {
+		margin: 0;
+		max-width: 24ch;
+		font-size: var(--text-2xl);
 		line-height: 1.15;
+		letter-spacing: -0.01em;
 		color: var(--color-bone-50);
 	}
 
-	.lib-promo__brand-ai {
-		color: var(--color-arc-400);
-	}
-
-	/* Says the price is a gate before either button does. */
-	.lib-promo__badge {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		margin: 0;
-		padding: 0.3rem 0.65rem;
-		border: 1px solid color-mix(in oklab, var(--color-arc-300) 40%, transparent);
-		border-radius: 999px;
-		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
-		font-family: var(--font-mono);
-		font-size: var(--text-2xs);
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: var(--color-arc-200);
-	}
-
-	.lib-promo__badge svg {
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-
-	.lib-promo__blurb {
+	.brief__lede {
 		margin: 0;
 		max-width: 60ch;
 		font-size: var(--text-sm);
@@ -950,22 +899,19 @@ const scriptStrings = JSON.stringify({
 		color: var(--color-bone-300);
 	}
 
-	.lib-promo__actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.625rem;
-	}
-
-	/* Inside the button, after the label — the figure is part of the offer, not
-	   a caption under it. */
-	.lib-promo__price {
-		padding-inline-start: 0.5rem;
-		margin-inline-start: 0.5rem;
-		border-inline-start: 1px solid color-mix(in oklab, currentColor 30%, transparent);
+	/*
+		The six subjects, set as the list they are rather than as a sentence. Mono
+		and spaced, so the middots read as separators and not as punctuation
+		somebody forgot to fix.
+	*/
+	.brief__topics {
+		margin: 0 0 0.35rem;
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
-		letter-spacing: 0.06em;
-		opacity: 0.85;
+		letter-spacing: 0.08em;
+		line-height: 1.7;
+		text-transform: uppercase;
+		color: var(--color-arc-200);
 	}
 
 	/* ── The grid's own header ───────────────────────────────────────────── */
@@ -989,6 +935,31 @@ const scriptStrings = JSON.stringify({
 	}
 
 	/* ── Community ───────────────────────────────────────────────────────── */
+	/*
+		The seam between the community band and the closing ask.
+
+		They are two `.section`s in a row with no rule between them, so the seam
+		stacked a full `--section-y` on each side of it — 176px of empty page
+		between a kicker line and the heading that answers it. Cutting the ask's
+		top padding to a third still left 117px, which is the same mistake in a
+		smaller size: two centred blocks, same measure, same heading size, with a
+		void between them reads as one section that broke rather than two that
+		follow each other.
+
+		So the seam is closed properly. The community band gives up its bottom
+		padding entirely and the ask takes a single deliberate step instead — the
+		spacing of one block moving to its next beat, not the clearance between two
+		strangers. The ask keeps its own bottom padding, which is the real end of
+		the page.
+	*/
+	.hub-community {
+		padding-block-end: 0;
+	}
+
+	.hub-ahead {
+		padding-block-start: clamp(2.25rem, 4.5vw, 3.5rem);
+	}
+
 	.hub-community__inner {
 		display: flex;
 		flex-direction: column;
@@ -1021,19 +992,54 @@ const scriptStrings = JSON.stringify({
 	}
 
 	/* ── The closing ask ─────────────────────────────────────────────────── */
+	/*
+		Centred, like the community band directly above it.
+
+		It was a 44rem column, centred as a block but with its contents ranged
+		left — sitting under a fully centred band, which read as one of the two
+		being misaligned. The old note here said centring would stretch the form's
+		two-control row across the measure, and that was true; the answer is to
+		give the FORM a width of its own rather than to range the whole section
+		left. See `.signup` below.
+
+		Both bands are one closing thought — "here is what we are building", then
+		"come with us" — so they are set the same way.
+	*/
 	.hub-ahead__inner {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 		gap: 1rem;
-		/* The form's own row is a grid that fills its container; centring the
-		   column would stretch a two-control row across the full measure. */
+		text-align: center;
 		max-width: 44rem;
 		margin-inline: auto;
 	}
 
+	/*
+		The form, inside a centred column.
+
+		`:global` because `.signup` belongs to `NewsletterSignup` and a scoped rule
+		here cannot reach it. The width stops the row spreading to 44rem — a single
+		email field that wide reads as a search bar — and `text-align: start` puts
+		the field label and the note back over their own controls, because a
+		centred label above a left-edged input is the misalignment this rule set
+		out to fix.
+	*/
+	.hub-ahead__inner :global(.signup) {
+		width: min(100%, 32rem);
+		text-align: start;
+	}
+
+	/*
+		A step down from the community band's heading above it. Both were
+		`--text-3xl`, which put two centred headings of identical size on top of
+		each other and made the second read as a restatement of the first rather
+		than as the thing it asks for.
+	*/
 	.hub-ahead__title {
 		margin: 0;
-		font-size: var(--text-3xl);
+		max-width: 24ch;
+		font-size: var(--text-2xl);
 		text-wrap: balance;
 	}
 
@@ -1091,6 +1097,6 @@ const scriptStrings = JSON.stringify({
 		gap: 0.5rem;
 		margin: 3rem 0 0;
 		text-align: center;
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 	}
 </style>

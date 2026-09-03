@@ -1,7 +1,7 @@
 ---
 title: Clear Aligner Patient FAQ
 blurb: The thirty questions aligner patients ask before, during and after treatment, answered in patient language.
-category: Treatment Guides
+category: Patient Education
 file: /pdfs/molar-clear-aligner-patient-faq.pdf
 pages: 16
 updated: 2026-03-02

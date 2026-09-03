@@ -17,7 +17,7 @@
  */
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import StepIcon from '~/components/ui/StepIcon.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import { LIBRARY_ITEMS, LIBRARY_TOPICS, LIBRARY_TYPES, facet } from '~/data/library';
 import { breadcrumbSchema } from '~/data/schema';
 import { localizePath } from '~/i18n/config';
@@ -354,7 +354,7 @@ const scriptStrings = JSON.stringify({
 		</div>
 	</dialog>
 
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>
 
 <script>

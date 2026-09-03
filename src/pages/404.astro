@@ -5,7 +5,7 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 ---
 
 <BaseLayout
@@ -34,7 +34,7 @@ import ClosingCta from '~/components/sections/ClosingCta.astro';
 		</div>
 	</section>
 
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>
 
 <style>

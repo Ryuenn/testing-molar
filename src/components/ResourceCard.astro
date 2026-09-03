@@ -29,12 +29,17 @@ import { getLocale } from '~/i18n/utils';
  * without a glyph here fails the build rather than rendering an empty square.
  */
 const CATEGORY_GLYPH: Record<ResourceCategory, GlyphName> = {
-	'AI Workflows': 'spark',
-	'Patient Education': 'book',
-	'Practice Growth': 'chart',
+	'ChatGPT & AI Tools': 'spark',
+	'Sales & Case Acceptance': 'chart',
+	'CRM & Follow-Up': 'chat',
 	'Social Media': 'share',
-	'Treatment Guides': 'tooth',
-	Operations: 'layers',
+	'Patient Education': 'book',
+	'Automation & Workflows': 'layers',
+	'Practice Operations': 'clock',
+	/* Nothing is filed here yet — see the ⚠️ in `~/data/resources`. The glyph is
+	   required anyway: the map is keyed by the union, which is what makes a new
+	   category fail the build instead of rendering an empty square. */
+	'Tool Stack': 'docs',
 };
 
 const locale = getLocale(Astro);

@@ -1,7 +1,7 @@
 ---
 title: "The Chairside Conversation Guide"
 blurb: "Six steps for asking better questions at the chair, then using visual education to make the treatment easier to say yes to."
-category: Patient Education
+category: Sales & Case Acceptance
 file: /pdfs/molar-chairside-conversation-guide.pdf
 pages: 8
 updated: 2026-08-30

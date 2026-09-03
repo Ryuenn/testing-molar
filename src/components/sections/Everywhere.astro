@@ -16,7 +16,7 @@
  *
  * ⚠️ The artwork this section wants — the real TV design, the library
  * interface, an iPad and a monitor — is not in this repo. There is one asset
- * that fits (`public/videos/watch_tv_molar.mp4`, already running inside the
+ * that fits (`public/videos/Drpatricia_updated_video-web.mp4`, already running inside the
  * screen in `MolarTv`) and no library-interface shot, no iPad and no monitor.
  * Rather than pad the section with a stock device mockup, each row carries its
  * mark and its copy and the layout leaves the picture column free. Drop the
@@ -77,8 +77,9 @@ const ROWS = MOMENTS.map((moment) => ({
 		</ul>
 
 		<div class="ev__actions" data-reveal>
-			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} target="_blank" rel="noopener">
 				{t('tv.ctaTrial')}
+				<span class="sr-only"> {t('footer.newTab')}</span>
 				<span aria-hidden="true">→</span>
 			</a>
 		</div>

@@ -34,6 +34,16 @@ const { head = true } = Astro.props;
  * They are `<a>`, not buttons in a form: nothing is submitted from this page,
  * and `form-action 'self'` in the CSP would block it if it were.
  *
+ * All of them also open in a new tab. Every one of these is a decision point a
+ * visitor may back out of — a checkout they abandon, a calendar with no slot
+ * that suits — and navigating away in place means coming back to the top of a
+ * page they had read most of the way down, having lost the annual toggle's
+ * state with it. The plan grid stays where they left it.
+ *
+ * `target="_blank"` is why `rel="noopener"` matters rather than merely being
+ * tidy: without it the opened tab gets a live `window.opener` handle back to
+ * this page. Never add one of these without the other.
+ *
  * ── The annual toggle ──────────────────────────────────────────────────────
  * MOLAR TV is sold monthly or annually and the card carries a two-state switch
  * between them. It is progressive enhancement: the card renders with the
@@ -196,11 +206,12 @@ const annual = {
 								<a
 									class="plan__cta"
 									href={plan.cta.href}
+									target="_blank"
 									rel="noopener"
 									data-billing-pane="monthly"
 								>
 									{t('pricing.educationCta')}
-									<span class="sr-only"> — opens Stripe Checkout</span>
+									<span class="sr-only"> — opens Stripe Checkout {t('footer.newTab')}</span>
 									<span class="plan__cta-arrow" aria-hidden="true">
 										&rarr;
 									</span>
@@ -212,9 +223,16 @@ const annual = {
 									Payment Link in this repo, and pointing this at the monthly
 									one would show $849 a year and charge $97 a month.
 								*/}
-								<a class="plan__cta" href={annual.href} rel="noopener" data-billing-pane="annual" hidden>
+								<a
+									class="plan__cta"
+									href={annual.href}
+									target="_blank"
+									rel="noopener"
+									data-billing-pane="annual"
+									hidden
+								>
 									{t('pricing.annualCta')}
-									<span class="sr-only"> — opens a booking calendar</span>
+									<span class="sr-only"> — opens a booking calendar {t('footer.newTab')}</span>
 									<span class="plan__cta-arrow" aria-hidden="true">
 										&rarr;
 									</span>
@@ -224,13 +242,15 @@ const annual = {
 							<a
 								class:list={['plan__cta', plan.featured && 'plan__cta--featured']}
 								href={plan.cta.href}
+								target="_blank"
 								rel="noopener"
 							>
 								{t(`pricing.${plan.key}Cta` as never)}
 								{/* Says where the button goes without putting it in the label
 								    twice for people who can see the button. */}
 								<span class="sr-only">
-									{isCheckout(plan) ? ' — opens Stripe Checkout' : ' — opens a booking calendar'}
+									{isCheckout(plan) ? ' — opens Stripe Checkout' : ' — opens a booking calendar'}{' '}
+									{t('footer.newTab')}
 								</span>
 								<span class="plan__cta-arrow" aria-hidden="true">
 									&rarr;

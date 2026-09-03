@@ -1,7 +1,7 @@
 ---
 title: Front Desk Social Scripts
 blurb: Short, non-awkward lines the front desk can use to grow a following without sounding like marketing.
-category: Operations
+category: Social Media
 file: /pdfs/molar-front-desk-social-scripts.pdf
 pages: 9
 updated: 2026-02-11

@@ -1,7 +1,7 @@
 ---
 title: "The Dentist AI Avatar Setup"
 blurb: "Clone your voice in ElevenLabs, build an avatar in HeyGen, and turn a script into a video without filming every time."
-category: AI Workflows
+category: ChatGPT & AI Tools
 file: /pdfs/molar-ai-avatar-setup.pdf
 pages: 3
 updated: 2026-08-30

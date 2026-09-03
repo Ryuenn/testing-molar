@@ -53,8 +53,28 @@ const caseStudies = defineCollection({
 			}),
 			image: image().optional(),
 			imageAlt: z.string().optional(),
+			/**
+			 * A film for the rail, instead of the still.
+			 *
+			 * Root-relative paths into `public/`, not `image()` — a <video> cannot
+			 * take a build-processed asset, and the poster is loaded by the same
+			 * element so it lives beside it rather than in `src/assets`.
+			 *
+			 * Takes precedence over `image` where set, and both are required
+			 * together: a <video> with no poster is a black rectangle until the
+			 * first frame decodes, which on a marketing page is a hole in the card.
+			 * `image` stays as the fallback for a study with no film.
+			 */
+			video: z.string().optional(),
+			poster: z.string().optional(),
 			order: z.number().default(100),
 			draft: z.boolean().default(false),
+		})
+		/* Both or neither — see the note on `video`. Caught at build time, because
+		   a poster missed on one study is invisible until someone scrolls to it. */
+		.refine((d) => Boolean(d.video) === Boolean(d.poster), {
+			message: 'A case study with `video` must also carry `poster`, and vice versa.',
+			path: ['poster'],
 		}),
 });
 

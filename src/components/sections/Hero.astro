@@ -37,12 +37,29 @@ const t = useTranslations(locale);
  * Renaming any of these means updating `public/videos/README.md` too.
  */
 const VIDEO = {
-	// `poster` takes a single URL — no srcset, no <picture> — so it gets the WebP:
-	// a quarter the weight of the JPEG and supported everywhere that matters. The
-	// CSS fallback below negotiates AVIF/WebP/JPEG properly via image-set().
-	// Cut from THIS footage — `ffmpeg -ss 2 -frames:v 1`. Re-cut it whenever the
-	// clip changes, or the fold shows one room before the video paints another.
-	poster: '/images/hero-poster.webp',
+	// `poster` takes a single URL — no srcset, no <picture> — and it points at the
+	// AVIF **on purpose, to match what `.hero__media`'s image-set() picks**.
+	//
+	// It used to be the WebP, which meant every reload fetched this one frame
+	// TWICE: the CSS background took the AVIF (39KB) and the poster attribute took
+	// the WebP (55KB), for two copies of an identical picture drawn in identical
+	// positions. 94KB of the fold's weight, half of it for nothing.
+	//
+	// Pointing both at the same file makes it one request that both uses share.
+	// The handful of browsers too old for AVIF simply fail to load the poster and
+	// fall through to the CSS background beneath the video, which negotiates
+	// WebP/JPEG for them — so the fold still has a picture, from the format they
+	// can read.
+	//
+	// Cut from THIS footage at 2s, and re-cut whenever the clip changes, or the
+	// fold shows one room before the video paints another:
+	//
+	//   ffmpeg -ss 2 -i Molar_Hero_Updated-web.mp4 -frames:v 1 hero-poster.png
+	//   ffmpeg -i hero-poster.png -q:v 4 hero-poster.jpg
+	//   ffmpeg -i hero-poster.png -c:v libwebp -quality 72 hero-poster.webp
+	//   ffmpeg -i hero-poster.png -c:v libaom-av1 -still-picture 1 -crf 38 \
+	//     -cpu-used 6 hero-poster.avif
+	poster: '/images/hero-poster.avif',
 	// The footage behind the fold. One cut serves every width — see the crop note
 	// on .hero__video below.
 	//
@@ -51,19 +68,25 @@ const VIDEO = {
 	// the product in the room it is sold for — and this is exactly that: a
 	// patient in the chair watching MOLAR TV on the wall.
 	//
-	// The web cut of `Hero_videoFinal.mp4`, not the master.
+	// The web cut of `Molar_Hero_Updated.mp4`, not the master. NEVER point this
+	// at a delivered file directly — every one of them so far has been mastered
+	// for editing rather than for a browser.
 	//
-	// The delivered file was 1660x1244 at 5.1 Mbps — several times what a muted
-	// loop behind a headline needs. Re-encoded at CRF 23 with `faststart`, so
-	// playback begins on the first chunk rather than after a range request to the
-	// end of the file: 7.6MB → 3.6MB. It carries no audio track to strip, but
-	// `-an` stays in the command because the next delivery might.
+	// This delivery was 1660x1244 at 8.2 Mbps: 10.5MB for a ten-second muted loop
+	// behind a headline, which is most of what a first paint has to wait through.
+	// Re-encoded at CRF 23 with `faststart`, so playback begins on the first
+	// chunk rather than after a range request to the end of the file — 10.5MB →
+	// 1.7MB, and visually identical at this size behind a scrim. It carries no
+	// audio track to strip, but `-an` stays in the command because the next
+	// delivery might.
 	//
-	//   ffmpeg -i Hero_videoFinal.mp4 -an -c:v libx264 -crf 23 -preset slow \
-	//     -pix_fmt yuv420p -movflags +faststart Hero_videoFinal-web.mp4
+	//   ffmpeg -i Molar_Hero_Updated.mp4 -an -c:v libx264 -crf 23 -preset slow \
+	//     -pix_fmt yuv420p -movflags +faststart Molar_Hero_Updated-web.mp4
 	//
-	// Any replacement footage wants the same treatment before it goes in here.
-	mp4: '/videos/Hero_videoFinal-web.mp4',
+	// Any replacement footage wants the same treatment, AND a re-cut poster —
+	// see above. The two are one change: a poster from the previous clip shows a
+	// different room for a moment and then jumps.
+	mp4: '/videos/Molar_Hero_Updated-web.mp4',
 };
 
 /**
@@ -241,8 +264,14 @@ const SOCIAL = [
 				the checkout that honours it.
 			*/}
 			<div class="hero__actions" data-hero-in="tail">
-				<a href={EDUCATION_CHECKOUT} rel="noopener" class="hero__btn hero__btn--solid">
+				<a
+					href={EDUCATION_CHECKOUT}
+					target="_blank"
+					rel="noopener"
+					class="hero__btn hero__btn--solid"
+				>
 					<span>{t('cta.explore')}</span>
+					<span class="sr-only"> {t('footer.newTab')}</span>
 					{/* The tile, and it needs no disc behind it — it is its own rounded
 					    ground. Decorative: the label is the link's accessible name. */}
 					<Image
@@ -397,13 +426,26 @@ const SOCIAL = [
 		position: absolute;
 		inset: 0;
 		background:
-			/* Ink banked down the left, where the copy is. */
+			/*
+				Ink banked down the left, where the copy is.
+
+				Eased back a step: the near edge was FULLY opaque ink, so the left
+				third of the fold was a flat black panel rather than a dark part of
+				the room — the chair and the patient in it disappeared into it
+				entirely. It is a scrim, and a scrim you cannot see through is a
+				background colour.
+
+				Deliberately a small move (100/92/62/18 → 90/80/54/14). The headline
+				is white on this and the paragraph under it is not; whatever comes off
+				here comes straight off their contrast, so the room reads through the
+				ink without the copy having to fight it.
+			*/
 			linear-gradient(
 				90deg,
-				var(--color-ink-950) 0%,
-				color-mix(in oklab, var(--color-ink-950) 92%, transparent) 26%,
-				color-mix(in oklab, var(--color-ink-950) 62%, transparent) 46%,
-				color-mix(in oklab, var(--color-ink-950) 18%, transparent) 66%,
+				color-mix(in oklab, var(--color-ink-950) 90%, transparent) 0%,
+				color-mix(in oklab, var(--color-ink-950) 80%, transparent) 26%,
+				color-mix(in oklab, var(--color-ink-950) 54%, transparent) 46%,
+				color-mix(in oklab, var(--color-ink-950) 14%, transparent) 66%,
 				transparent 100%
 			),
 			linear-gradient(
@@ -415,13 +457,27 @@ const SOCIAL = [
 			);
 	}
 
+	/*
+		The vignette, eased back.
+
+		It ran `transparent 32%` to 78% ink at the edge — a third of the frame
+		clear and then two thirds ramping into near-black, which put the treatment
+		room's corners, the doorway and the chair into shadow the footage does not
+		have. The room is the argument here; darkening its edges to focus a reader
+		who is already looking at a screen in the middle of the frame costs more
+		than it buys.
+
+		Clear further out (32% → 46%) and darker only by half at the edge (78% →
+		42%). Still a vignette — the corners settle rather than compete with the
+		headline — but the picture reaches them now.
+	*/
 	.hero__vignette {
 		position: absolute;
 		inset: 0;
 		background: radial-gradient(
 			120% 86% at 74% 44%,
-			transparent 32%,
-			color-mix(in oklab, var(--color-ink-950) 78%, transparent) 100%
+			transparent 46%,
+			color-mix(in oklab, var(--color-ink-950) 42%, transparent) 100%
 		);
 	}
 

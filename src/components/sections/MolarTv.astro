@@ -21,7 +21,7 @@
  * its first frame; see the media query at the foot of this file.
  */
 import Glyph from '~/components/ui/Glyph.astro';
-import { TV_FEATURES, TV_PLAYLIST, TV_LOOP } from '~/data/tv';
+import { TV_FEATURES, TV_PLAYLIST, TV_LOOP, TV_POSTER } from '~/data/tv';
 import { EDUCATION_CHECKOUT } from '~/data/site';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -96,6 +96,7 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 							loop
 							playsinline
 							preload="metadata"
+							poster={TV_POSTER}
 							aria-hidden="true"
 							tabindex="-1"
 							disablepictureinpicture
@@ -172,8 +173,14 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 						the $97 subscription with a free trial. So there is one button, it
 						is that trial, and it goes straight to the checkout that honours it.
 					*/}
-					<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+					<a
+						class="btn btn-primary"
+						href={EDUCATION_CHECKOUT}
+						target="_blank"
+						rel="noopener"
+					>
 						{t('tv.ctaTrial')}
+						<span class="sr-only"> {t('footer.newTab')}</span>
 						<span aria-hidden="true">→</span>
 					</a>
 				</div>
@@ -269,13 +276,84 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 
 	.tv__stage {
 		display: grid;
-		gap: clamp(1.75rem, 4vw, 3rem);
+		/* Capped at 2.25rem rather than 3rem. Between a screen and a list of
+		   labels, three quarters of a rem of air is worth less than three quarters
+		   of a rem of picture. The 1.75rem floor is untouched — it is the vertical
+		   gap between the two when they stack on a phone. */
+		gap: clamp(1.75rem, 4vw, 2.25rem);
 		align-items: center;
 	}
 
 	@media (min-width: 62rem) {
+		/*
+			The screen takes everything the list does not need.
+
+			It was `1.6fr / 1fr`, which handed the right column 406px for rows whose
+			longest label — "Custom practice branding" at `--text-sm` — measures about
+			225px inside its padding. 180px of slack on the side, taken off the one
+			element on this section that has something to show.
+
+			Capped rather than freed: `15.5rem` clears the longest label with room to
+			spare at every width this query covers, and the screen takes the rest.
+
+			⚠️ This does NOT make the in-video screen legible on its own. The footage
+			is a wide room shot where the practice's TV fills half the frame, so its
+			body copy is scaled down twice before it reaches a reader. A clip whose
+			content fills the frame is the only thing that closes that gap; see the
+			note on `.screen__video`.
+		*/
 		.tv__stage {
-			grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+			/* Fixed, not a range. The 1rem of slack at the top of that range was
+			   1rem the screen did not get, and the rows do not use it. */
+			grid-template-columns: minmax(0, 1fr) 15.5rem;
+			/*
+				Stretch, not centre. The list is shorter than the screen beside it, so
+				centring floated it in the middle of the row with unequal air above
+				and below and nothing to line up against. Stretched, it has the
+				screen's own height to work with — see `.tv__side`.
+			*/
+			align-items: stretch;
+		}
+	}
+
+	/*
+		Past the copy measure, on a wide window.
+
+		The stage sits inside `.container-content`, which is 76rem — the measure a
+		paragraph is set to. The screen is not a paragraph, and on a 1920px window
+		that cap left ~350px of empty page on either side of the one element in
+		this section that has something to show.
+
+		So it reaches into that space, and only as far as it exists: the first step
+		needs 88rem of window to leave 2rem of gutter beside it, the second needs
+		100rem to leave 6rem. Below 88rem nothing moves and the section stays
+		exactly inside the container, which is why this is written as two floors
+		rather than as a `100vw` calculation — `vw` includes the scrollbar on
+		several engines, and a horizontal scrollbar on the home page is a worse bug
+		than a narrower screen.
+
+		⚠️ RAISE `max-width`, NEVER set `margin-inline`. `.container-content`
+		centres itself with `margin-inline: auto`; overriding that with a negative
+		margin does widen the block, and also throws away the centring — the whole
+		section slams against the left edge of the window and hangs off it. That
+		was shipped for one pass and it looked exactly as broken as it sounds.
+
+		The WHOLE column moves, not just the stage. It was the stage alone for one
+		pass, which left the heading, the lede and the four cards under it starting
+		4rem to the right of the screen's own left edge — three different left
+		margins in one section, which reads as a mistake because it is one. The
+		section is wider than its neighbours now; everything inside it lines up
+		with everything else inside it, which is the alignment a reader can see.
+	*/
+	@media (min-width: 88rem) {
+		.tv__inner {
+			max-width: calc(var(--container-content) + 8rem);
+		}
+	}
+
+	@media (min-width: 100rem) {
+		.tv__inner {
+			max-width: calc(var(--container-content) + 16rem);
 		}
 	}
 
@@ -311,15 +389,27 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 		overflow: clip;
 	}
 
+	/*
+		Fills the panel, whole frame.
+
+		A zoom lived here for one pass: the footage is a wide waiting-room shot with
+		the practice's TV on the wall, so the panel was showing a television inside
+		a television and nothing on the inner screen could be read. The fix was to
+		crop to the wall TV with a 193% width and negative offsets — which read the
+		panel's box differently than intended and left the clip stranded in a corner
+		of a black rectangle. Reverted rather than tuned: the whole frame is the
+		shot, and the room is most of what the shot is saying.
+
+		The text on the in-video screen is small at this size. That is a property of
+		the footage, not of this rule — a clip whose content fills the frame is what
+		would fix it.
+	*/
 	.screen__video {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		/*
-			The clips are 9:16 phone video on a 16:9 screen, so a cover crop takes
-			the middle of the frame. Positioned a little above centre because the
-			subject in these is consistently in the upper half.
-		*/
+		/* A touch above centre: the subject in these clips sits in the upper
+		   half, and a centred crop takes the ceiling instead. */
 		object-position: 50% 35%;
 	}
 
@@ -378,7 +468,19 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 	}
 
 	/* Arm and plate, so the panel reads as hung rather than as floating. */
+	/*
+		Absolutely positioned, so it contributes no height.
+
+		In flow it added 1.75rem below the bezel, which is what the side column
+		would then stretch to — putting the button 28px below the screen's bottom
+		edge rather than level with it. It is a drawn stand, not content; it hangs
+		off the bottom of the screen instead of extending it.
+	*/
 	.screen__mount {
+		position: absolute;
+		inset-block-start: 100%;
+		inset-inline-start: 50%;
+		translate: -50% 0;
 		width: 2.5rem;
 		height: 1.75rem;
 		background: linear-gradient(180deg, #141f36, #0e1628);
@@ -394,19 +496,48 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 		align-content: center;
 	}
 
+	/*
+		First row to the top of the screen, button to the bottom.
+
+		`space-between` puts the playlist and the actions at the two ends of a
+		column that is now exactly as tall as the panel beside it, so the edges a
+		reader actually notices — top of the list, bottom of the button, and both
+		edges of the screen — resolve to two lines instead of four.
+
+		⚠️ This block sits AFTER the base rule on purpose. Media queries add no
+		specificity, so the two `.tv__side` declarations are settled by source
+		order alone — written up beside the grid columns in the earlier
+		`min-width: 62rem` block, `align-content: center` below would have silently
+		won and nothing would have moved.
+	*/
+	@media (min-width: 62rem) {
+		.tv__side {
+			align-content: space-between;
+		}
+	}
+
 	.tv__playlist {
 		display: grid;
-		gap: 0.5rem;
+		gap: 0.6rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
+	/*
+		Roomier rows.
+
+		The column is `space-between` against the screen's full height, so whatever
+		the rows and the button do not occupy shows up as a hole between them. At
+		0.6875rem of padding the six of them plus the ask filled a little over half
+		the column and the rest was air. Taller rows spend that on the content
+		instead of leaving it as a gap.
+	*/
 	.tv__track {
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		padding: 0.6875rem 0.875rem;
+		padding: 0.95rem 0.875rem;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--color-line);
 		background: color-mix(in oklab, var(--color-ink-800) 62%, transparent);
@@ -541,6 +672,19 @@ const FEATURES = TV_FEATURES.map((feature) => ({
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.625rem;
+	}
+
+	/*
+		The ask, sized to the column rather than to the default button.
+
+		It sits at the bottom of a column as tall as the screen, where a 40px pill
+		reads as an afterthought under six rows of the same width. Full width and a
+		step up in type and padding — still a button, not a banner.
+	*/
+	.tv__actions :global(.btn) {
+		width: 100%;
+		padding-block: 1.15rem;
+		font-size: var(--text-base);
 	}
 
 	/*

@@ -165,10 +165,52 @@ export const EDUCATION_DEMO = {
 	/** Suffix into `edu.demoQuery` — translated, because a German practice
 	    searching this library searches it in German. */
 	queryKey: 'demoQuery',
-	/** The hit. */
-	resultId: 'lingual-braces',
-	/** What the panel offers next. Same topic or same treatment stage. */
-	relatedIds: ['new-tooth-today', 'prophylaxis'],
+	/**
+	 * The hit.
+	 *
+	 * ⚠️ THE QUERY MUST MATCH IT. `edu.demoQuery` in `~/i18n/ui` is the text in
+	 * the search field, and the whole point of this panel is that the field, the
+	 * result and the related list are one coherent search. Change one and check
+	 * the other two.
+	 *
+	 * This entry is Vimeo-hosted, so the panel renders it in a Vimeo player with
+	 * the title, byline and portrait switched off — the video and nothing else.
+	 * Drop a `teeth-whitening.mp4` in `public/videos/library/`, add `video:` to
+	 * the record in `library.ts`, and the same slot becomes a bare local
+	 * `<video>` with no change here: the panel prefers the file where there is
+	 * one.
+	 *
+	 * It briefly played an Instagram reel embedded from @molar.ai. That is gone.
+	 * Their embed is a whole Instagram card — avatar, "View profile", a like and
+	 * comment bar — and there is no parameter that removes any of it, so a panel
+	 * meant to show the product was showing Instagram's product instead.
+	 */
+	resultId: 'how-does-teeth-whitening-work',
+	/**
+	 * What the panel offers next. Same topic or same treatment stage.
+	 *
+	 * These were `new-tooth-today` (Restorative) and `prophylaxis` (Preventive)
+	 * against an Orthodontics hit — two videos that shared neither the topic nor
+	 * the stage, which is the rule directly above. A related list that is not
+	 * related is the one thing this panel cannot show: it is here to prove the
+	 * library answers the next question, and it was answering a different
+	 * patient's.
+	 *
+	 * Four now, all Cosmetic and all English, running in the order the questions
+	 * actually arrive: how does it work (the hit), what does it change, how long
+	 * does it last, and — for the patient whitening will not fix — what veneers
+	 * cost them and how long those last instead.
+	 *
+	 * The catalogue holds exactly three whitening videos and one of them is the
+	 * hit, which is why the last two are the alternative treatment rather than
+	 * more of the same one.
+	 */
+	relatedIds: [
+		'how-whitening-changes-the-color-of-your-teeth',
+		'how-long-do-whitening-results-last',
+		'do-veneers-ruin-your-teeth',
+		'how-long-do-veneers-last',
+	],
 } as const;
 
 /**

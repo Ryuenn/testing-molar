@@ -6,7 +6,7 @@ import EducationLibrary from '~/components/sections/EducationLibrary.astro';
 import PatientJourney from '~/components/sections/PatientJourney.astro';
 import WhyMolar from '~/components/sections/WhyMolar.astro';
 import Faq from '~/components/sections/Faq.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import { breadcrumbSchema } from '~/data/schema';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
@@ -55,5 +55,5 @@ const t = useTranslations(locale);
 	<PatientJourney />
 	<WhyMolar />
 	<Faq />
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>

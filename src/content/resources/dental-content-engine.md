@@ -1,7 +1,7 @@
 ---
 title: "The Dental Content Engine"
 blurb: "Turn ChatGPT into a content strategist that already knows your practice, then ask it for Reels, scripts, carousels and captions."
-category: AI Workflows
+category: ChatGPT & AI Tools
 file: /pdfs/molar-dental-content-engine.pdf
 pages: 8
 updated: 2026-08-30

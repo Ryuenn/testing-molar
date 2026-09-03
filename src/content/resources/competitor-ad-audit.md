@@ -1,7 +1,7 @@
 ---
 title: "The Dental Competitor Ad Audit"
 blurb: "Use the Meta Ad Library to see what other practices are actively running — offer, hook, creative and landing page — before you build a campaign."
-category: Practice Growth
+category: Social Media
 file: /pdfs/molar-competitor-ad-audit.pdf
 pages: 4
 updated: 2026-08-30

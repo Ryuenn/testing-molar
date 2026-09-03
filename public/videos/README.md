@@ -4,10 +4,10 @@ What is actually referenced, and by what:
 
 | Path                            | Used for                            | Filenames                                             |
 | ------------------------------- | ----------------------------------- | ----------------------------------------------------- |
-| `Hero_videoFinal-web.mp4`       | The hero background, all widths     | **Fixed** — `Hero.astro` references it literally       |
-| `watch_tv_molar.mp4`            | The screen inside the MOLAR TV section | **Fixed** — via `TV_LOOP` in `~/data/tv`            |
+| `Molar_Hero_Updated-web.mp4`    | The hero background, all widths     | **Fixed** — `Hero.astro` references it literally       |
+| `Drpatricia_updated_video-web.mp4` | The screen inside the MOLAR TV section | **Fixed** — via `TV_LOOP` in `~/data/tv`         |
 | `molar-testimonial-0721.mp4`    | The case study's film, and `AssetFilm` | **Fixed** — referenced literally in both            |
-| `harrosch-testimonial.mp4`      | The highlight card in `Testimonials` | **Fixed** — via `~/data/testimonials`                 |
+| `harrosch-testimonial.mp4`      | Nothing, since the films went to Vimeo | **Retired** — was the highlight's fallback         |
 | `pricing_animate.mp4`           | The field behind the plan grid      | **Fixed** — `PlansField.astro`                         |
 | `MolarExampleVideos/`           | The reel on /our-work/              | **Free** — the folder is read at build time            |
 
@@ -17,10 +17,10 @@ Worth clearing out; left in place because deleting somebody's footage is not a b
 
 `netlify.toml` caches all of `/videos/*` as immutable for a year, so a replacement that keeps its
 name will not reach anyone already carrying the old one. Bust it by renaming the file
-(`Hero_videoFinal-web.mp4` → `Hero_videoFinal-web-v2.mp4`) rather than by overwriting in place.
+(`Molar_Hero_Updated-web.mp4` → `Molar_Hero_Updated-web-v2.mp4`) rather than by overwriting in place.
 
-The hero poster lives at `public/images/hero-poster.jpg` — not in this folder, because Netlify sets
-`Content-Disposition` and range headers differently for `/videos/*`.
+The hero poster lives at `public/images/hero-poster.{avif,webp,jpg}` — not in this folder, because
+Netlify sets `Content-Disposition` and range headers differently for `/videos/*`.
 
 ## The hero footage
 
@@ -52,9 +52,14 @@ ffmpeg -i Hero_videoFinal.mp4 -an -c:v libx264 -crf 23 -preset slow -pix_fmt yuv
   -movflags +faststart Hero_videoFinal-web.mp4
 
 # Poster — from the SAME cut, or the fold shows one room and then paints another.
-# All three formats: the <video poster> takes the WebP, the CSS fallback negotiates via image-set().
-ffmpeg -ss 2 -i Hero_videoFinal-web.mp4 -frames:v 1 hero-src.png
-node -e "const s=require('sharp');(async()=>{for(const [f,o] of [['jpeg',{quality:78,mozjpeg:true}],['webp',{quality:72}],['avif',{quality:50}]])await s('hero-src.png')[f](o).toFile('public/images/hero-poster.'+(f==='jpeg'?'jpg':f))})()"
+# All three formats. The <video poster> and the CSS image-set() both take the AVIF, deliberately:
+# they draw the identical frame in the identical place, so pointing them at one file makes it one
+# request instead of two. WebP and JPEG are the fallbacks image-set() negotiates for older browsers.
+ffmpeg -ss 2 -i Molar_Hero_Updated-web.mp4 -frames:v 1 hero-poster.png
+ffmpeg -i hero-poster.png -q:v 4 hero-poster.jpg
+ffmpeg -i hero-poster.png -c:v libwebp -quality 72 hero-poster.webp
+ffmpeg -i hero-poster.png -c:v libaom-av1 -still-picture 1 -crf 38 -cpu-used 6 hero-poster.avif
+rm hero-poster.png   # all three land in public/images/
 ```
 
 ### If you add more cuts

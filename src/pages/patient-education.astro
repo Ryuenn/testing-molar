@@ -10,7 +10,7 @@ import EducationPricing from '~/components/sections/EducationPricing.astro';
 import EducationCompare from '~/components/sections/EducationCompare.astro';
 import MolarTv from '~/components/sections/MolarTv.astro';
 import Faq from '~/components/sections/Faq.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 import { breadcrumbSchema, faqSchema } from '~/data/schema';
 import { EDUCATION_FAQ } from '~/data/faq-education';
 import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
@@ -44,8 +44,6 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 */
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
-
-const buyHref = EDUCATION_CHECKOUT;
 ---
 
 <BaseLayout
@@ -95,8 +93,9 @@ const buyHref = EDUCATION_CHECKOUT;
 				honest version of "see what you get".
 			*/}
 			<div class="offer-actions">
-				<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+				<a class="btn btn-primary" href={EDUCATION_CHECKOUT} target="_blank" rel="noopener">
 					{t('edu.trialCta')}
+					<span class="sr-only"> {t('footer.newTab')}</span>
 					<span aria-hidden="true">&rarr;</span>
 				</a>
 				<a class="btn btn-quiet" href={localizePath('/resources/video-library/', locale)}>
@@ -127,13 +126,14 @@ const buyHref = EDUCATION_CHECKOUT;
 		heading={t('edu.faqHeading')}
 	/>
 
-	<ClosingCta
-		heading={t('edu.closeHeading')}
-		lede={t('edu.closeLede')}
-		note={t('edu.cancelBefore')}
-		primaryLabel={t('edu.startFree')}
-		primaryHref={buyHref}
-	/>
+	{/*
+		The home page's close, unmodified — see the note at the top of `FinalCta`.
+		This page used to run `ClosingCta` with five overrides of its own: its own
+		heading, lede, note and button label, all pointing at the same Stripe
+		checkout under a different name. Four ways of saying one offer is four
+		chances for one of them to fall out of step with the price.
+	*/}
+	<FinalCta />
 </BaseLayout>
 
 <style>

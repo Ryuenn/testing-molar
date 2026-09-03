@@ -68,11 +68,13 @@ const buyIsExternal = !buyHref.startsWith('/');
 				</p>
 				<p class="plan__billed">{t('edu.billedFrom')}</p>
 
-				<a class="plan__cta" href={buyHref} rel="noopener">
+				<a class="plan__cta" href={buyHref} target="_blank" rel="noopener">
 					{t('edu.startFreeThen', { price: EDUCATION_PRICE })}
 					{/* Says where the button goes without putting it in the label twice
 					    for anyone who can see the button. */}
-					{buyIsExternal && <span class="sr-only"> — opens Stripe Checkout</span>}
+					{buyIsExternal && (
+						<span class="sr-only"> — opens Stripe Checkout {t('footer.newTab')}</span>
+					)}
 					<span class="plan__cta-arrow" aria-hidden="true">&rarr;</span>
 				</a>
 

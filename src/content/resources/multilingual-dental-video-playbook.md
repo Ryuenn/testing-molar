@@ -1,7 +1,7 @@
 ---
 title: "The Multilingual Dental Video Playbook"
 blurb: "Record once, translate, and multiply your patient education across languages without re-filming — with a human checking clinical accuracy."
-category: AI Workflows
+category: Patient Education
 file: /pdfs/molar-multilingual-video-playbook.pdf
 pages: 8
 updated: 2026-08-30

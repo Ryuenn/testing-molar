@@ -552,7 +552,11 @@ const headline = GROWTH.metrics[0];
 		font-weight: 500;
 		letter-spacing: 0.16em;
 		text-transform: uppercase;
-		color: var(--color-bone-500);
+		/* bone-100, not bone-500. Uppercase mono at 10px with 0.16em of tracking is
+		   already the hardest thing on this exhibit to read; the dimmest grey in
+		   the palette on top of that made it decoration. The dot beside it and the
+		   colour it carries are what separate the two columns, not the dimming. */
+		color: var(--color-bone-100);
 	}
 
 	.shot__dot {
@@ -652,15 +656,23 @@ const headline = GROWTH.metrics[0];
 			0 24px 60px -36px #000;
 	}
 
+	/*
+		The figures transcribed off each screenshot.
+
+		They were bone-500 mono at `--text-xs` — the dimmest grey in the palette,
+		on the smallest step, for the one line on this exhibit that carries the
+		actual numbers. Set at bone-100 now, and both sides the same: the "before"
+		reading was a step dimmer than the "after", which quietly editorialised
+		the evidence by making the weaker number harder to read.
+
+		Mono stays. These are transcriptions of what the screenshot says, and the
+		tabular face is what marks them as read-off rather than written.
+	*/
 	.shot__read {
 		margin: 0;
 		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-		color: var(--color-bone-500);
-	}
-
-	.shot__read--after {
-		color: var(--color-bone-300);
+		font-size: var(--text-sm);
+		color: var(--color-bone-100);
 	}
 
 	/* ── The link between them ───────────────────────────────────────────── */
@@ -692,7 +704,7 @@ const headline = GROWTH.metrics[0];
 		font-size: var(--text-2xs);
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 		white-space: nowrap;
 	}
 
@@ -721,14 +733,29 @@ const headline = GROWTH.metrics[0];
 		width: 1rem;
 	}
 
+	/*
+		The provenance note.
+
+		It said what this whole exhibit rests on — that the screenshots are
+		unretouched and which figures are transcribed rather than claimed — and it
+		was set to be skipped: 10px mono, letter-spaced, in the palette's dimmest
+		grey. Three separate things all pulling legibility down at once, on the
+		sentence that makes the section trustworthy.
+
+		Now it is a note that can be read. Body face, one step up in size, at
+		bone-100; the letter-spacing is gone, because tracking added to small text
+		is what made it a smear rather than a line. The accent rule down the side
+		does the job the mono and the grey were doing — marking it as apparatus
+		rather than argument — without costing anything to read.
+	*/
 	.exhibit__source {
 		margin-block-start: clamp(1.75rem, 3vw, 2.5rem);
 		max-width: 68ch;
-		font-family: var(--font-mono);
-		font-size: var(--text-2xs);
-		line-height: 1.7;
-		letter-spacing: 0.04em;
-		color: var(--color-bone-500);
+		padding-inline-start: 0.875rem;
+		border-inline-start: 2px solid color-mix(in oklab, var(--color-arc-400) 55%, transparent);
+		font-size: var(--text-sm);
+		line-height: 1.65;
+		color: var(--color-bone-100);
 	}
 
 	/* ── The two lists ───────────────────────────────────────────────────── */
@@ -784,8 +811,17 @@ const headline = GROWTH.metrics[0];
 		color: #c4737a;
 	}
 
+	/*
+		The words, not the marks.
+
+		These were bone-400 against bone-50 on the other side — the losing column
+		literally set dimmer than the winning one, which reads as the page grading
+		its own evidence. The cross keeps its rose and the tick keeps its arc blue,
+		so the two columns still separate at a glance; what they no longer do is
+		make one side's sentences harder to read than the other's.
+	*/
 	.marks--no .mark {
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 	}
 
 	.marks--yes {
@@ -839,7 +875,7 @@ const headline = GROWTH.metrics[0];
 		font-size: var(--text-xs);
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 	}
 
 	@media (min-width: 60rem) {
@@ -977,8 +1013,11 @@ const headline = GROWTH.metrics[0];
 		color: var(--color-bone-50);
 	}
 
+	/* The practice under her name. Last grey on this section, lifted with the
+	   rest — it is an attribution line, and an attribution nobody can read is
+	   not doing the job attributions exist for. */
 	.film__role {
-		color: var(--color-bone-400);
+		color: var(--color-bone-100);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

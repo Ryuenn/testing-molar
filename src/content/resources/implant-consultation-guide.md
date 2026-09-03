@@ -1,7 +1,7 @@
 ---
 title: Implant Consultation Guide
 blurb: A visual walkthrough of the implant journey patients can take home, from bone assessment to final crown.
-category: Treatment Guides
+category: Patient Education
 file: /pdfs/molar-implant-consultation-guide.pdf
 pages: 20
 updated: 2026-03-22

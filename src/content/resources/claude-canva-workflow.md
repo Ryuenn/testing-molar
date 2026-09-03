@@ -1,7 +1,7 @@
 ---
 title: "The Claude + Canva Content Workflow"
 blurb: "Idea to branded post without starting from a blank Canva page — and the design stays editable when you are done."
-category: AI Workflows
+category: Automation & Workflows
 file: /pdfs/molar-claude-canva-workflow.pdf
 pages: 8
 updated: 2026-08-30

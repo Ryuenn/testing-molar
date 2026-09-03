@@ -30,19 +30,47 @@ const { Content } = await render(entry);
 		<Content />
 	</div>
 
+	{/*
+		The rail: her, or a still.
+
+		`video` wins where a study has one — see the field's note in
+		`content.config.ts`. This one is the practice's own testimonial, which is
+		the same person the exhibit above is about, so the column that used to hold
+		a placeholder graphic now holds the dentist saying it herself.
+
+		`controls` and no `autoplay`: it is a person talking, in a card a reader is
+		scrolling past, and a clip that starts itself in the corner of a case study
+		is an ambush. `preload="none"` behind the poster, so the rail costs one
+		12KB image until somebody presses play.
+	*/}
 	{
-		data.image && (
-			<div class="case__figure">
-				<Image
-					src={data.image}
-					alt={data.imageAlt ?? `${data.practice} — case study`}
-					widths={[300, 450, 600]}
-					sizes="(min-width: 960px) 300px, (min-width: 640px) 40vw, 80vw"
-					loading="lazy"
-					decoding="async"
-					class="case__image"
+		data.video ? (
+			<div class="case__figure case__figure--film">
+				<video
+					class="case__image case__image--film"
+					src={data.video}
+					poster={data.poster}
+					preload="none"
+					playsinline
+					controls
+					disablepictureinpicture
+					aria-label={data.imageAlt ?? `${data.practice} — case study`}
 				/>
 			</div>
+		) : (
+			data.image && (
+				<div class="case__figure">
+					<Image
+						src={data.image}
+						alt={data.imageAlt ?? `${data.practice} — case study`}
+						widths={[300, 450, 600]}
+						sizes="(min-width: 960px) 300px, (min-width: 640px) 40vw, 80vw"
+						loading="lazy"
+						decoding="async"
+						class="case__image"
+					/>
+				</div>
+			)
 		)
 	}
 
@@ -135,6 +163,18 @@ const { Content } = await render(entry);
 	.case__image {
 		width: 100%;
 		height: auto;
+	}
+
+	/*
+		The film's shape, declared rather than discovered. Without it the rail is
+		zero-height until the poster decodes and then jumps to 533px, which on a
+		lazily-scrolled card shoves the section under it down as you read.
+	*/
+	.case__image--film {
+		display: block;
+		aspect-ratio: 720 / 1280;
+		object-fit: cover;
+		background: #000;
 	}
 
 	/* ── Before / after ───────────────────────────────────────────────────── */
@@ -291,6 +331,25 @@ const { Content } = await render(entry);
 			height: 100%;
 			object-fit: cover;
 			object-position: 50% 35%;
+		}
+
+		/*
+			A film does not stretch.
+
+			The rule above crops the still to whatever height the narrative column
+			happens to reach, which is right for a graphic and wrong for a person:
+			the rail is 300px wide, the left column is usually taller than the 533px
+			a 9:16 frame wants there, and `cover` would answer that by zooming into
+			her face and cutting the sides off. It also has controls along its
+			bottom edge, which a stretched box moves off the picture.
+
+			So the film keeps its own aspect and sits at the top of the rail. The
+			dead space under it is the correct trade — better a short column than a
+			beheaded subject, which is the same call `~/public/videos/README.md`
+			records for the hero.
+		*/
+		.case__figure--film {
+			align-self: start;
 		}
 	}
 </style>

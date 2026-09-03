@@ -2,21 +2,28 @@
 /**
  * Section 09 — the Patient Education Library. The $97 offer.
  *
- * The centrepiece is a working-looking search: a query, a hit, and two related
+ * The centrepiece is a working-looking search: a query, a hit, and four related
  * videos. Every one of those is a REAL entry from `~/data/library` — the same
  * records the live /resources/video-library/ page renders — so the panel is the
  * product rather than a drawing of it. That is the strategy's "real product UI"
  * requirement, and it is the only way to meet it without inventing a screen.
+ *
+ * The films come from the catalogue too, by whichever route the entry carries:
+ * a file in `public/videos/library/` plays in a bare <video>, and the rest —
+ * most of the catalogue — play in a Vimeo embed with the title, byline and
+ * portrait switched off. Either way the frame holds the video and nothing else.
+ * An Instagram embed sat here briefly and came out; the note on the stage says
+ * why.
  *
  * The search box is not a search box. It is a static rendering of one, with the
  * query already typed and the result already shown: a real input here would be
  * a control that does nothing, which is worse than a picture of one. It is
  * marked `aria-hidden` and the whole panel is described by the copy around it.
  *
- * The three video posters are the first frame of the real files, drawn by the
- * browser from `preload="metadata"` rather than shipped as images — nine
- * kilobytes of metadata against three JPEGs. They do not autoplay: this is a
- * screenshot of a library, and a section with three clips playing behind the
+ * The related thumbnails are the first frame of the real files, drawn by the
+ * browser from `preload="metadata"` rather than shipped as images — a few
+ * kilobytes of metadata against a JPEG each. They do not autoplay: this is a
+ * screenshot of a library, and a section with five clips playing behind the
  * price is a section nobody reads.
  *
  * ⚠️ The four figures come from the strategy document, not from this repo.
@@ -65,6 +72,18 @@ const item = (id: string): LibraryItem => {
 
 const result = item(EDUCATION_DEMO.resultId);
 const related = EDUCATION_DEMO.relatedIds.map(item);
+
+/*
+	The hit's player URL, where the entry is Vimeo-hosted rather than a file.
+
+	`title`, `byline` and `portrait` all off, and `dnt=1` so Vimeo sets no
+	tracking cookies on our visitors — what is left in the frame is the video.
+	The same query `~/pages/resources/video-library` opens its dialog with, so the
+	demo and the real library play a clip the same way.
+*/
+const hitEmbed = result.vimeo
+	? `https://player.vimeo.com/video/${result.vimeo}?dnt=1&title=0&byline=0&portrait=0`
+	: undefined;
 
 /** The first paragraph of the write-up. The panel is a preview, not the page. */
 const summary = result.summary ?? result.explainer?.split('\n\n')[0] ?? '';
@@ -133,7 +152,17 @@ const buyIsExternal = !buyHref.startsWith('/');
 					<span class="app__query">{t('edu.demoQuery')}</span>
 					<span class="app__caret"></span>
 				</span>
-				<span class="app__hint">{t('edu.demoNote')}</span>
+				{/*
+					`.app__hint` is gone — "A real entry from the library, shown exactly as
+					the page renders it."
+
+					It was a caption explaining that the panel was not a mock-up, set in
+					mono beside the search field. A panel that has to say it is real is
+					arguing with a doubt the reader had not had yet; the panel is real,
+					and saying so out loud only invites the question.
+
+					`edu.demoNote` stays in the dictionary; nothing renders it.
+				*/}
 			</div>
 
 			<div class="app__body">
@@ -142,26 +171,51 @@ const buyIsExternal = !buyHref.startsWith('/');
 
 					<div class="hit__stage">
 						{/*
-							The first frame, without pulling the file — but not until this
-							section is worth painting. `preload="metadata"` reaches into
-							every clip the moment the page loads, and the three on this
-							section come to 73MB between them; on a landing page that is
-							bandwidth spent on a section most visitors never scroll to.
+							Two ways a catalogue entry carries its film, and the panel paints
+							whichever this one has — the same fork the real library page makes
+							on its cards.
 
-							`data-preload` is the value the script below applies once the
-							section is close. No `autoplay`, so nothing moves until the
-							visitor asks; `controls` because a video the reader can start is
-							the honest version of a play button that does nothing.
+							  video   a file in `public/videos/library/`. A bare <video>: no
+							          chrome, no third party, nothing between the reader and
+							          the clip. Preferred wherever it exists.
+							  vimeo   embed-only and domain-restricted, which is most of the
+							          catalogue. The player, with everything Vimeo puts around
+							          a video switched off in `hitEmbed`.
+
+							This slot briefly held an Instagram embed. It came out: their
+							markup is a whole Instagram card — avatar, "View profile", the
+							like and comment bar, "Add a comment…" — and none of it is
+							optional. A panel selling the library was showing Instagram's UI
+							instead of the product's.
+
+							`preload="none"` on the file, upgraded to `metadata` by the script
+							below once the section is near. `preload="metadata"` reaches into
+							every clip the moment the page loads, and the clips on this
+							section come to tens of megabytes between them; on a landing page
+							that is bandwidth spent on a section most visitors never scroll
+							to. No `autoplay` either way: this is a screenshot of a library,
+							not a section with video running behind the price.
 						*/}
-						<video
-							class="hit__video"
-							src={result.video}
-							preload="none"
-							data-preload="metadata"
-							playsinline
-							controls
-							disablepictureinpicture
-						></video>
+						{result.video ? (
+							<video
+								class="hit__video"
+								src={result.video}
+								preload="none"
+								data-preload="metadata"
+								playsinline
+								controls
+								disablepictureinpicture
+							/>
+						) : (
+							<iframe
+								class="hit__video"
+								src={hitEmbed}
+								title={result.title}
+								loading="lazy"
+								allow="fullscreen; picture-in-picture"
+								allowfullscreen
+							/>
+						)}
 					</div>
 
 					<div class="hit__meta">
@@ -178,7 +232,22 @@ const buyIsExternal = !buyHref.startsWith('/');
 							related.map((entry) => (
 								<li class="rel__item">
 									<span class="rel__thumb">
-										<video src={entry.video} preload="none" data-preload="metadata" muted playsinline tabindex="-1" aria-hidden="true" />
+										{/*
+											Same fork as the hit above, and it is load-bearing: most
+											of the catalogue is Vimeo-hosted, where `entry.video` is
+											undefined. A <video> with no src is an empty black box,
+											which is what this list rendered for every hosted entry
+											until the thumbnails learned the difference.
+
+											Local files seek their own first frame; hosted ones take
+											Vimeo's thumbnail, which `img-src https://i.vimeocdn.com`
+											in the CSP already allows.
+										*/}
+										{entry.video ? (
+											<video src={entry.video} preload="none" data-preload="metadata" muted playsinline tabindex="-1" aria-hidden="true" />
+										) : (
+											<img src={entry.poster} alt="" loading="lazy" decoding="async" width="120" height="214" />
+										)}
 										<span class="rel__play" aria-hidden="true">
 											<Glyph name="play" />
 										</span>
@@ -192,9 +261,16 @@ const buyIsExternal = !buyHref.startsWith('/');
 						}
 					</ul>
 
-					<a class="rel__all" href={localizePath('/resources/video-library/', locale)}>
-						{t('library.hubCta')} <span aria-hidden="true">→</span>
-					</a>
+					{/*
+						`.rel__all` is gone — "Access the library →", which pointed at
+						/resources/video-library/.
+
+						This panel sits directly above the price and the free-trial button,
+						and it was offering a way off the page at the point a reader is
+						closest to buying. The library is in the Resources menu and on the
+						product page for anyone who wants to browse first; it does not need
+						a door here.
+					*/}
 				</aside>
 			</div>
 		</div>
@@ -242,11 +318,13 @@ const buyIsExternal = !buyHref.startsWith('/');
 			</div>
 
 			<div class="lib__actions">
-				<a class="btn btn-primary" href={buyHref} rel="noopener">
+				<a class="btn btn-primary" href={buyHref} target="_blank" rel="noopener">
 					{t('edu.startFree')}
 					{/* Says where the button goes without putting it in the label twice
 					    for anyone who can see the button. */}
-					{buyIsExternal && <span class="sr-only"> — opens Stripe Checkout</span>}
+					{buyIsExternal && (
+						<span class="sr-only"> — opens Stripe Checkout {t('footer.newTab')}</span>
+					)}
 					<span aria-hidden="true">→</span>
 				</a>
 				<a class="btn btn-ghost" href={href}>{t('products.educationCta')}</a>
@@ -470,11 +548,21 @@ const buyIsExternal = !buyHref.startsWith('/');
 		background: var(--color-ink-950);
 	}
 
+
+	/*
+		One box for both players — the local <video> and the Vimeo <iframe> — so
+		the stage is the same size whichever route the entry carries its film by,
+		and swapping one for the other never reflows the section.
+
+		`border: 0` is for the iframe, which brings one by default. `object-fit`
+		does nothing to an iframe and is harmless there.
+	*/
 	.hit__video {
 		width: auto;
 		max-width: 100%;
 		height: min(52vh, 26rem);
 		aspect-ratio: 9 / 16;
+		border: 0;
 		border-radius: 0.5rem;
 		background: #000;
 		object-fit: cover;

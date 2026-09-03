@@ -1,7 +1,7 @@
 ---
 title: "The Dental Front Desk AI Training Playbook"
 blurb: "Role-play real new-patient calls with ChatGPT Voice, score the call, and coach the team before the next real patient rings."
-category: Operations
+category: Practice Operations
 file: /pdfs/molar-front-desk-ai-training.pdf
 pages: 8
 updated: 2026-08-30

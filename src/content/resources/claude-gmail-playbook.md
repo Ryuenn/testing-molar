@@ -1,7 +1,7 @@
 ---
 title: "The Claude + Gmail Inbox Playbook"
 blurb: "Turn a messy inbox into a short list of what matters, draft replies faster, and stop spending evenings buried in email."
-category: Operations
+category: CRM & Follow-Up
 file: /pdfs/molar-claude-gmail-playbook.pdf
 pages: 8
 updated: 2026-08-30

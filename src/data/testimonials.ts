@@ -27,10 +27,11 @@ export interface Testimonial {
 	 * iframe; `frame-src https://player.vimeo.com` is already in the CSP in
 	 * netlify.toml, so nothing needs opening up to add one.
 	 *
-	 * ⚠️ EMPTY ON EVERY ENTRY, ON PURPOSE. The links are coming. Until an id is
-	 * pasted in, the card renders a placeholder frame at the right size and
-	 * aspect — the layout is real, the video is the only thing missing. Paste the
-	 * id between the quotes and it goes live with no other change.
+	 * Set on all three entries. Until an id is pasted in, a card renders a
+	 * placeholder frame at the right size and aspect — the layout is real, the
+	 * video is the only thing missing — so a fourth testimonial can be written
+	 * here before its film exists. Paste the id between the quotes and it goes
+	 * live with no other change, except an `aspect` if it is not 16 / 9.
 	 *
 	 * From a share URL — https://vimeo.com/1222921798 — the id is the last path
 	 * segment. Private/unlisted links carry a hash after it (`/1222921798/ab12cd`);
@@ -47,6 +48,15 @@ export interface Testimonial {
 	/** Still for `video`. Ignored when `vimeo` is set — Vimeo brings its own. */
 	poster?: string;
 	/**
+	 * The frame's shape, as a CSS `aspect-ratio` pair. Defaults to `16 / 9`.
+	 *
+	 * An <iframe> has no intrinsic size, so the card declares the shape and the
+	 * player fills it — get this wrong and Vimeo letterboxes its own video inside
+	 * a box of the other orientation. Vimeo's own embed snippet states it as the
+	 * wrapper's `padding-top`: 177.78% is 9 / 16, 56.25% is 16 / 9.
+	 */
+	aspect?: string;
+	/**
 	 * The one that leads the section, rendered large above the others.
 	 *
 	 * Exactly one entry should carry it. If none does the section falls back to
@@ -55,6 +65,20 @@ export interface Testimonial {
 	featured?: boolean;
 	/** Attributed on the live page. Absent where it is not. */
 	name?: string;
+	/**
+	 * Who is ON CAMERA, where that is not the person the quote belongs to.
+	 *
+	 * `name` attributes the QUOTATION and nothing else — see the note at the top
+	 * of this file. The two came apart when the filmed testimonials arrived: the
+	 * highlight's film and the highlight's quote are two different dentists, and
+	 * printing `name` under the film would put one of them behind the other's
+	 * words.
+	 *
+	 * So this is read only where the quotation is not drawn — the home page's
+	 * films-only wall, and nowhere else. Wherever the quote is on the page, the
+	 * caption is `name`, unchanged.
+	 */
+	speaker?: string;
 	/** The descriptor the live page uses, verbatim. */
 	role?: string;
 	/**
@@ -70,38 +94,80 @@ export const TESTIMONIALS: readonly Testimonial[] = [
 		/*
 			The highlight. Rendered large, above the other two.
 
-			⚠️ `vimeo` is the slot for the Vimeo id — see the field's note. Until it
-			is filled this card plays the self-hosted cut below, which is a real
-			video, so this one is not a placeholder. Pasting an id here switches it
-			to the hosted player and `video`/`poster` become the fallback.
+			Hosted on Vimeo as "ZZ TESTIMONIAL.mp4". The self-hosted cut below is
+			now the fallback — `vimeo` takes precedence — and stays because it is a
+			real re-encode of the master, not a placeholder: clear the id and the
+			card still plays.
+
+			Shot portrait, hence `aspect`. The default 16 / 9 would letterbox a
+			9 / 16 film into a landscape box and leave her a stamp in the middle of
+			it, which is what the frontmatter's `--quote-aspect` exists to prevent.
 		*/
 		featured: true,
-		vimeo: '',
+		vimeo: '1223345869',
+		aspect: '9 / 16',
 		quote:
 			"Sometimes my 10-minute speech didn't give the impact your one-minute video gave them.",
 		name: 'Dr. Patricia Harrosch',
+		/*
+			The film is a different dentist from the quotation, so the two names sit
+			in two fields — see the note on `speaker`. The Vimeo master is delivered
+			as "ZZ TESTIMONIAL.mp4"; `name` stays with the sentence, which the live
+			funnel attributes to Dr. Harrosch, and is untouched by this.
+		*/
+		speaker: 'Dr. Andrea Borbely',
 		role: "Quebec's Smile Makeover Expert",
 		/*
-			Re-encoded from the master in `src/assets/film/` — the delivered file was
-			HEVC with its moov atom at the tail, which Firefox cannot play at all and
-			which no browser can start before the whole 25 MB has arrived. See
-			public/videos/README.md for the command.
+			`video` / `poster` are gone from this entry, and this is the one removal
+			here that is a fix rather than a tidy.
+
+			They were `/videos/harrosch-testimonial.mp4` and its still — Dr Harrosch
+			on camera — which was right while this entry was hers throughout. It is
+			not any more: the film is Dr Borbely's. `video` is the fallback for a
+			missing `vimeo`, so clearing the id above would have quietly played one
+			dentist's film under the other's name. A fallback that is wrong is worse
+			than none.
+
+			The files are still in `public/`, and Dr Harrosch's film is now the third
+			entry below, hosted.
 		*/
-		video: '/videos/harrosch-testimonial.mp4',
-		poster: '/images/harrosch-poster.webp',
 		/* The same practice the growth exhibit on /results/ is built from. */
 		accountSlug: 'physimed-dentaire',
 	},
 	{
-		/* ⚠️ PLACEHOLDER — no video of any kind behind this one yet. Paste the
-		   Vimeo id and the frame becomes a player. */
-		vimeo: '',
+		/*
+			Filmed. Delivered as "Dra Desiree Client Testimonial English 2.mp4", so
+			the dentist on camera is Dra. Desiree — and, as with the highlight, she
+			is not who this quotation belongs to. It runs unattributed either way:
+			the live funnel does not name it, and the home page draws no caption on
+			the two small cards at all. No `speaker` field, because nothing reads
+			one here — this note is the record of who is in the film.
+
+			`aspect` off Vimeo's own snippet: 215% padding is 43 / 20 tall, taller
+			even than a phone's 9 / 16, which is why the frame is capped by width in
+			`Testimonials`.
+		*/
+		vimeo: '1223345916',
+		aspect: '20 / 43',
 		quote:
 			"We were repeating the same treatment explanations all day. Now we pull up MOLAR, show the patient the video, and continue the conversation from there. It's made patient education much easier for the entire team.",
 	},
 	{
-		/* ⚠️ PLACEHOLDER — as above. */
-		vimeo: '',
+		/*
+			Filmed. Delivered as "Dr Patricia Harrosch - testimonial 2.mp4", which
+			means the dentist on camera here is the one the HIGHLIGHT's quotation
+			belongs to — see `name` on the first entry. The two crossed when the
+			films arrived: her sentence leads the section, her film runs third.
+
+			Nothing on the page states either as the other, so nothing is wrong on
+			it: this card is captionless on the home page and unattributed on
+			/patient-education/, and the highlight names whoever the mode calls for.
+			Worth knowing before anyone tidies these entries — the obvious tidy is
+			to move this id up to the first one, which is only right if she also
+			said the sentence in it.
+		*/
+		vimeo: '1223345861',
+		aspect: '9 / 16',
 		quote:
 			"The biggest difference is the quality of the conversation afterward. Patients ask better questions, understand why we're recommending treatment, and feel much more confident about their options.",
 	},

@@ -465,18 +465,32 @@ const en = {
 		AI-for-dentists hub now: the guides are the same twelve documents, but the
 		page argues for understanding AI rather than listing PDFs.
 
-		The brief also said "no selling here", and for one pass the video library's
-		$97 panel came off the top of the page and a newsletter capture took its
-		place. The panel is back by request — the library is the page's strongest
-		asset — and the capture moved to the foot, where `ahead*` carries it. So
-		the `brief*` strings that headed the top panel are gone; `ahead*` is the
-		one lead capture on the page now.
+		The brief also said "no selling here". The video library's $97 panel came
+		off the top of the page for that once, went back by request, and is off
+		again — so the `brief*` strings below head that slot as the brief lays it
+		out, and there are two lead captures on the page: `brief*` above the grid
+		and `ahead*` under it.
+
+		Nothing on this page asks for money now. The library's own doorway is the
+		quiet link under the grid.
 	*/
 	resources: {
 		eyebrow: 'AI for dentists',
 		heading: 'AI Is Changing Dentistry. Make Sure Your Practice Benefits From It.',
 		lede: 'Practical guides, tools, workflows, and training to help dentists use AI across sales, marketing, patient communication, CRM, operations, automation, and growth.',
 		lede2: 'Built for dental teams who want to understand AI and actually use it in their practice.',
+		/*
+			The lead capture above the grid — the brief's "Lead Capture" block,
+			verbatim. `briefTopics` is its own line rather than part of the lede
+			because the brief sets it as one: six words with separators, which reads
+			as a list of what arrives and not as a sentence.
+		*/
+		briefEyebrow: 'The Dental AI Brief',
+		briefHeading: 'Get The AI Strategies Dentists Can Actually Use.',
+		briefLede: 'Tools, prompts, workflows, and ideas to help you run a smarter practice.',
+		briefTopics: 'Sales · Marketing · CRM · Patient Education · Operations · Automation',
+		briefCta: 'Join Free',
+		briefNote: 'Free. Practical. Built for dental practices. Unsubscribe anytime.',
 		/* The grid itself. */
 		libraryTitle: 'Resource Library',
 		libraryHeading: 'Learn It. Use It. Share It With Your Team.',
@@ -700,7 +714,8 @@ const en = {
 		eyebrow: 'Patient education',
 		heading: 'Stop explaining the same treatment 20 times a day.',
 		lede: 'Search it. Show it. Continue the conversation.',
-		demoQuery: 'lingual braces',
+		/* Must match `EDUCATION_DEMO.resultId` — see the ⚠️ on that field. */
+		demoQuery: 'teeth whitening',
 		searchLabel: 'Search the library',
 		searchPlaceholder: 'What is a bone graft?',
 		demoNote: 'A real entry from the library, shown exactly as the page renders it.',

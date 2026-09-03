@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import FinalCta from '~/components/sections/FinalCta.astro';
 
 /**
  * Where Netlify lands a visitor after the email gate. `noindex` and excluded
@@ -68,7 +68,7 @@ const { data } = entry;
 		</div>
 	</section>
 
-	<ClosingCta />
+	<FinalCta />
 </BaseLayout>
 
 <script>

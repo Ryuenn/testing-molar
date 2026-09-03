@@ -1,7 +1,7 @@
 ---
 title: "Turn Your Website Into 30 Days of Content"
 blurb: "A ChatGPT workflow that uses your own service pages as the source, so the output is about your treatments instead of generic dentistry."
-category: Social Media
+category: Automation & Workflows
 file: /pdfs/molar-website-to-content-playbook.pdf
 pages: 6
 updated: 2026-08-30

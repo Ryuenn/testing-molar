@@ -1,11 +1,32 @@
 ---
 /**
- * The close.
+ * The close. THE close — every page on the site ends on this one.
  *
  * The headline, the offer, the price, one button, and a band of flags. Dark,
  * minimal, and deliberately the quietest section on the page in everything
  * except type size: by the time a reader gets here they have been asked five
  * times, and a sixth loud ask reads as desperation rather than confidence.
+ *
+ * ── One close, not two ─────────────────────────────────────────────────────
+ * `ClosingCta` is gone. It was the inner pages' close and it diverged from this
+ * one on every point that matters: a different headline, no price line at all,
+ * "Start now" pointing at /pricing/ rather than at the checkout, and a second
+ * "Talk with sales" button beside it. Ten pages ended one way and two ended
+ * another, which meant a visitor who arrived on /molar-tv/ was asked for
+ * something different from a visitor who arrived on the home page.
+ *
+ * It also took seven props, so any page could restate the offer in its own
+ * words — and /patient-education/ did, in five. An offer described in four
+ * places is an offer that can fall out of step with its own price in three.
+ *
+ * There is one exception and it is deliberate: /resources/ closes on the
+ * newsletter brief instead. It is a lead-gen page; a checkout button there
+ * collects nothing. The note in that file says so.
+ *
+ * Consequence worth knowing: /social-media/ used to close on the subscription
+ * ("Own the feed in your city") and now closes on the $97 library like
+ * everything else. If the social pages should sell the subscription at the
+ * foot, that is a variant of THIS section rather than a second component.
  *
  * The bottom of this page is supposed to get SIMPLER, not busier. Three things
  * came off in the same pass:
@@ -61,8 +82,15 @@ const TRACKS = [0, 1];
 		</p>
 
 		<div class="fin__actions" data-reveal>
-			<a class="btn btn-primary fin__cta" href={EDUCATION_CHECKOUT} rel="noopener">
-				{t('final.cta')} <span aria-hidden="true">→</span>
+			<a
+				class="btn btn-primary fin__cta"
+				href={EDUCATION_CHECKOUT}
+				target="_blank"
+				rel="noopener"
+			>
+				{t('final.cta')}
+				<span class="sr-only"> {t('footer.newTab')}</span>
+				<span aria-hidden="true">→</span>
 			</a>
 		</div>
 

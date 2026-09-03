@@ -72,10 +72,48 @@ export const TV_FEATURES: readonly TvFeature[] = [
  * being cropped by `object-fit: cover` into a 16:9 slot, so you saw a narrow
  * horizontal band of each one.
  *
+ * `Drpatricia_updated_video-web.mp4` — the delivered file with its index moved,
+ * NOT a re-encode. The delivery is 1920x1080 at 4.7 Mbps and its `moov` atom sat
+ * at the tail, 4.8MB into a 4.8MB file, so a browser had to range-request the
+ * end before it could paint a single frame. That is what a black panel on load
+ * looks like.
+ *
+ * The remux is a stream copy — every video byte is identical to the master, the
+ * file is the same size to the byte, and only the atom order changed:
+ *
+ *   ffmpeg -i Drpatricia_updated_video.mp4 -c copy  *     -movflags +faststart Drpatricia_updated_video-web.mp4
+ *
+ * ⚠️ Run that on ANY replacement before pointing this at it, and check with
+ * `moov` before `mdat` in the first few kilobytes. Two of the three clips
+ * delivered for this site have arrived mastered for editing, with the index at
+ * the end; it costs nothing to fix and it is invisible until someone loads the
+ * page on a real connection.
+ *
+ * No quality pass beyond that. An earlier cut of this section re-encoded at
+ * CRF 23 to save weight; it was indistinguishable at the size this panel renders
+ * but it is not what was asked for, and 4.8MB is a reasonable price for the
+ * master's own picture.
+ *
  * Still an array. The markup renders one `<source>` per entry, which is a
  * fallback chain rather than a playlist — the browser takes the first it can
  * play and never reaches the rest — so a second entry here would be a format
  * alternative (a WebM beside the MP4), never a second clip. A real rotation
  * needs a script advancing on `ended`.
  */
-export const TV_LOOP = ['/videos/watch_tv_molar.mp4'] as const;
+export const TV_LOOP = ['/videos/Drpatricia_updated_video-web.mp4'] as const;
+
+/**
+ * The still behind the loop — frame 0 of `TV_LOOP[0]`, at 1280x720.
+ *
+ * Required, not decoration. A <video> with no poster paints its own background
+ * until enough of the file has arrived to decode a frame, and that is long
+ * enough to be seen: the panel showed as a black rectangle on load, which is
+ * exactly what it looks like when the screen is broken.
+ *
+ * Re-cut it whenever `TV_LOOP` changes, or the panel shows one clip's first
+ * frame and then jumps to another's:
+ *
+ *   ffmpeg -ss 0 -i <clip>.mp4 -frames:v 1 -vf scale=1280:720 tv-poster.png
+ *   ffmpeg -i tv-poster.png -c:v libwebp -quality 78 tv-poster.webp
+ */
+export const TV_POSTER = '/images/tv-poster.webp';
