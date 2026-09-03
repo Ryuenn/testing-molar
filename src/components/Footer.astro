@@ -1,73 +1,122 @@
 ---
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import logoLockup from '~/assets/brand/logo-lockup.png';
+/* The trimmed mark — see the note on the same import in `~/components/Nav`. */
+import logoMark from '~/assets/brand/logo-mark.png';
 import SocialIcon from '~/components/ui/SocialIcon.astro';
-import { SITE, PROMO, CTA, PORTAL_LOGIN } from '~/data/site';
-import { PRODUCTS } from '~/data/products';
+import { SITE, CTA, PORTAL_LOGIN, EDUCATION_CHECKOUT } from '~/data/site';
+import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
 import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
-import { PROOF_HEADLINE, PROOF_SUB } from '~/data/proof';
+import { PRACTICE_COUNT } from '~/data/proof';
+import { COUNTRIES, REGIONS } from '~/data/reach';
 
 /**
  * Every link here points at something that exists.
  *
- * The section anchors are real ids on the home page, the resource links are
- * pulled from the collection at build time rather than transcribed, and the
- * social accounts come from SITE. There is deliberately no Terms or Privacy
- * link: those pages have not been written, and a footer link to a 404 is worse
- * than no link at all.
+ * The resource links are pulled from the collection at build time rather than
+ * transcribed, and the social accounts come from SITE.
+ *
+ * ── The 09/01 trim ─────────────────────────────────────────────────────────
+ * This footer carried far too much, and most of it contradicted the page above
+ * it. What came off, and why:
+ *
+ *   Patient Education Library   listed as a product beside MOLAR TV, while
+ *                               every plan card says it is INCLUDED in MOLAR
+ *                               TV. Two names for one thing at the bottom of a
+ *                               page that spent five sections merging them.
+ *   MOLAR Complete              a product name nothing is actively sold under.
+ *   Managed Social Media        renamed MOLAR Social, which is what the rest
+ *                               of the site now calls it.
+ *   Customers                   the page is gone; its content is on
+ *                               /social-media/.
+ *   Results                     the same evidence as Our Work, one stop apart.
+ *   Global reach                a link to a home-page anchor making a claim the
+ *                               flag band directly above this footer already
+ *                               makes.
+ *   the two badges              "10M+ organic views" and the $500 promo code,
+ *                               sitting in the brand column. Both belong where
+ *                               they are being argued — the views in the social
+ *                               case study, the code on the plan it discounts.
+ *   nine resource links         six guides plus a "view all"; three now.
+ *
+ * The bottom row gained Privacy and Terms. See `LEGAL_LINKS` — they are
+ * rendered only once the pages exist, which is why this file used to have none.
  */
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
 /*
-	The four products, from the one place they are defined. A product that
-	exists in ~/data/products appears here without anybody remembering to add
-	it, which is the whole reason that file is the spine of the site.
-*/
-const PRODUCT_LINKS = PRODUCTS.map((product) => ({
-	label: t(`products.${product.key}Name` as 'products.socialName'),
-	href: localizePath(product.href, locale),
-}));
+	Two products, matching the nav.
 
-/* Everything that is not a product: the pages that explain, prove and price. */
+	Not derived from `PRODUCTS` any more, and deliberately: that file still
+	carries four, because /patient-education/ and /molar-complete/ are real
+	routes that real links point at. What the footer lists is what is being SOLD,
+	and that is MOLAR TV and MOLAR Social. The other two stay reachable; they
+	stop being advertised as separate purchases.
+*/
+const PRODUCT_LINKS = [
+	{ label: t('nav.menuTv'), href: localizePath('/molar-tv/', locale) },
+	{ label: t('nav.menuSocial'), href: localizePath('/social-media/', locale) },
+	{ label: t('pricing.enterpriseName'), href: localizePath('/pricing/', locale) + '#plans' },
+	{ label: t('nav.pricing'), href: localizePath('/pricing/', locale) },
+];
+
+/* Everything that is not a product: the pages that explain and prove. */
 const COMPANY_LINKS = [
 	{ label: t('nav.how'), href: localizePath('/how-it-works/', locale) },
-	{ label: t('nav.customers'), href: localizePath('/customers/', locale) },
 	{ label: t('nav.work'), href: localizePath('/our-work/', locale) },
-	{ label: t('nav.results'), href: localizePath('/results/', locale) },
-	{ label: t('nav.pricing'), href: localizePath('/pricing/', locale) },
-	// The one home-page section with no page of its own.
-	{ label: t('footer.reach'), href: localizePath('/', locale) + '#reach' },
+	{ label: t('nav.resources'), href: localizePath('/resources/', locale) },
 	/* Only once there is somewhere for it to go — see PORTAL_LOGIN. */
 	...(PORTAL_LOGIN ? [{ label: t('nav.login'), href: PORTAL_LOGIN }] : []),
 ];
 
 /*
 	Same ordering the resource hub uses — featured first, then by `order` — so
-	the footer surfaces the same guides the site already leads with. Sliced
-	rather than listed in full: the count in the "all guides" link is derived,
-	so adding a tenth resource updates it without anyone remembering to.
+	the footer surfaces the same guides the site already leads with.
+
+	THREE, not six. A footer column is a shortlist; a dump of every freebie is a
+	page of its own, and there is one, linked underneath. The count in that link
+	is derived, so adding a tenth resource updates it without anyone remembering.
 */
 const resources = (await getCollection('resources', ({ data }) => !data.draft)).sort((a, b) => {
 	if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
 	return a.data.order - b.data.order;
 });
 
-const shownResources = resources.slice(0, 6);
+const shownResources = resources.slice(0, 3);
 
 /*
 	Shown as marks rather than words. The label is still carried on every one of
 	them — see the sr-only span in the markup — because an icon-only link with no
 	text is an unnamed control, and an `aria-label` on its own would leave anyone
 	driving the page by voice with nothing visible to say.
+
+	Instagram, Facebook, YouTube — the three the plans advertise posting to, and
+	the same three the hero rail carries. TikTok is still in `SITE.social` and is
+	still declared to Google via `sameAs`; it is simply not one of the channels
+	this product publishes.
 */
 const SOCIAL_LINKS = [
 	{ label: 'Instagram', href: SITE.social.instagram, icon: 'instagram' },
-	{ label: 'TikTok', href: SITE.social.tiktok, icon: 'tiktok' },
+	{ label: 'Facebook', href: SITE.social.facebook, icon: 'facebook' },
 	{ label: 'YouTube', href: SITE.social.youtube, icon: 'youtube' },
 ] as const;
+
+/**
+ * Privacy, Terms and Cookies for the bottom row.
+ *
+ * ⚠️ EMPTY, AND THE ROW RENDERS NOTHING WHILE IT IS. The 09/01 brief asks for
+ * "© 2026 MOLAR AI · Privacy Policy · Terms of Service", optionally a Cookie
+ * Policy — and none of those three pages exists in this repo. A footer link to
+ * a 404 is worse than no link, and a *legal* link to a 404 is worse again,
+ * because it implies a policy that cannot be read.
+ *
+ * Write the pages, add them here, and the row picks them up:
+ *   { label: 'Privacy Policy', href: '/privacy/' },
+ *   { label: 'Terms of Service', href: '/terms/' },
+ */
+const LEGAL_LINKS: readonly { label: string; href: string }[] = [];
 
 const year = new Date().getFullYear();
 ---
@@ -78,38 +127,85 @@ const year = new Date().getFullYear();
 			{/* ── Brand ─────────────────────────────────────────────────────── */}
 			<div class="footer__brand">
 				{/*
-					Not a link. The header already carries a home link on the wordmark
-					and the nav now has an explicit "Home" — a third would just be one
-					more stop for anyone tabbing through.
+					The mark and the wordmark, assembled here rather than shipped as one
+					picture.
+
+					It was `logo-lockup.png`: a raster of the tooth, "MOLAR" and the
+					strapline in a single file — and a bad one. The letterforms carried
+					heavy compression artefacts, the O was speckled through, and the
+					whole thing was soft at every size the footer draws it. It was also
+					the last place on the site still rendering the wordmark as pixels;
+					the nav went to live text for exactly these reasons.
+
+					So: the real tooth as an image, the name as text. Sharp at any zoom,
+					recolours with the theme, and selectable.
+
+					Not a link. The header already carries a home link on its wordmark
+					and the nav has an explicit "Home" — a third would just be one more
+					stop for anyone tabbing through.
 				*/}
 				<div class="footer__lockup">
+					{/*
+						Decorative: the wordmark beside it names the company, and an alt
+						here would have a screen reader say "MOLAR MOLAR".
+					*/}
 					<Image
-						src={logoLockup}
-						alt="MOLAR — dental content, intelligently delivered."
-						height={52}
+						src={logoMark}
+						alt=""
+						height={44}
 						densities={[1, 2]}
 						loading="lazy"
 						decoding="async"
 						class="footer__mark"
 					/>
+					<span class="footer__wordmark">MOLAR</span>
 				</div>
 
-				<p class="footer__pitch">{t('site.positioning')}</p>
+				<p class="footer__pitch">{t('footer.pitch')}</p>
 
 				{/*
-					Two facts the site already makes elsewhere, not badges invented for
-					the footer: the headline proof stat, and the promo code that runs on
-					the Premium tier.
+					The reach line — practices, countries, continents — counted off the
+					data rather than typed. It replaced two badges: a "10M+ organic views"
+					pill and the $500 promo code. Both were real, and both were arguing
+					in the wrong place; the views belong in the social case study and the
+					code belongs on the plan it discounts.
 				*/}
-				<p class="footer__pill">
-					<span class="footer__pill-dot" aria-hidden="true"></span>
-					<span><strong>{PROOF_HEADLINE}</strong> {PROOF_SUB}</span>
+				<p class="footer__reach">
+					{t('footer.reachLine', {
+						practices: PRACTICE_COUNT,
+						countries: COUNTRIES.length,
+						regions: REGIONS.length,
+					})}
 				</p>
 
-				<p class="footer__pill">
-					<code class="footer__code">{PROMO.code}</code>
-					<span>{PROMO.discount} {PROMO.appliesTo}</span>
-				</p>
+				{/*
+					The follow marks, in the brand column rather than in a column of their
+					own. The brief puts them "underneath" the reach line, and it is right:
+					four link columns and a fifth holding three icons was a column of
+					furniture.
+				*/}
+				<ul class="footer__social" aria-label={t('footer.follow')}>
+					{
+						SOCIAL_LINKS.map((link) => (
+							<li>
+								{/*
+									External, so `rel="noopener"`. No `noreferrer` — these are the
+									company's own accounts and the referrer is wanted in their
+									analytics.
+								*/}
+								<a href={link.href} class="footer__social-link" target="_blank" rel="noopener">
+									<SocialIcon name={link.icon} class="footer__social-icon" />
+									{/*
+										The link's accessible name. Hidden, not removed — an icon on
+										its own names nothing, and "opens in a new tab" is worth
+										saying once rather than leaving as a surprise.
+									*/}
+									<span class="sr-only">{link.label} {t('footer.newTab')}</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
 			</div>
 
 			{/* ── Link columns ──────────────────────────────────────────────── */}
@@ -166,53 +262,42 @@ const year = new Date().getFullYear();
 				</div>
 
 				<div class="footer__col">
-					<h2 class="footer__heading" id="footer-follow">{t('footer.follow')}</h2>
-					<ul class="footer__social" aria-labelledby="footer-follow">
-						{
-							SOCIAL_LINKS.map((link) => (
-								<li>
-									{/*
-										External, so `rel="noopener"`. No `noreferrer` — these are
-										the company's own accounts and the referrer is wanted in
-										their analytics.
-									*/}
-									<a
-										href={link.href}
-										class="footer__social-link"
-										target="_blank"
-										rel="noopener"
-									>
-										<SocialIcon name={link.icon} class="footer__social-icon" />
-										{/*
-											The link's accessible name. Hidden, not removed — an icon
-											on its own names nothing, and "opens in a new tab" is
-											worth saying once rather than leaving as a surprise.
-										*/}
-										<span class="sr-only">{link.label} {t('footer.newTab')}</span>
-									</a>
-								</li>
-							))
-						}
-					</ul>
-
-					<h2 class="footer__heading footer__heading--spaced" id="footer-start">{t('footer.getStarted')}</h2>
 					{/*
-						No aria-labelledby on the note. On a plain <p> an accessible name
-						replaces the content rather than introducing it, so this would be
-						announced as "Get started" and the sentence would be lost. The
+						The follow marks used to head this column; they are in the brand
+						column now, under the reach line. What is left is the one thing the
+						foot of the page should end on: the offer, priced, with a button.
+					*/}
+					<h2 class="footer__heading" id="footer-start">{t('footer.getStarted')}</h2>
+
+					{/*
+						No aria-labelledby on either paragraph. On a plain <p> an accessible
+						name replaces the content rather than introducing it, so these would
+						be announced as "Get started" and the sentences would be lost. The
 						list below carries the association instead.
 					*/}
-					<p class="footer__note">{t('footer.startNote')}</p>
+					<p class="footer__offer">
+						{t('footer.startOffer', { price: EDUCATION_PRICE })}
+					</p>
+					<p class="footer__note">
+						{t('footer.startNote', { n: EDUCATION_TRIAL_DAYS })}
+					</p>
+
 					<ul class="footer__list" aria-labelledby="footer-start">
 						<li>
-							<a href={localizePath(CTA.secondary.href, locale)} class="footer__link footer__link--more">
-								{t('cta.plans')}
+							<a href={EDUCATION_CHECKOUT} rel="noopener" class="footer__link footer__link--more">
+								{t('pricing.educationCta')}
 								<span aria-hidden="true">&nbsp;&rarr;</span>
 							</a>
 						</li>
+					</ul>
+
+					{/* The other door, for the two plans that are not bought from a
+					    button. */}
+					<p class="footer__note footer__note--spaced">{t('footer.needMore')}</p>
+					<ul class="footer__list">
 						<li>
 							<a href={CTA.sales.href} class="footer__link footer__link--more">
-								{t('cta.sales')}
+								{t('cta.talk')}
 								<span aria-hidden="true">&nbsp;&rarr;</span>
 							</a>
 						</li>
@@ -222,10 +307,35 @@ const year = new Date().getFullYear();
 		</div>
 
 		{/* ── Bottom bar ────────────────────────────────────────────────────── */}
+		{/*
+			Copyright, then the policies, then the address. The tagline came off the
+			end of the copyright line: the brief's rule for the bottom of this page
+			is that it gets simpler, and a strapline in a legal row is a claim in a
+			place nobody reads claims.
+
+			MOLAR AI, not MOLAR TV — the nav wordmark names the product, this names
+			the company that owns it.
+		*/}
 		<div class="footer__bottom">
-			<p class="footer__legal">
-				&copy; {year} {SITE.legalName}. {t('site.tagline')}
-			</p>
+			<p class="footer__legal">&copy; {year} {SITE.legalName}</p>
+
+			{/* Rendered only once the pages exist — see LEGAL_LINKS. */}
+			{
+				LEGAL_LINKS.length > 0 && (
+					<nav aria-label={t('footer.legal')} class="footer__legal-nav">
+						<ul class="footer__legal-list">
+							{LEGAL_LINKS.map((link) => (
+								<li>
+									<a href={localizePath(link.href, locale)} class="footer__mail">
+										{link.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				)
+			}
+
 			<p class="footer__contact">
 				<a href={`mailto:${SITE.email}`} class="footer__mail">{SITE.email}</a>
 			</p>
@@ -269,20 +379,39 @@ const year = new Date().getFullYear();
 	.footer__lockup {
 		display: inline-flex;
 		align-items: center;
+		gap: 0.625rem;
 	}
 
 	/*
-		The full lockup, tagline included — the nav carries the wordmark alone
-		because 5px type is not type, but down here there is room to set it and
-		the strapline is the last thing the page says.
-
-		Taller than the nav's, at 3.25rem: this is the only thing holding the left
+		Bigger than the nav's 30px. This lockup is the only thing holding the left
 		column, so it carries the weight the nav shares with its links.
+
+		The glow is the art's own light carried past its edges. The delivered file
+		is a lit object on transparent, and a `drop-shadow` follows the tooth's
+		silhouette rather than boxing it — which is the difference between the mark
+		emitting light and sitting in a rectangle of it.
 	*/
 	.footer__mark {
 		width: auto;
-		height: 3.25rem;
+		height: 2.75rem;
 		filter: drop-shadow(0 0 10px color-mix(in oklab, var(--color-arc-500) 40%, transparent));
+	}
+
+	/*
+		Live text, the same decision the nav made. See the note in the markup for
+		what it replaced.
+
+		No `.AI` or ` TV` half here: the nav names the PRODUCT because that is what
+		the page is selling, and the foot of the page names the COMPANY — which is
+		also what the copyright line two rows down says.
+	*/
+	.footer__wordmark {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		font-weight: 700;
+		letter-spacing: 0.01em;
+		line-height: 1;
+		color: var(--color-bone-50);
 	}
 
 	.footer__pitch {
@@ -292,42 +421,19 @@ const year = new Date().getFullYear();
 		color: var(--color-bone-400);
 	}
 
-	.footer__pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.55rem;
+	/*
+		The reach line, plain. It replaced two bordered pills — the view count and
+		the promo code — and a plain line is what a fact wants down here; a badge
+		is a thing that draws the eye, and the foot of the page is where the eye
+		should be resting.
+	*/
+	.footer__reach {
 		margin: 0;
-		padding: 0.5rem 0.875rem;
-		border: 1px solid var(--color-line);
-		border-radius: 0.625rem;
-		background: color-mix(in oklab, var(--color-ink-800) 55%, transparent);
-		font-size: var(--text-xs);
-		color: var(--color-bone-300);
-	}
-
-	.footer__pill strong {
-		color: var(--color-bone-50);
-		font-weight: 600;
-	}
-
-	.footer__pill-dot {
-		flex: none;
-		width: 0.4rem;
-		height: 0.4rem;
-		border-radius: 50%;
-		background: var(--color-arc-400);
-		box-shadow: 0 0 8px color-mix(in oklab, var(--color-arc-400) 80%, transparent);
-	}
-
-	.footer__code {
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
-		font-weight: 500;
-		letter-spacing: 0.08em;
-		padding: 0.2rem 0.45rem;
-		border-radius: var(--radius-sm);
-		background: color-mix(in oklab, var(--color-arc-500) 18%, transparent);
-		color: var(--color-arc-200);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--color-bone-400);
 	}
 
 	/* ── Link columns ────────────────────────────────────────────────────── */
@@ -351,9 +457,6 @@ const year = new Date().getFullYear();
 		color: var(--color-bone-500);
 	}
 
-	.footer__heading--spaced {
-		margin-top: 2rem;
-	}
 
 	.footer__list {
 		display: flex;
@@ -430,11 +533,26 @@ const year = new Date().getFullYear();
 		color: var(--color-arc-200);
 	}
 
+	/* The offer, at the head of the Get Started column. The one line in this
+	   footer set at reading weight rather than as a caption. */
+	.footer__offer {
+		margin: -0.25rem 0 0.25rem;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--color-bone-50);
+	}
+
 	.footer__note {
-		margin: -0.25rem 0 0.85rem;
+		margin: 0 0 0.85rem;
 		max-width: 24ch;
 		font-size: var(--text-xs);
 		color: var(--color-bone-500);
+	}
+
+	.footer__note--spaced {
+		margin-top: 1.5rem;
 	}
 
 	/* ── Bottom bar ──────────────────────────────────────────────────────── */
@@ -455,6 +573,18 @@ const year = new Date().getFullYear();
 		font-family: var(--font-mono);
 		font-size: var(--text-xs);
 		color: var(--color-bone-500);
+	}
+
+	.footer__legal-list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
 	}
 
 	.footer__mail {

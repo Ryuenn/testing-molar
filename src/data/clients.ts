@@ -6,10 +6,15 @@
  * it carries nine posts and a palette for each. Four practices appear in both,
  * under the same slug, so a mark looked up by either list resolves to one file.
  *
- * The marks themselves are built from `public/ClientsLogos/` by
+ * The marks themselves are built from `logos-master/` by
  * `scripts/generate-client-logos.mjs` and land in `src/assets/clients/<slug>.png`.
- * To add a practice: drop its logo in that folder, run `npm run client-logos`,
- * and add a line here. The slug is the filename slugged; the script prints it.
+ *
+ * THIS LIST IS THE FILTER. The script generates a mark only for a master whose
+ * slug appears below, and prints the rest as skipped — the delivered folder is
+ * not a client list, and the September drop carried ten files that were MOLAR's
+ * own logo and duplicates. So the order is: add the line here first, then run
+ * `npm run client-logos`. The script prints the slug it derived from each
+ * filename, which is what to paste.
  *
  * `name` is what a screen reader hears, so it is the practice as it writes
  * itself rather than as the file happened to be saved — several arrived in block
@@ -35,8 +40,10 @@ export const CLIENT_LOGOS: readonly ClientLogo[] = [
 	{ slug: 'gmu-dental', name: 'gmü dental' },
 	{ slug: 'court-street', name: 'Court Street Dental' },
 	{ slug: 'dennis-sierra-dmd-pa', name: 'Dennis Sierra DMD PA' },
-	{ slug: 'adom', name: 'Adom Dental' },
-	{ slug: 'apacdsm', name: 'Apac DSM' },
+	/* Both read off the September artwork, which spells out what the previous
+	   screenshots only abbreviated. "Adom Dental" was a guess and wrong. */
+	{ slug: 'adom', name: 'ADOM — Association of Dental Office Managers' },
+	{ slug: 'apacdsm', name: 'APAC DSM' },
 	{ slug: 'dcd', name: 'DCD Dental' },
 ];
 

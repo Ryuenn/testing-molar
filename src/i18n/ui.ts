@@ -32,18 +32,26 @@ const en = {
 		pricing: 'Pricing',
 		resources: 'Resources',
 		menu: 'Menu',
-		language: 'Language',
+		/* `nav.language` is gone with the control it labelled — first the En/De
+		   chips, then the Google Translate widget. `work.language` and
+		   `library.language` are different strings on different surfaces and stay. */
 		toHome: 'home',
 		products: 'Products',
-		customers: 'Customers',
 		login: 'Sign in',
 		openMenu: 'Open the {name} menu',
-		menuSocial: 'Social Media',
+		/*
+			The Products panel is two stops now, in the order the site sells them.
+			`menuEducation` and `menuComplete` are still here because
+			/patient-education/ and /molar-complete/ are still routes with
+			breadcrumbs that read these — they are simply not advertised as separate
+			purchases any more. See the note on `NAV_LINKS` in `~/data/site`.
+		*/
+		menuSocial: 'MOLAR Social',
 		menuSocialSub: 'Done-for-you dental content and social media management.',
 		menuEducation: 'Patient Education',
 		menuEducationSub: 'A searchable library of treatment and patient education videos.',
 		menuTv: 'MOLAR TV',
-		menuTvSub: 'Branded waiting-room TV content and loops.',
+		menuTvSub: 'Your branded waiting-room channel, plus 300+ patient videos.',
 		menuComplete: 'MOLAR Complete',
 		menuCompleteSub: 'The full MOLAR content ecosystem.',
 		menuHow: 'How MOLAR works',
@@ -67,8 +75,8 @@ const en = {
 		sales: 'Talk with sales',
 		heroPlans: 'See Plans & Pricing',
 		heroResources: 'Free Resources',
-		explore: 'Start 14-day free trial',
-		seePlans: 'See MOLAR TV',
+		/* The hero's one button. */
+		explore: 'Start 14-Day Free Trial',
 		talk: 'Talk to MOLAR',
 		exploreResources: 'Explore Resources',
 	},
@@ -78,27 +86,58 @@ const en = {
 		description:
 			'MOLAR is the content engine for modern dental practices: managed social media, a patient education video library, and branded waiting-room TV in one connected ecosystem.',
 	},
+	/*
+		Section 01 — the hero.
+
+		THREE strings, and that is the whole fold. It held eyebrow, headline, lede,
+		offer, trust line, two card labels and five figure-band captions. The cards
+		and the figure band went with the markup that rendered them; the eyebrow
+		badge and the offer pill went because a fold that presents one button
+		should not draw three things in the shape of one; and the trust line moved
+		to `trust.heading`, over the logos that evidence it. See the block comment
+		at the top of `~/components/sections/Hero`.
+
+		`titleLead` and `titleAccent` are the two halves of one sentence, split so
+		the second can be lit — not two sentences. The split falls after "Build
+		Trust." so the accent lands on the promise rather than on the setup.
+	*/
 	hero: {
-		eyebrow: 'MOLAR TV · $97/month',
-		titleLead: 'Your practice. Your treatments.',
-		titleAccent: 'Your patient education channel.',
-		lede: 'Custom MOLAR TV plus 300+ patient education videos, on unlimited devices in every room of your practice.',
-		trust: 'Trusted by dental practices around the world',
-		/* The two readouts floating over the footage. */
-		cardViews: 'Organic views',
-		cardClients: 'Practices we publish for',
-		cardClientsNote: 'Dental clinics publishing with MOLAR',
-		/* The figure band along the foot of the fold. */
-		statPractices: 'Dental practices',
-		statPracticesSub: 'trust MOLAR',
-		statViews: 'Organic views',
-		statViewsSub: 'across those accounts',
-		statLanguages: 'Languages',
-		statLanguagesSub: 'published in',
-		statCountries: 'Countries',
-		statCountriesSub: 'on the map',
-		statRegions: 'Continents',
-		statRegionsSub: 'within reach',
+		titleLead: 'Educate Patients. Build Trust.',
+		titleAccent: 'Help More Say Yes.',
+		lede: 'MOLAR TV positions your practice as the trusted source for treatment education, with custom in-office TV playlists and 300+ patient videos on unlimited devices.',
+	},
+	/*
+		Section 02 — the logo wall.
+
+		One string, and it used to live under `hero.trust` because the hero said it
+		too. The hero does not any more, so it belongs to the section that renders
+		it above the sixteen marks that back it up.
+	*/
+	trust: {
+		heading: 'Trusted by dental practices around the world',
+	},
+	/*
+		The beat between MOLAR TV and the surfaces it runs on — why any of this
+		matters. Four links in a chain; the order is the argument.
+	*/
+	understand: {
+		heading: 'Patients Don’t Say Yes To What They Don’t Understand.',
+		see: 'See it',
+		understand: 'Understand it',
+		trust: 'Trust the recommendation',
+		confident: 'Feel more confident moving forward',
+	},
+	/* Where the education runs: the practice, the consultation, and afterwards. */
+	everywhere: {
+		eyebrow: 'Everywhere it matters',
+		heading: 'Patient Education, Everywhere It Matters.',
+		practiceWhen: 'Throughout the practice',
+		practiceWhat: 'MOLAR TV on any screen, plus iPads carrying the full library.',
+		consultWhen: 'During treatment conversations',
+		consultWhat: 'Search 300+ videos and show the right explanation instantly.',
+		afterWhen: 'After they leave',
+		afterWhat:
+			'Turn patients into followers, stay top of mind with MOLAR Social, and bring more unscheduled treatment back.',
 	},
 	reach: {
 		titleLead: 'One platform.',
@@ -155,15 +194,21 @@ const en = {
 	},
 	footer: {
 		product: 'Product',
-		resources: 'Free resources',
+		resources: 'Resources',
 		follow: 'Follow us',
 		getStarted: 'Get started',
-		startNote: 'No sales call, no minimum term. Live in 24 hours.',
-		reach: 'Global reach',
-		allGuides: 'All {n} guides',
+		/* The brand column. `site.positioning` was the old line and is still what
+		   the meta description uses; this one names the category in six words. */
+		pitch: 'Patient education built for modern dental practices.',
+		reachLine: '{practices} practices · {countries} countries · {regions} continents',
+		startOffer: 'MOLAR TV — {price}/month',
+		startNote: '{n} days free. Cancel anytime.',
+		needMore: 'Need Social or Enterprise?',
+		allGuides: 'View all {n} resources',
 		newTab: '(opens in a new tab)',
 		products: 'Products',
 		company: 'Company',
+		legal: 'Legal',
 	},
 	crumbs: {
 		home: 'Home',
@@ -172,7 +217,7 @@ const en = {
 		libraryTitle: 'Video library — patient education, ready to post',
 		libraryDesc:
 			'A sample of the patient-education videos MOLAR produces: filter by topic and language, and watch them without leaving the page.',
-		homeTitle: 'MOLAR AI — Easiest way to educate patients online',
+		homeTitle: 'MOLAR TV — patient education for dental practices, $97/month',
 		workTitle: 'Our work — no two feeds alike',
 		workDesc:
 			'A sample of the accounts MOLAR AI runs: nine consecutive posts from each, across {n} languages. Same engine, and no two feeds alike.',
@@ -193,15 +238,15 @@ const en = {
 			'There is no onboarding project, no content workshop and no filming day. You pick a plan, connect your accounts, tell us what the practice looks like — and the publishing starts.',
 		pricingTitle: 'Pricing',
 		pricingDesc:
-			'MOLAR AI plans and pricing — Starter at $497/month, Premium at $1,497/month, Enterprise on quote. No long-term contracts. Cancel anytime. Live in 24 hours.',
+			'MOLAR plans and pricing — MOLAR TV at $97/month, Lite at $497/month, Premium at $1,497/month, Enterprise on quote. No long-term contracts. Cancel anytime.',
 		homeDesc:
-			'MOLAR is the content engine for modern dental practices: managed social media, a patient education video library, and branded waiting-room TV in one connected ecosystem.',
-		socialTitle: 'Social media management for dental practices',
+			'MOLAR TV positions your practice as the trusted source for treatment education: custom in-office TV playlists and 300+ patient videos on unlimited devices. $97/month, 14 days free.',
+		socialTitle: 'MOLAR Social — social media for dental practices',
 		socialDesc:
 			'Done-for-you dental content and social media management. Reels, carousels and patient education branded to your practice, published on schedule. From $497/month, live in 24 hours.',
 		socialIntro: 'Your social media. Without becoming a content creator.',
 		socialLede:
-			'Custom dental content created, branded and managed for your practice. Three plans, one engine, and no filming day in any of them.',
+			'Custom dental content created, branded and managed for your practice. No filming day, no content calendar, no agency meetings.',
 		educationTitle: 'Patient Education Library — $97/month',
 		educationDesc:
 			'A searchable library of patient education videos for chairside use, consultation rooms and waiting-room screens. $97/month per practice, unlimited devices.',
@@ -220,15 +265,12 @@ const en = {
 		completeIntro: 'One practice. One content ecosystem.',
 		completeLede:
 			'Social, Education and MOLAR TV from one system — so the reel that found a patient, the loop in reception and the video at the chair are all saying the same thing.',
-		customersTitle: 'Customers — the practices MOLAR runs',
-		customersDesc:
-			'The accounts MOLAR runs, the grids exactly as they went out, and what other practices wrote in to say when they saw the work in their feed.',
-		customersIntro: 'What happens when patients understand more?',
-		customersLede:
-			'Real accounts, shown as they are. Nine consecutive posts from each practice, one profile measured before and after, and the unsolicited messages that followed.',
-		resourcesTitle: 'Resource library',
+		/* The /customers/ page is gone — see the note at the top of
+		   `~/pages/social-media`, which absorbed its four evidence sections. Its
+		   title, description, intro and lede went with it. */
+		resourcesTitle: 'AI for dentists — free guides, tools and workflows',
 		resourcesDesc:
-			'Free branded guides, scripts and checklists for dental practices — patient education, content calendars, review playbooks and consent kits. No subscription required.',
+			'Practical guides, prompts and workflows to help dental practices use AI across sales, marketing, CRM, patient education and operations. Free, and nothing to buy.',
 	},
 	work: {
 		eyebrow: 'The work',
@@ -242,11 +284,27 @@ const en = {
 		alt: "Nine consecutive posts from {practice}'s feed: {specialty} in {language}, in {a} and {b}.",
 	},
 	growth: {
-		eyebrow: 'Case 01',
-		heading: 'One post, and nobody watching. Then an audience of {after}.',
-		lede: '{name} runs {place}. Her practice had an Instagram account the way most practices do — claimed, posted to once, then left alone for want of anyone with the time to feed it. We took the account over and started publishing patient education to it. These are her own profile screenshots, before and after.',
-		before: 'Before',
-		after: 'After',
+		/*
+			The eyebrow used to be "Case 01" with the handle appended — and `.eyebrow`
+			uppercases, so it rendered as CASE 01 — @DRPATRICIAHARROSCH: a real
+			person's name set in caps with no spaces, which is a way of getting
+			somebody's name wrong. It names the product and the kind of proof
+			instead, and the handle appears where it belongs — in the figcaption
+			under the screenshots, where it is provenance rather than a label.
+		*/
+		eyebrow: 'MOLAR Social — case study',
+		heading: 'Build The Online Brand Your Dentistry Deserves.',
+		lede: 'Turn patient education into a premium digital presence that builds authority, keeps your practice top of mind, and reflects the level of care you provide.',
+		/* The figure, as the sub-heading over the exhibit. */
+		delta: '{before} → {after} followers',
+		body: '{name} used consistent patient education to build a global audience of both patients and dental professionals.',
+		bodyTwo:
+			'Today, her content does more than generate views — it positions her as a recognized voice in dentistry, keeps her expertise visible beyond the practice, and builds trust before patients ever sit in the chair.',
+		/* The line above the CTA. Short, and it is the point of the whole section. */
+		punch: 'Patient education builds more than understanding. It builds authority.',
+		cta: 'Explore MOLAR Social',
+		before: 'Before — {n} followers',
+		after: 'After — {n} followers',
 		beforeRead: '1 post · 159 followers',
 		afterRead: '152 posts · 10.2K followers',
 		source:
@@ -304,77 +362,137 @@ const en = {
 		step4body:
 			'Branded patient education starts posting automatically, on schedule, without another meeting.',
 	},
+	/*
+		The plans, rewritten to the 09/01 brief.
+
+		Two of the four were renamed and all four were re-pitched. MOLAR Starter is
+		MOLAR Lite, because "starter" describes where a buyer is rather than what
+		they get; the "Patient Education Library" tier is MOLAR TV, because that is
+		what the whole site now calls the $97 product and a price list is the last
+		place a product should acquire a second name.
+
+		Every feature line reads as a thing that happens rather than a capability
+		the platform has — "No filming required", "Live within 24 hours" — which is
+		the difference between a spec sheet and an offer.
+	*/
 	pricing: {
 		eyebrow: 'Plans',
-		headline: 'Pick your level. Go live in 24 hours.',
+		/*
+			The same line the home page's plans band uses as its eyebrow — see
+			`social.eyebrow`. Deliberate: it is the question the grid answers, and a
+			visitor who arrives here from that band should land on the sentence they
+			clicked.
+
+			It replaced "Pick your level. Go live in 24 hours." — two claims, one of
+			which ("24 hours") is a delivery promise that only holds for the two
+			social tiers. MOLAR TV is live the day you sign up and Enterprise is
+			quoted, so the headline was making a guarantee three of the four cards
+			underneath it do not make.
+		*/
+		headline: 'Choose How Much You Want MOLAR To Handle.',
 		lede: 'No long-term contracts. Cancel anytime.',
 		footnote: 'Prices in USD. No long-term contracts. Cancel anytime.',
-		badge: 'Most popular',
-		perMonth: '/month',
+		badge: 'Most Popular',
+		perMonth: '/mo',
+		perYear: '/yr',
 		custom: 'Custom',
 		code: 'Code',
-		starterName: 'MOLAR Starter',
-		starterSummary: 'Consistent content. Zero effort.',
-		starterBlurb:
-			'Built for practices that want reliable content without adding work to the team.',
-		educationName: 'Patient Education Library',
-		educationSummary: 'Explain it once. Show it forever.',
+		/* The MOLAR TV billing switch. */
+		billingLabel: 'Billing period for MOLAR TV',
+		monthly: 'Monthly',
+		annual: 'Annual',
+		annualSaving: 'About {monthly}/month — a saving of {saving}.',
+		annualNote: 'Billed in full today · No free trial on annual · Cancel anytime',
+		/*
+			Not "Start free trial": annual has no trial, and there is no annual
+			Payment Link in this repo. See the ⚠️ in `~/components/sections/Pricing`.
+		*/
+		annualCta: 'Talk to MOLAR about annual',
+		/* Across both social cards, under the plan grid. */
+		socialNote:
+			'No agency meetings. No content calendar headaches. No filming days. Just social media handled.',
+		educationName: 'MOLAR TV',
+		educationSummary: 'Educate patients. Build trust. Help more say yes.',
 		educationBlurb:
-			'The whole library, ready to play chairside, in the consult room and in reception.',
-		educationCta: 'Start free trial',
+			'Your own waiting-room channel, plus the whole library to play chairside and in the consult room.',
+		educationCta: 'Start Free Trial',
 		educationNote: '14 days free, then billed monthly · Cancel anytime',
-		l1: '300+ patient education videos',
-		l2: 'Covering 40+ treatments',
-		l3: 'New videos added every day',
-		l4: 'Search by treatment or by the question a patient asks',
-		l5: 'Play chairside, in the consult room, or on the waiting room screen',
-		l6: 'Unlimited devices at one location',
-		l7: 'Nothing to film, script or edit',
-		l8: 'Live the day you sign up',
-		starterCta: 'Get Started',
-		starterNote: 'Cancel anytime · Captions, scheduling, and publishing included',
+		l1: 'Custom MOLAR TV',
+		l2: '300+ patient education videos',
+		l3: 'Unlimited devices',
+		l4: 'If we don’t have the treatment video you need, we’ll create it and add it to the library',
+		l5: '14-day free trial',
+		starterName: 'MOLAR Lite',
+		starterSummary: 'Your social media, handled.',
+		starterBlurb:
+			'Subscribe, connect your accounts, and MOLAR takes over the content creation, copy, scheduling and posting. Live within 24 hours.',
+		starterCta: 'Take Social Off My Plate',
+		starterNote: 'Cancel anytime · Live within 24 hours',
 		premiumName: 'MOLAR Premium',
-		premiumSummary: 'Your patient acquisition system.',
+		premiumSummary: 'Your entire social presence. On autopilot.',
 		premiumBlurb:
-			'Daily content across every channel, built around your highest-value treatments.',
-		premiumCta: 'Choose Premium',
+			'MOLAR builds and runs the brand your dentistry deserves — without an agency, production team, or hours spent managing content. Connect once. Go live within 24 hours.',
+		premiumCta: 'Put My Social On Autopilot',
 		premiumNote: 'Cancel anytime · Client Portal access included',
 		enterpriseName: 'MOLAR Enterprise',
-		enterpriseSummary: 'One content strategy. Every location.',
-		enterpriseBlurb: 'For groups, DSOs, and multi-location practices.',
+		enterpriseSummary: 'One content system. Every brand. Every location.',
+		enterpriseBlurb: 'For DSOs · Multi-location groups · Medical device companies · Dental educators',
 		enterpriseCta: 'Talk to MOLAR',
 		enterpriseNote: 'Built for groups, DSOs, and multi-location practices.',
-		s1: '3 posts per week',
-		s2: '1 educational reel, 1 carousel, 1 social proof post',
-		s3: 'Customized to your branding, treatments, and practice',
-		s4: 'Reviews and before & afters incorporated when provided',
-		s5: 'Powered by the MOLAR content library',
-		s6: 'Captions, scheduling, and publishing included',
-		s7: 'Instagram & Facebook included',
-		s8: 'Live within 24 hours',
-		p1: 'Daily content for Instagram & Facebook',
-		p2: 'Fully custom reels, carousels, stories, and still image posts',
-		p3: 'Content focused on your highest-value treatments',
-		p4: 'Reviews, before & afters, and patient cases turned into content',
-		p5: 'Multilingual content in your patients’ language',
-		p6: 'Voice cloning — narrated by you',
-		p7: 'YouTube Shorts included',
-		p8: 'Client Portal access',
-		p9: 'Priority production & support',
+		s1: 'Everything in MOLAR TV',
+		s2: '3 posts per week across all major platforms',
+		s3: 'English content',
+		s4: 'Upload portal access',
+		s5: 'No filming required',
+		s6: 'No writing, editing, scheduling, or posting',
+		p1: 'Everything in MOLAR TV',
+		p2: 'Daily content across all major platforms',
+		p3: 'Any language',
+		p4: 'Priority upload fulfillment',
+		p5: 'Custom video requests',
+		p6: 'AI transformation before & afters',
+		p7: 'No filming, copywriting, editing, scheduling, or posting',
 		e1: 'Everything in Premium',
-		e2: 'AI avatars of doctors and leadership teams',
-		e3: 'Multi-location content distribution',
-		e4: 'Per-location branding & localization',
-		e5: 'Centralized content management across every practice',
-		e6: 'Enterprise onboarding & deployment',
-		e7: 'Dedicated strategist & priority support',
-		e8: 'Volume pricing',
-		e9: 'Exclusive content rights available',
+		e2: 'MOLAR TV customized by location',
+		e3: 'Multi-location branding and localization',
+		e4: 'Custom content and licensing',
+		e5: 'Centralized deployment at scale',
 	},
+	/*
+		The resource hub, repositioned by the 09/01 brief.
+
+		It was "the MOLAR resource library" — a shelf of branded handouts. It is an
+		AI-for-dentists hub now: the guides are the same twelve documents, but the
+		page argues for understanding AI rather than listing PDFs.
+
+		The brief also said "no selling here", and for one pass the video library's
+		$97 panel came off the top of the page and a newsletter capture took its
+		place. The panel is back by request — the library is the page's strongest
+		asset — and the capture moved to the foot, where `ahead*` carries it. So
+		the `brief*` strings that headed the top panel are gone; `ahead*` is the
+		one lead capture on the page now.
+	*/
 	resources: {
-		eyebrow: 'Free resources',
-		heading: 'The MOLAR resource library.',
-		lede: 'Everything here is free and branded to hand straight to a patient or a team. Built from what actually works across MOLAR practices.',
+		eyebrow: 'AI for dentists',
+		heading: 'AI Is Changing Dentistry. Make Sure Your Practice Benefits From It.',
+		lede: 'Practical guides, tools, workflows, and training to help dentists use AI across sales, marketing, patient communication, CRM, operations, automation, and growth.',
+		lede2: 'Built for dental teams who want to understand AI and actually use it in their practice.',
+		/* The grid itself. */
+		libraryTitle: 'Resource Library',
+		libraryHeading: 'Learn It. Use It. Share It With Your Team.',
+		libraryLede:
+			'Free resources designed to help dental practices put AI to work without wasting hours figuring everything out themselves.',
+		/* The community band between the grid and the closing capture. */
+		communityHeading: 'Built For Dentists Figuring Out What’s Next.',
+		communityBody:
+			'AI is moving fast. MOLAR is building a growing community of dental professionals learning how to use it practically — not just talking about it.',
+		communityKicker: 'Better systems. Better tools. Smarter practices.',
+		/* The lead capture at the foot. */
+		aheadHeading: 'Stay Ahead Of What’s Changing.',
+		aheadLede:
+			'Get the newest AI tools, workflows, prompts, and practical ideas for dental practices.',
+		aheadCta: 'Get The Dental AI Brief',
+		aheadNote: 'No fluff. Just useful AI for dentistry.',
 		englishNote: 'The documents themselves are written in English.',
 		all: 'All',
 		allResources: 'All resources',
@@ -405,6 +523,9 @@ const en = {
 		eyebrow: 'Video library',
 		heading: 'Patient education, already made.',
 		lede: 'A sample of the videos we produce for MOLAR practices. Narrow it to what you need and watch it right here.',
+		/* The `hub*` five are the promo panel at the head of /resources/ — the
+		   library's doorway. `hubCta` is also the quiet link under the grid on the
+		   same page, so the panel and the fallback say the same thing. */
 		hubTitle: 'Video Library',
 		hubBlurb: 'Over 300 patient education videos across 40+ treatments, with new ones added every day. Play them chairside, in the consult room, or on the waiting room screen.',
 		hubCta: 'Access the library',
@@ -524,9 +645,15 @@ const en = {
 		`pricing.*`; this is only the band they sit in.
 	*/
 	social: {
-		eyebrow: 'Social media management',
+		/*
+			The eyebrow names the choice rather than the category. "Social media
+			management" described three of the four cards under it and not the one
+			the page is actually selling; this band is where a visitor decides how
+			much of the job to hand over, from a $97 screen to a full presence.
+		*/
+		eyebrow: 'Choose how much you want MOLAR to handle',
 		heading: 'Your social media. Without becoming a content creator.',
-		lede: 'Three plans, one engine. Every one of them publishes branded patient education to your accounts on schedule.',
+		lede: 'Four plans, one engine. Every one of them publishes branded patient education to your practice on schedule.',
 		notSure: 'Not sure which plan fits your practice?',
 		findPlan: 'Find My Plan',
 	},
@@ -694,39 +821,49 @@ const en = {
 		eyebrow: 'In their words',
 		fromPractice: 'From a practice actually using MOLAR',
 		watch: 'Watch {name}',
-		heading: 'What practices say once they have it.',
+		heading: 'What Practices Are Saying',
 		anonymous: 'Verified MOLAR practice',
 		nameWithheld: 'Name withheld at the practice\u2019s request',
+		/* The one ask under the wall. Same label as the MOLAR TV section's. */
+		cta: 'Start Your 14-Day Free Trial',
 	},
 	/* Section 09 — MOLAR TV. */
 	tv: {
 		eyebrow: 'MOLAR TV',
-		heading: 'Visually educate in your waiting room.',
-		lede: 'The screen is already on the wall. It is already switched on. It is currently playing something that has nothing to do with your practice.',
-		key1: 'Your waiting room should not be playing random daytime television.',
-		key2: 'Turn unused screen time into an opportunity to educate patients before they even enter the treatment room.',
+		heading: 'Educate Patients Before The Conversation Starts.',
+		lede: 'MOLAR TV turns waiting time into branded treatment education that helps patients understand your recommendations before they sit down with you.',
 		nowPlaying: 'Now playing',
 		screenAlt: 'A wall-mounted screen in a dental waiting room playing MOLAR TV patient education loops.',
-		playTrusted: 'Trusted content',
-		playClinical: 'Case videos',
-		playTestimonials: 'Testimonials',
-		playAnimations: 'Animations',
-		playPractice: 'Practice info',
-		playOffers: 'Promotions & offers',
-		featLogo: 'Your logo',
-		featLogoSub: 'On every frame, not a corner watermark.',
-		featColors: 'Your colours',
-		featColorsSub: 'The palette the rest of your brand already uses.',
-		featBranding: 'Your practice branding',
-		featBrandingSub: 'Type, layout and tone carried through the loop.',
-		featContent: 'MOLAR educational content',
-		featContentSub: 'The same library your team plays chairside.',
-		featLoops: 'Custom loops',
-		featLoopsSub: 'Built around the treatments you actually want to talk about.',
-		featPlayback: 'Waiting-room playback',
-		featPlaybackSub: 'Muted, captioned and built to be read from six feet away.',
-		cta: 'Free resources',
-		ctaTrial: 'Start 14-day free trial',
+		/*
+			What is on the screen, said as what the practice gets rather than as
+			content genres. It listed "Trusted content / Case videos / Testimonials /
+			Animations / Practice info / Promotions", which is a description of a
+			playlist; this is a description of a channel that belongs to them.
+		*/
+		playTreatments: 'Your treatments',
+		playDoctors: 'Your doctors',
+		playEducation: 'Patient education',
+		playBranding: 'Custom practice branding',
+		playVideos: 'Treatment-focused videos',
+		playQr: 'Instagram QR',
+		/*
+			Four tiles, down from six.
+
+			The six were three brand attributes (logo, colours, branding) that said
+			the same thing three times, and three MOLAR attributes (educational
+			content, custom loops, waiting-room playback) that described the
+			mechanism rather than the offer. These four each carry a different
+			claim, and each keeps the practice — not MOLAR — as the subject.
+		*/
+		featBrand: 'Your Brand',
+		featBrandSub: 'Logo, colours, practice identity.',
+		featTreatments: 'Your Treatments',
+		featTreatmentsSub: 'Content focused on the care you provide.',
+		featDoctors: 'Your Doctors',
+		featDoctorsSub: 'Keep your practice at the centre of the education.',
+		featChannel: 'Your Channel',
+		featChannelSub: 'A custom loop built for your waiting room.',
+		ctaTrial: 'Start 14-Day Free Trial',
 	},
 	/* Section 10 — the patient journey. The same five surfaces, in order. */
 	journey: {
@@ -796,12 +933,31 @@ const en = {
 		talk: 'Talk to MOLAR',
 	},
 	/* Section 15 — the closing band. */
+	/*
+		The close. The same promise the fold opened on, said once more with the
+		price attached — by this point a visitor has seen the product, the proof
+		and the plans, and the last thing the page should do is add a new claim.
+
+		`second` used to be the turn in a two-line argument ("your patients are
+		already consuming content" → "make sure it helps your practice"). It is
+		the offer now: what you get, in one line, under the headline.
+	*/
 	final: {
-		heading: 'Your patients are already consuming content.',
-		second: 'Make sure it is helping your practice.',
-		cta: 'Build Your MOLAR System',
-		secondary: 'Talk to MOLAR',
-		note: 'No sales call needed for Social or Education. Cancel anytime.',
+		heading: 'Educate Patients. Build Trust. Help More Say Yes.',
+		second: 'Custom MOLAR TV plus 300+ patient education videos, across unlimited devices.',
+		/*
+			The offer, in the brief's shorthand. It lived under `hero.offer` while
+			the fold quoted a price too; the fold does not any more, and this is the
+			only place that says it this way.
+
+			`edu.trialLong` is the same offer as a full sentence, which is what the
+			product pages run. Both interpolate the figure and the day count from the
+			two constants in `~/data/education`, so no surface can disagree with the
+			checkout about what is being charged.
+		*/
+		offer: '{price}/month · {n} days free',
+		cta: 'Start Free Trial',
+		note: 'Trusted across {countries} countries · {regions} continents',
 	},
 	notFound: {
 		title: 'Page not found',
@@ -822,765 +978,17 @@ type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
 
 export type Dict = Widen<typeof en>;
 
+
 /**
- * German. Formal throughout — see the note at the top of the file.
+ * Every locale the site renders in.
  *
- * Prices, plan names and the brand stay as they are: `MOLAR Premium` is a
- * product name, and the plans are billed in USD wherever the buyer is, so
- * translating "$1,497/month" into a euro figure would be inventing a price that
- * does not exist. Only the cadence word is translated.
+ * English only. The hand-mirrored German routes under `src/pages/de/` and the
+ * `de` dictionary that fed them are gone — the site is published in English and
+ * offers Google's own translation widget in the nav for everything else, which
+ * is one set of copy to keep true instead of two.
+ *
+ * The machinery around this is intact: `Dict` is still the contract, `UI` is
+ * still keyed by locale, and `localizePath` still normalises prefixes. Adding a
+ * locale back means a full block here and a mirrored route tree, nothing more.
  */
-const de: Dict = {
-	nav: {
-		label: 'Hauptnavigation',
-		home: 'Start',
-		work: 'Referenzen',
-		results: 'Ergebnisse',
-		how: 'So funktioniert’s',
-		pricing: 'Preise',
-		resources: 'Ressourcen',
-		menu: 'Menü',
-		language: 'Sprache',
-		toHome: 'Startseite',
-		products: 'Produkte',
-		customers: 'Kunden',
-		login: 'Anmelden',
-		openMenu: 'Menü {name} öffnen',
-		menuSocial: 'Social Media',
-		menuSocialSub: 'Fertige zahnmedizinische Inhalte und Social-Media-Betreuung.',
-		menuEducation: 'Patientenaufklärung',
-		menuEducationSub: 'Eine durchsuchbare Bibliothek mit Behandlungs- und Aufklärungsvideos.',
-		menuTv: 'MOLAR TV',
-		menuTvSub: 'Gebrandete Wartezimmer-Inhalte und Loops.',
-		menuComplete: 'MOLAR Complete',
-		menuCompleteSub: 'Das komplette MOLAR-Content-Ökosystem.',
-		menuHow: 'So funktioniert MOLAR',
-		menuHub: 'Ressourcen-Hub',
-		menuHubSub: 'Alle kostenlosen Leitfäden, Skripte und Checklisten an einem Ort.',
-		menuLibrary: 'Videobibliothek',
-		menuLibrarySub: 'Eine Auswahl der Patientenaufklärungs-Videos ansehen.',
-		menuPatientGuides: 'Patientenleitfäden',
-		menuPatientGuidesSub: 'Handouts, die man Patienten direkt mitgeben kann.',
-		menuMarketing: 'Marketing-Leitfäden',
-		menuMarketingSub: 'Content- und Social-Strategie für Zahnarztpraxen.',
-		menuTemplates: 'Vorlagen',
-		menuTemplatesSub: 'Einsatzfertige Dokumente für die Praxis.',
-		menuFaq: 'FAQ',
-		menuFaqSub: 'Die Fragen, die Praxen wirklich stellen.',
-		menuAllResources: 'Alle Ressourcen ansehen',
-	},
-	cta: {
-		start: 'Jetzt starten',
-		plans: 'Preise und Pakete ansehen',
-		sales: 'Vertrieb kontaktieren',
-		heroPlans: 'Preise & Pakete',
-		heroResources: 'Kostenlose Ressourcen',
-		explore: '14 Tage gratis testen',
-		seePlans: 'MOLAR TV ansehen',
-		talk: 'Mit MOLAR sprechen',
-		exploreResources: 'Ressourcen entdecken',
-	},
-	site: {
-		tagline: 'Die Content-Engine für die Zahnmedizin.',
-		positioning: 'Die Content-Infrastruktur für die moderne Zahnarztpraxis.',
-		description:
-			'MOLAR ist die Content-Engine für moderne Zahnarztpraxen: betreute Social Media, eine Bibliothek mit Patientenaufklärungs-Videos und gebrandetes Wartezimmer-TV in einem verbundenen Ökosystem.',
-	},
-	hero: {
-		eyebrow: 'MOLAR TV · $97/Monat',
-		titleLead: 'Ihre Praxis. Ihre Behandlungen.',
-		titleAccent: 'Ihr Aufklärungskanal.',
-		lede: 'Individuelles MOLAR TV plus über 300 Patientenaufklärungs-Videos, auf unbegrenzt vielen Geräten in jedem Raum Ihrer Praxis.',
-		trust: 'Zahnarztpraxen weltweit vertrauen auf MOLAR',
-		cardViews: 'Organische Views',
-		cardClients: 'Praxen, für die wir publizieren',
-		cardClientsNote: 'Zahnarztpraxen, die mit MOLAR publizieren',
-		statPractices: 'Zahnarztpraxen',
-		statPracticesSub: 'vertrauen MOLAR',
-		statViews: 'Organische Views',
-		statViewsSub: 'über diese Accounts',
-		statLanguages: 'Sprachen',
-		statLanguagesSub: 'veröffentlicht in',
-		statCountries: 'Länder',
-		statCountriesSub: 'auf der Karte',
-		statRegions: 'Kontinente',
-		statRegionsSub: 'in Reichweite',
-	},
-	reach: {
-		titleLead: 'Eine Plattform.',
-		titleAccent: 'Sechs Kontinente.',
-		note: 'und es werden mehr',
-		eyebrow: 'Weltweite Reichweite',
-		northAmerica: 'Nordamerika',
-		southAmerica: 'Südamerika',
-		europe: 'Europa',
-		africa: 'Afrika',
-		asia: 'Asien',
-		australia: 'Australien',
-	},
-	film: {
-		title: 'Machen Sie aus jedem Beitrag ein Aufklärungsmaterial.',
-		body: 'Ihr Team kann MOLAR-Videos während der Beratung abspielen, sie nach dem Termin verschicken oder Patienten organisch darauf stoßen lassen — für durchgängige Aufklärung vor, während und nach jedem Besuch.',
-		watch: 'Film ansehen',
-	},
-	compare: {
-		eyebrow: 'MOLAR vs. Agenturen',
-		heading: 'Dasselbe Ergebnis, ohne Retainer-Vertrag.',
-		lede: 'Was eine Praxis für ihr Geld tatsächlich bekommt, direkt gegenübergestellt.',
-		molar: 'MOLAR AI',
-		agencies: 'Agenturen',
-		criteria: 'Vergleichskriterien',
-		caption:
-			'MOLAR AI im Vergleich mit einer klassischen Dental-Marketing-Agentur: Kosten, Geschwindigkeit, Rechte, Filmen, Verträge, Sprachen und Team.',
-		cost: 'Kosten',
-		speed: 'Content-Geschwindigkeit',
-		ownership: 'Inhalte gehören Ihnen',
-		filming: 'Filmen erforderlich',
-		contracts: 'Verträge',
-		languages: 'Sprachen',
-		team: 'Team',
-		agencyCost: '3.000–5.000 $/Mon.',
-		agencySpeed: '2–4 Wochen',
-		agencyOwnership: 'Nein',
-		agencyFilming: 'Ja',
-		agencyContracts: 'Ab 6 Monaten',
-		agencyLanguages: 'Begrenzt',
-		agencyTeam: '1–2 Cutter',
-		molarCost: '497 $/Mon.',
-		molarSpeed: '24 Stunden',
-		molarOwnership: 'Ja',
-		molarFilming: 'Nein',
-		molarContracts: 'Keine',
-		molarLanguages: 'Alle',
-		molarTeam: 'Full-Stack-KI',
-	},
-	close: {
-		heading: 'Dominieren Sie den Feed in Ihrer Stadt.',
-		lede: 'In 24 Stunden live. Kein Filmen, keine Verträge, keine Agenturen — nur täglicher Content, den Patienten wirklich sehen wollen.',
-		note: 'Jederzeit kündbar · Preise in USD',
-	},
-	footer: {
-		product: 'Produkt',
-		resources: 'Kostenlose Ressourcen',
-		follow: 'Folgen Sie uns',
-		getStarted: 'Loslegen',
-		startNote: 'Kein Verkaufsgespräch, keine Mindestlaufzeit. In 24 Stunden live.',
-		reach: 'Weltweite Reichweite',
-		allGuides: 'Alle {n} Leitfäden',
-		newTab: '(öffnet in einem neuen Tab)',
-		products: 'Produkte',
-		company: 'Unternehmen',
-	},
-	crumbs: {
-		home: 'Start',
-	},
-	pages: {
-		libraryTitle: 'Video-Bibliothek — Patientenaufklärung, sofort einsetzbar',
-		libraryDesc:
-			'Eine Auswahl der Patientenaufklärungs-Videos von MOLAR: nach Thema und Sprache filtern und direkt auf der Seite ansehen.',
-		homeTitle: 'MOLAR AI — Der einfachste Weg zur Patientenaufklärung online',
-		workTitle: 'Referenzen — kein Feed gleicht dem anderen',
-		workDesc:
-			'Ein Auszug der Accounts, die MOLAR AI betreut: je neun aufeinanderfolgende Beiträge, in {n} Sprachen. Dieselbe Engine — und kein Feed gleicht dem anderen.',
-		workIntro: 'Dieselbe Engine. Kein Feed gleicht dem anderen.',
-		workLede:
-			'Ein Auszug der Accounts, die wir betreuen — je neun aufeinanderfolgende Beiträge, in {n} Sprachen. Nichts davon ist ein Mockup: Jedes Raster zeigt genau das, was ein Patient beim Öffnen des Profils gesehen hat.',
-		resultsTitle: 'Ergebnisse — was der Content bewirkt hat',
-		resultsDesc:
-			'Eine Zahnarztpraxis ging von einem einzigen Beitrag und 159 Followern auf 152 Beiträge und 10,2 Tsd. Die Profil-Screenshots, die Zahlen und die Nachrichten, die danach von anderen Praxen kamen.',
-		resultsIntro: 'Was der Content tatsächlich bewirkt hat.',
-		resultsLede:
-			'Ein Account, den wir betreuen, vorher und nachher als Screenshot — und die Nachrichten, die andere Praxen schickten, nachdem sie die Arbeit in ihrem Feed gesehen hatten. Keine Montagen, keine Rekonstruktionen, keine aufgerundeten Zahlen.',
-		howTitle: 'So funktioniert’s — noch am selben Tag live',
-		howDesc:
-			'Vier Schritte vom Abo bis zum ersten Beitrag: Paket wählen, Konten verbinden, Branding hinterlegen, live gehen. Kein Filmen, keine Verträge, keine Agenturen.',
-		howIntro: 'Heute abonnieren. Morgen posten.',
-		howLede:
-			'Es gibt kein Onboarding-Projekt, keinen Content-Workshop und keinen Drehtag. Sie wählen ein Paket, verbinden Ihre Konten, sagen uns, wofür Ihre Praxis steht — und die Veröffentlichung beginnt.',
-		pricingTitle: 'Preise',
-		pricingDesc:
-			'Pakete und Preise von MOLAR AI — Starter für 497 $/Monat, Premium für 1.497 $/Monat, Enterprise auf Anfrage. Keine langen Laufzeiten. Jederzeit kündbar. In 24 Stunden live.',
-		homeDesc:
-			'MOLAR ist die Content-Engine für moderne Zahnarztpraxen: betreute Social Media, eine Bibliothek mit Patientenaufklärungs-Videos und gebrandetes Wartezimmer-TV in einem verbundenen Ökosystem.',
-		socialTitle: 'Social-Media-Betreuung für Zahnarztpraxen',
-		socialDesc:
-			'Fertige zahnmedizinische Inhalte und Social-Media-Betreuung. Reels, Karussells und Patientenaufklärung im Branding Ihrer Praxis, planmäßig veröffentlicht. Ab 497 $/Monat, in 24 Stunden live.',
-		socialIntro: 'Ihre Social Media. Ohne selbst Content-Creator zu werden.',
-		socialLede:
-			'Individuelle zahnmedizinische Inhalte, erstellt, gebrandet und für Ihre Praxis verwaltet. Drei Pakete, eine Engine — und in keinem davon ein Drehtag.',
-		educationTitle: 'Patientenaufklärungs-Bibliothek — 97 $/Monat',
-		educationDesc:
-			'Eine durchsuchbare Bibliothek mit Aufklärungsvideos für den Behandlungsstuhl, das Beratungszimmer und die Bildschirme im Wartebereich. 97 $/Monat pro Praxis, unbegrenzt viele Geräte.',
-		educationIntro: 'Behandlungsfragen visuell beantworten. In Sekunden.',
-		educationLede:
-			'Die Frage des Patienten suchen. Abspielen. Verständlich machen — am Behandlungsstuhl, im Beratungszimmer oder als Loop im Wartezimmer.',
-		tvTitle: 'MOLAR TV — Patientenaufklärung für Ihr Wartezimmer',
-		tvDesc:
-			'Gebrandete Wartezimmer-Inhalte und Loops für Zahnarztpraxen. Ihr Logo, Ihre Farben, MOLAR-Aufklärungsinhalte — auf dem Bildschirm, den Sie bereits haben.',
-		tvIntro: 'Machen Sie aus dem Wartezimmer-Bildschirm einen Aufklärungskanal.',
-		tvLede:
-			'Der Bildschirm hängt bereits an der Wand und ist bereits eingeschaltet. MOLAR TV ist das, was darauf laufen sollte.',
-		completeTitle: 'MOLAR Complete — das gesamte Content-Ökosystem',
-		completeDesc:
-			'Social Media, Patientenaufklärung und Praxisbildschirme als ein System: ein Content-Plan über die gesamte Patientenreise, für Einzelpraxen, Gruppen und Ketten.',
-		completeIntro: 'Eine Praxis. Ein Content-Ökosystem.',
-		completeLede:
-			'Social, Aufklärung und MOLAR TV aus einem System — damit das Reel, das den Patienten gefunden hat, der Loop am Empfang und das Video am Stuhl dasselbe sagen.',
-		customersTitle: 'Kunden — die Praxen, die MOLAR betreut',
-		customersDesc:
-			'Die Accounts, die MOLAR betreut, die Raster genau so, wie sie erschienen sind, und was andere Praxen geschrieben haben, als sie die Arbeit in ihrem Feed sahen.',
-		customersIntro: 'Was passiert, wenn Patienten mehr verstehen?',
-		customersLede:
-			'Echte Accounts, unverändert gezeigt. Neun aufeinanderfolgende Beiträge je Praxis, ein Profil vorher und nachher gemessen, und die unaufgeforderten Nachrichten, die danach kamen.',
-		resourcesTitle: 'Ressourcen-Bibliothek',
-		resourcesDesc:
-			'Kostenlose Leitfäden, Skripte und Checklisten für Zahnarztpraxen — Patientenaufklärung, Content-Kalender, Bewertungs-Playbooks und Einwilligungs-Kits. Kein Abo nötig.',
-	},
-	work: {
-		eyebrow: 'Die Arbeit',
-		heading: 'Ein Auszug der Feeds, die wir betreuen.',
-		lede: 'Je neun aufeinanderfolgende Beiträge, in {n} Sprachen. Sie kamen aus derselben Pipeline in derselben Woche — und keiner gleicht dem anderen. Denn eine Praxis, deren Inhalte sich nicht von der Praxis nebenan unterscheiden, wurde nicht vermarktet, sondern tapeziert.',
-		featured: 'Im Fokus',
-		specialty: 'Fachgebiet',
-		market: 'Markt',
-		language: 'Sprache',
-		palette: 'Farbpalette',
-		alt: 'Neun aufeinanderfolgende Beiträge aus dem Feed von {practice}: {specialty} auf {language}, in {a} und {b}.',
-	},
-	growth: {
-		eyebrow: 'Fall 01',
-		heading: 'Ein Beitrag, und niemand schaut zu. Dann ein Publikum von {after}.',
-		lede: '{name} führt {place}. Ihre Praxis hatte einen Instagram-Account so, wie ihn die meisten Praxen haben — angelegt, einmal bespielt, dann liegen gelassen, weil niemand Zeit hatte, ihn zu pflegen. Wir haben den Account übernommen und begonnen, Patientenaufklärung darauf zu veröffentlichen. Das sind ihre eigenen Profil-Screenshots, vorher und nachher.',
-		before: 'Vorher',
-		after: 'Nachher',
-		beforeRead: '1 Beitrag · 159 Follower',
-		afterRead: '152 Beiträge · 10,2 Tsd. Follower',
-		source:
-			'Unbearbeitete Screenshots des öffentlichen Profils {handle}. Die Zahlen daneben sind von den Screenshots abgelesen; die Zeilen darunter sind unsere Einschätzung dessen, was sich verändert hat.',
-		filmLabel: 'In ihren Worten',
-		filmPlay: 'Testimonial von {name} abspielen',
-		wasLabel: 'Was der Account war',
-		becameLabel: 'Was daraus wurde',
-		followers: 'Follower',
-		altBefore:
-			'Instagram-Profil {handle} mit 1 Beitrag, 159 Followern und einem einzigen Beitrag im Raster.',
-		altAfter:
-			'Dasselbe Instagram-Profil mit 152 Beiträgen, 10,2 Tsd. Followern und einem vollen Raster aus Aufklärungsbeiträgen.',
-		was1: 'Leicht zu übersehen',
-		was2: 'Uneinheitlicher Online-Auftritt',
-		was3: 'Kaum Sichtbarkeit bei Patienten',
-		was4: 'Keine Autorität in der Breite',
-		became1: 'Anerkannt von Zahnärzten weltweit',
-		became2: 'Patienten sprechen die Inhalte von sich aus an',
-		became3: 'Hochwertiges Branding, das Vertrauen schafft',
-	},
-	inbound: {
-		eyebrow: 'Eingehende Nachrichten',
-		heading: 'Dann fragten andere Zahnärzte, wer die Videos macht.',
-		lede: 'Nichts davon war angefragt, und keine dieser Nachrichten stammt von Patienten. Es sind Nachrichten anderer Praxen — Kieferorthopäden, Praxisinhaber, Praxisgruppen —, die die Arbeit in ihrem Feed fanden und nachfragten, woher sie kommt. {asking} der {total} unten stellen genau diese Frage direkt.',
-		source:
-			'Screenshots wie erhalten, nur auf die Nachricht zugeschnitten. Die Schwärzungen schützen die Privatsphäre der Absender, nicht unsere — Namen, Handles und Profildetails sind abgedeckt, weil eine Praxis, die um Rat schreibt, nicht schreibt, um namentlich zitiert zu werden. Weiter als Rolle und Stadt identifizieren wir niemanden.',
-		alt: 'Instagram-Nachricht: „{quote}“',
-		dm: 'Instagram-DM',
-		story: 'Instagram-Story',
-		orthodontist: 'Kieferorthopäde',
-		owner: 'Praxisinhaber',
-		dentist: 'Zahnarzt',
-		group: 'Praxisgruppe',
-		austria: 'Österreich',
-		usa: 'USA',
-		texas: 'Texas',
-		la: 'Los Angeles',
-		detroit: 'Detroit',
-	},
-	how: {
-		eyebrow: 'So funktioniert’s',
-		heading: 'Einmal einrichten. Vollautomatisch.',
-		lede: 'Vier Schritte vom Abo bis zum ersten Beitrag — und alle vier passieren am selben Tag.',
-		step1: 'Abonnieren',
-		step1body:
-			'Wählen Sie das Paket, das zur Praxis passt. Kein Verkaufsgespräch, keine Einrichtungsgebühr, keine Mindestlaufzeit.',
-		step2: 'Konten verbinden',
-		step2body:
-			'Instagram, Facebook und YouTube sicher über die offiziellen APIs verbinden. Zwei Minuten, einmalig.',
-		step3: 'Branding hinterlegen',
-		step3body:
-			'Logo, Farben, Behandlungen, Tonalität, die Fälle, mit denen Sie führen wollen. Alles, was MOLAR produziert, übernimmt das.',
-		step4: 'Live gehen',
-		step4body:
-			'Ihre gebrandete Patientenaufklärung wird automatisch und planmäßig veröffentlicht — ohne ein weiteres Meeting.',
-	},
-	pricing: {
-		eyebrow: 'Pakete',
-		headline: 'Wählen Sie Ihr Level. In 24 Stunden live.',
-		lede: 'Keine langen Laufzeiten. Jederzeit kündbar.',
-		footnote: 'Preise in USD. Keine langen Laufzeiten. Jederzeit kündbar.',
-		badge: 'Am beliebtesten',
-		perMonth: '/Monat',
-		custom: 'Individuell',
-		code: 'Code',
-		starterName: 'MOLAR Starter',
-		starterSummary: 'Verlässlicher Content. Null Aufwand.',
-		starterBlurb:
-			'Für Praxen, die verlässlich Inhalte wollen, ohne dem Team Arbeit aufzuhalsen.',
-		educationName: 'Patientenaufklärungs-Bibliothek',
-		educationSummary: 'Einmal erklären. Immer zeigen.',
-		educationBlurb:
-			'Die komplette Bibliothek — abspielbar am Behandlungsstuhl, im Beratungszimmer und im Empfang.',
-		educationCta: 'Gratis testen',
-		educationNote: '14 Tage gratis, danach monatliche Abrechnung · Jederzeit kündbar',
-		l1: 'Über 300 Patientenaufklärungs-Videos',
-		l2: 'Zu mehr als 40 Behandlungen',
-		l3: 'Täglich kommen neue Videos dazu',
-		l4: 'Suche nach Behandlung oder nach der Frage, die Patienten stellen',
-		l5: 'Abspielbar am Stuhl, im Beratungszimmer oder auf dem Bildschirm im Wartebereich',
-		l6: 'Unbegrenzt viele Geräte an einem Standort',
-		l7: 'Nichts zu drehen, zu texten oder zu schneiden',
-		l8: 'Am Tag der Anmeldung einsatzbereit',
-		starterCta: 'Jetzt starten',
-		starterNote: 'Jederzeit kündbar · Untertitel, Planung und Veröffentlichung inklusive',
-		premiumName: 'MOLAR Premium',
-		premiumSummary: 'Ihr System zur Patientengewinnung.',
-		premiumBlurb:
-			'Täglicher Content auf allen Kanälen, aufgebaut um Ihre wertvollsten Behandlungen.',
-		premiumCta: 'Premium wählen',
-		premiumNote: 'Jederzeit kündbar · Zugang zum Kundenportal inklusive',
-		enterpriseName: 'MOLAR Enterprise',
-		enterpriseSummary: 'Eine Content-Strategie. Alle Standorte.',
-		enterpriseBlurb: 'Für Praxisgruppen, DSOs und Praxen mit mehreren Standorten.',
-		enterpriseCta: 'Mit MOLAR sprechen',
-		enterpriseNote: 'Für Praxisgruppen, DSOs und Praxen mit mehreren Standorten.',
-		s1: '3 Beiträge pro Woche',
-		s2: '1 Aufklärungs-Reel, 1 Karussell, 1 Social-Proof-Beitrag',
-		s3: 'Angepasst an Ihr Branding, Ihre Behandlungen und Ihre Praxis',
-		s4: 'Bewertungen sowie Vorher-Nachher-Bilder werden eingebunden, sofern vorhanden',
-		s5: 'Mit der MOLAR-Content-Bibliothek',
-		s6: 'Untertitel, Planung und Veröffentlichung inklusive',
-		s7: 'Instagram & Facebook inklusive',
-		s8: 'Innerhalb von 24 Stunden live',
-		p1: 'Täglicher Content für Instagram & Facebook',
-		p2: 'Vollständig individuelle Reels, Karussells, Stories und Bildbeiträge',
-		p3: 'Content mit Fokus auf Ihre wertvollsten Behandlungen',
-		p4: 'Bewertungen, Vorher-Nachher-Bilder und Patientenfälle werden zu Content',
-		p5: 'Mehrsprachiger Content in der Sprache Ihrer Patienten',
-		p6: 'Voice-Cloning — gesprochen mit Ihrer Stimme',
-		p7: 'YouTube Shorts inklusive',
-		p8: 'Zugang zum Kundenportal',
-		p9: 'Bevorzugte Produktion & Support',
-		e1: 'Alles aus Premium',
-		e2: 'KI-Avatare von Ärzten und Führungsteams',
-		e3: 'Content-Verteilung über mehrere Standorte',
-		e4: 'Branding & Lokalisierung je Standort',
-		e5: 'Zentrale Content-Verwaltung über alle Praxen hinweg',
-		e6: 'Enterprise-Onboarding & Rollout',
-		e7: 'Fester Stratege & bevorzugter Support',
-		e8: 'Mengenrabatte',
-		e9: 'Exklusive Nutzungsrechte verfügbar',
-	},
-	resources: {
-		eyebrow: 'Kostenlose Ressourcen',
-		heading: 'Die MOLAR-Ressourcen-Bibliothek.',
-		lede: 'Alles hier ist kostenlos und so gestaltet, dass Sie es direkt an Patienten oder ans Team weitergeben können. Entstanden aus dem, was in MOLAR-Praxen tatsächlich funktioniert.',
-		englishNote: 'Die Dokumente selbst sind auf Englisch verfasst.',
-		all: 'Alle',
-		allResources: 'Alle Ressourcen',
-		filterBy: 'Ressourcen nach Kategorie filtern',
-		search: 'Ressourcen durchsuchen',
-		searchPlaceholder: 'Nach Titel, Thema oder Kategorie suchen…',
-		clearSearch: 'Suche zurücksetzen',
-		sort: 'Sortieren',
-		sortFeatured: 'Empfohlen',
-		sortNewest: 'Neueste zuerst',
-		sortTitle: 'A–Z',
-		sortShortest: 'Am schnellsten gelesen',
-		showingAll: 'Alle {n} Ressourcen werden angezeigt',
-		showingIn: '{n} Ressourcen in {category}',
-		nothingYet: 'Dazu passt noch nichts.',
-		clearFilters: 'Filter zurücksetzen',
-		back: 'Zurück zu den Ressourcen',
-		share: 'Teilen',
-		linkCopied: 'Link kopiert',
-		downloadPdf: 'PDF herunterladen',
-		offerTitle: 'Den vollständigen Leitfaden als PDF',
-		offerLede: 'Speichern, ausdrucken, ans Team weitergeben. Ohne E-Mail-Adresse.',
-		download: 'Herunterladen',
-		pages: '{n} Seiten',
-	},
-	library: {
-		crumb: 'Video-Bibliothek',
-		eyebrow: 'Video-Bibliothek',
-		heading: 'Patientenaufklärung, bereits produziert.',
-		lede: 'Eine Auswahl der Videos, die wir für MOLAR-Praxen produzieren. Grenzen Sie ein, was Sie brauchen, und sehen Sie es direkt hier an.',
-		hubTitle: 'Video-Bibliothek',
-		hubBlurb: 'Über 300 Patientenaufklärungs-Videos zu mehr als 40 Behandlungen, täglich kommen neue dazu. Abspielbar am Stuhl, im Beratungszimmer oder auf dem Bildschirm im Wartebereich.',
-		hubCta: 'Bibliothek öffnen',
-		hubAccess: 'Zugang kostenpflichtig',
-		hubUnlock: 'Bibliothek freischalten',
-		all: 'Alle',
-		filterBy: 'Bibliothek filtern',
-		search: 'Content-Bibliothek durchsuchen',
-		searchPlaceholder: 'Nach Titel oder Thema suchen…',
-		clearSearch: 'Suche zurücksetzen',
-		topic: 'Thema',
-		type: 'Format',
-		month: 'Monat',
-		language: 'Sprache',
-		showing: '{n} von {total} werden angezeigt',
-		loadMore: 'Weitere {n} laden',
-		nothing: 'Dazu passt noch nichts.',
-		clearFilters: 'Filter zurücksetzen',
-		watch: 'Video ansehen',
-		openTab: 'In neuem Tab öffnen',
-		about: 'Zum Thema',
-				noScript: 'Für dieses Video gibt es noch keinen Text.',
-		videoFailed: 'Dieses Video lässt sich hier nicht abspielen.',
-		close: 'Schließen',
-		preview: 'Vorschau',
-	},
-	eco: {
-		eyebrow: 'Die Grundidee',
-		heading: 'Ein Content-System. Überall, wo Ihre Patienten hinsehen.',
-		lede: 'Social Media, Aufklärung am Stuhl und der Bildschirm im Wartezimmer sind normalerweise drei getrennte Aufgaben bei drei getrennten Dienstleistern. MOLAR macht daraus eine.',
-		core: 'MOLAR',
-		coreSub: 'Ein Content-System',
-		socialName: 'Social Media',
-		socialA: 'Instagram und Facebook',
-		socialB: 'Reels und Karussells',
-		chairsideName: 'Am Behandlungsstuhl',
-		chairsideA: 'Patientenaufklärung',
-		chairsideB: 'Behandlungserklärungen',
-		consultName: 'Beratungszimmer',
-		consultA: 'Behandlungspräsentationen',
-		consultB: 'Patientengespräche',
-		waitingName: 'Wartezimmer',
-		waitingA: 'MOLAR TV',
-		waitingB: 'Aufklärungs-Loops',
-		hubName: 'Ressourcen-Hub',
-		hubA: 'Leitfäden und Dokumente',
-		hubB: 'Vorlagen und Skripte',
-		key: 'MOLAR macht aus einem Content-Ökosystem viele Patientenkontaktpunkte — vor, während und nach dem Termin.',
-	},
-	choose: {
-		eyebrow: 'Ihr Weg zu MOLAR',
-		heading: 'Entscheiden Sie, wie MOLAR für Sie arbeitet.',
-		lede: 'Drei Wege in dasselbe Content-Ökosystem. Beginnen Sie bei einem beliebigen davon.',
-		opt1: 'Wir erstellen es für Sie.',
-		opt2: 'Ihr Team nutzt es.',
-		opt3: 'Alles zusammen.',
-	},
-	products: {
-		eyebrow: 'Produkte',
-		from: 'Ab',
-		quoted: 'Preis auf Anfrage',
-		perMonth: '/Monat',
-		included: 'Das ist enthalten',
-		socialName: 'Managed Social Media',
-		socialLine: 'Wir erstellen es für Sie.',
-		socialBlurb:
-			'Individuelle zahnmedizinische Inhalte, gebrandet und für Ihre Praxis verwaltet — planmäßig veröffentlicht, ganz ohne Drehtag.',
-		socialCta: 'Social-Pakete ansehen',
-		soc1: 'Reels, Karussells und Bildposts rund um Ihre Behandlungen',
-		soc2: 'Ihr Logo, Ihre Farben, Ihre Tonalität',
-		soc3: 'Untertitel, Planung und Veröffentlichung inklusive',
-		soc4: 'Instagram, Facebook und YouTube Shorts',
-		soc5: 'Innerhalb von 24 Stunden nach Abschluss live',
-		educationName: 'Patientenaufklärungs-Bibliothek',
-		educationLine: 'Ihr Team nutzt es.',
-		educationBlurb:
-			'Sofortiger Zugriff auf eine Bibliothek mit Aufklärungsvideos — für den Behandlungsstuhl, das Beratungszimmer und die Bildschirme im Wartebereich.',
-		educationCta: 'Bibliothek entdecken',
-		edu1: 'Nach Behandlung suchen und in Sekunden abspielen',
-		edu2: 'Für Behandlungsstuhl, Beratungszimmer und Wartebereich gemacht',
-		edu3: 'Laufend neue Videos',
-		edu4: 'Unbegrenzt viele Geräte in der Praxis',
-		edu5: 'Kein Filmen, kein Schnitt, keine Produktionszeit',
-		tvName: 'MOLAR TV',
-		tvLine: 'Ihr Bildschirm spielt es ab.',
-		tvBlurb:
-			'Gebrandete Wartezimmer-Inhalte und Loops, damit der Bildschirm an Ihrer Wand aufklärt statt Zeit zu füllen.',
-		tvCta: 'MOLAR TV ansehen',
-		tv1: 'Ihr Logo und Ihre Farben in jedem Frame',
-		tv2: 'Aufklärungs-Loops für einen stummen Bildschirm gebaut',
-		tv3: 'Praxisbotschaften zwischen den Aufklärungsclips',
-		tv4: 'Playlists, die den ganzen Tag durchlaufen',
-		tv5: 'Funktioniert auf dem Bildschirm, den Sie bereits haben',
-		completeName: 'MOLAR Complete',
-		completeLine: 'Alles zusammen.',
-		completeBlurb:
-			'Social Media, Patientenaufklärung und Praxisbildschirme als ein System, mit einem Team dahinter und einem Ort zur Verwaltung.',
-		completeCta: 'Ihr MOLAR-System zusammenstellen',
-		cmp1: 'Alles aus Managed Social Media',
-		cmp2: 'Alles aus der Patientenaufklärungs-Bibliothek',
-		cmp3: 'MOLAR TV auf jedem Bildschirm der Praxis',
-		cmp4: 'Ein Content-Plan über die gesamte Patientenreise',
-		cmp5: 'Für Praxisgruppen, Ketten und mehrere Standorte gebaut',
-	},
-	social: {
-		eyebrow: 'Social-Media-Betreuung',
-		heading: 'Ihre Social Media. Ohne selbst Content-Creator zu werden.',
-		lede: 'Drei Pakete, eine Engine. Jedes davon veröffentlicht gebrandete Patientenaufklärung planmäßig auf Ihren Kanälen.',
-		notSure: 'Unsicher, welches Paket zu Ihrer Praxis passt?',
-		findPlan: 'Passendes Paket finden',
-	},
-	showcase: {
-		eyebrow: 'Die Arbeit',
-		heading: 'Zahnmedizinische Inhalte, die Patienten wirklich ansehen wollen.',
-		lede: 'Nichts hiervon ist ein Mockup. Jeder Clip wurde an eine Praxis ausgeliefert, und jedes Raster ist das, was ein Patient beim Öffnen des Profils gesehen hat.',
-		cta: 'Mehr Arbeiten ansehen',
-		reelsName: 'Reels',
-		reelsBody: 'Kurze Behandlungserklärungen, vertont und untertitelt.',
-		carouselsName: 'Karussells',
-		carouselsBody: 'Mehrseitige Erklärungen zum Durchwischen und Speichern.',
-		animationsName: 'Animationen',
-		animationsBody: 'Was unter dem Zahnfleisch passiert — gezeichnet statt beschrieben.',
-		graphicsName: 'Aufklärungsgrafiken',
-		graphicsBody: 'Bildposts, die eine Frage beantworten und im Raster bleiben.',
-		explainersName: 'Behandlungserklärungen',
-		explainersBody: 'Das Beratungsgespräch, einmal produziert und immer wieder nutzbar.',
-		brandingName: 'Praxis-Branding',
-		brandingBody: 'Farben, Typografie und Layout pro Praxis, nicht pro Vorlage.',
-		educationName: 'Patientenaufklärungs-Videos',
-		educationBody: 'Die Bibliothek, die Ihr Team während des Termins durchsucht.',
-	},
-	proofwall: {
-		eyebrow: 'Kundenbelege',
-		heading: 'Für Praxen wie Ihre gebaut.',
-		lede: 'Echte Accounts, echte Raster, echte Nachrichten. Die Praxen unten sind eine Auswahl der Feeds, die MOLAR betreut — wählen Sie einen aus und lesen Sie neun aufeinanderfolgende Beiträge genau so, wie sie erschienen sind.',
-		specialty: 'Fachgebiet',
-		cta: 'Alle Arbeiten ansehen',
-	},
-	geo: {
-		eyebrow: 'Weltweite Reichweite',
-		heading: 'Zahnmedizin ist global. MOLAR auch.',
-		lede: 'Inhalte, angepasst an Praxen, Zielgruppen und Sprachen rund um die Welt.',
-		countriesLabel: 'Belegte Märkte',
-		languagesLabel: 'Veröffentlichungssprachen',
-		note: 'Die hier genannten Märkte sind die, die an anderer Stelle auf dieser Seite belegt sind — eine Praxis, deren Feed ihre Stadt nennt, oder eine Nachricht, in der stand, von wo sie kam. Die Karte darüber zeigt das größere Bild.',
-	},
-	edu: {
-		eyebrow: 'Patientenaufklärung',
-		heading: 'Erklären Sie nicht 20-mal am Tag dieselbe Behandlung.',
-		lede: 'Suchen. Zeigen. Weiterreden.',
-		demoQuery: 'Linguale Brackets',
-		searchLabel: 'Bibliothek durchsuchen',
-		searchPlaceholder: 'Was ist ein Knochenaufbau?',
-		demoNote: 'Ein echter Eintrag aus der Bibliothek, genau so dargestellt wie auf der Seite selbst.',
-		topResult: 'Bestes Ergebnis',
-		related: 'Ähnliche Videos',
-		play: 'Abspielen',
-		statVideosLabel: 'Patientenaufklärungs-Videos',
-		statDailyLabel: 'Neue Videos pro Tag',
-		statDevicesValue: 'Unbegrenzt',
-		statDevicesLabel: 'Geräte pro Standort',
-		perMonth: '/Monat',
-		priceNote: 'Pro Praxis. Jederzeit kündbar.',
-		useChairside: 'Am Behandlungsstuhl',
-		useChairsideSub: 'Während des Termins auf dem Bildschirm im Behandlungszimmer abspielen.',
-		useConsult: 'Beratungszimmer',
-		useConsultSub: 'Einen Behandlungsplan durchgehen, ohne ihn zweimal aufzumalen.',
-		useWaiting: 'Wartezimmer',
-		useWaitingSub: 'Einen Loop auf dem Bildschirm am Empfang laufen lassen.',
-		useFollow: 'Nach dem Termin',
-		useFollowSub: 'Den Link mitgeben, damit die Antwort den Heimweg übersteht.',
-		cta: 'Patientenaufklärung entdecken',
-
-		trial: '14 Tage gratis testen',
-		trialLong: '{n} Tage kostenlos. Danach {price}/Monat. Jederzeit kündbar.',
-		trialCta: 'Gratis testen',
-		browseCta: 'Bibliothek ansehen',
-		billedFrom: 'monatliche Abrechnung ab dem zweiten Monat',
-		annual: 'Oder {price} pro Jahr — rund {monthly}/Monat, eine Ersparnis von {saving}.',
-		annualNote: 'Der Jahrestarif wird sofort in voller Höhe abgerechnet und enthält keine Testphase. Dafür ist ein Wartezimmer-Loop mit Ihrem Logo, Ihren Farben und Ihrem Praxisnamen enthalten.',
-		startFree: 'Gratis testen',
-		startFreeThen: 'Gratis starten — danach {price}/Monat',
-		cancelBefore: 'Wenn Sie vor Ablauf der Testphase kündigen, wird nichts berechnet.',
-		cancelBeforeLong: 'Wenn Sie vor Ablauf der Testphase kündigen, wird nichts berechnet. Mehrere Standorte oder eine Praxiskette? Siehe die FAQ weiter unten.',
-		planName: 'Patientenaufklärungs-Bibliothek',
-		planLede: 'Ein Tarif. Alles enthalten.',
-		planLead: 'Sofort voller Zugriff — {n} Tage lang kostenlos',
-		plan1: 'Die komplette Bibliothek — über 300 Videos zu mehr als 40 Behandlungen',
-		plan2: 'Täglich mindestens fünf neue Videos',
-		plan3: 'Player am Behandlungsstuhl, Bildschirme im Beratungszimmer und Wartezimmer-Loop',
-		plan4: 'Ein Praxisstandort, unbegrenzt viele Geräte',
-		plan5: 'Keine App nötig — läuft in jedem Browser',
-		plan6: 'Jederzeit kündbar, kein Vertrag',
-
-		insideEyebrow: 'Das ist enthalten',
-		insideHeading: 'Ein Video für fast jedes Gespräch, das Sie führen.',
-		insideLede: 'Suchen Sie nach dem, was Ihr Patient gerade gefragt hat — oder stöbern Sie nach Behandlung.',
-		insidePrompt: 'Was fragt Ihr Patient gerade?',
-		q1: 'Schadet Bleaching meinen Zähnen?',
-		q2: 'Warum brauche ich einen Knochenaufbau?',
-		q3: 'Was passiert bei einer Wurzelbehandlung eigentlich genau?',
-		q4: 'Feste Zahnspange oder Invisalign?',
-		topicsLabel: 'Nach Behandlung stöbern',
-
-		contrastHeading: 'Je mehr verstanden wird, desto leichter wird das Gespräch.',
-		contrastLede: 'Patienten zögern, wenn eine Behandlung verwirrend wirkt. MOLAR liefert eine klare visuelle Erklärung — damit verstanden wird, was Sie empfehlen, bessere Fragen gestellt werden und die Entscheidung sicherer fällt.',
-		withoutLabel: 'Ohne Bibliothek',
-		withLabel: 'Mit der MOLAR-Bibliothek',
-		without1: 'Ein Patient stellt eine Frage, die Sie schon hundertmal beantwortet haben — und Sie erklären wieder von vorn.',
-		with1: 'Die passende Antwort direkt am Stuhl abspielen, verständlich und als Video.',
-		without2: 'Die Zeit im Beratungszimmer geht für Grundlagenerklärungen drauf.',
-		with2: 'Die Optionen gemeinsam durchgehen — das Video begleitet das Gespräch.',
-		without3: 'Patienten gehen unsicher nach Hause und googeln später ihre Symptome.',
-		with3: 'Als Loop im Wartezimmer laufen lassen, damit Patienten schon vorinformiert hereinkommen.',
-		without4: 'Eine Behandlung wird aufgeschoben, weil sie schlicht nicht verstanden wurde.',
-		with4: 'Patienten stellen bessere Fragen und gehen mit einer klareren Entscheidung.',
-
-		stepsEyebrow: 'So funktioniert es',
-		stepsHeading: 'Heute noch in Ihrer Praxis im Einsatz.',
-		stepStart: 'Gratis starten',
-		stepStartSub: '{n} Tage lang voller Zugriff.',
-		stepSearch: 'Suchen',
-		stepSearchSub: 'Die Frage des Patienten eintippen oder nach Behandlung stöbern.',
-		stepPlay: 'Abspielen',
-		stepPlaySub: 'Am Behandlungsstuhl, im Beratungszimmer oder auf Ihren Bildschirmen.',
-		stepGrow: 'Weiter wachsen',
-		stepGrowSub: 'Jeden Tag kommen neue Videos dazu.',
-
-		cmpEyebrow: 'Gegenüber Eigenproduktion',
-		cmpHeading: 'Sparen Sie sich das Produktionsbudget.',
-		cmpLede: 'Was eine Bibliothek kostet — verglichen damit, dieselben Erklärungen einzeln abdrehen zu lassen.',
-		cmpCaption: 'Die MOLAR Patientenaufklärungs-Bibliothek im Vergleich zur Auftragsproduktion von Videos — nach Kosten, Startzeit, abgedeckten Behandlungen, Drehaufwand, Sprachen und Vertrag.',
-		cmpCriteria: 'Vergleichskriterien',
-		cmpLibrary: 'Zugang zur Bibliothek',
-		cmpDiy: 'Eigenproduktion oder Freelancer',
-		cmpCost: 'Kosten',
-		cmpLibCost: '{price}/Monat',
-		cmpDiyCost: '500–2.000 $+ pro Video',
-		cmpLaunch: 'Startzeit',
-		cmpLibLaunch: 'Sofort verfügbar',
-		cmpDiyLaunch: 'Wochen pro Video',
-		cmpCoverage: 'Abgedeckte Behandlungen',
-		cmpLibCoverage: 'Über 40, täglich mehr',
-		cmpDiyCoverage: 'So viele, wie das Budget hergibt',
-		cmpFilming: 'Drehaufwand',
-		cmpLibFilming: 'Keiner',
-		cmpDiyFilming: 'Ja',
-		cmpLanguages: 'Sprachen',
-		cmpLibLanguages: 'Englisch, Spanisch, Deutsch, Hebräisch',
-		cmpDiyLanguages: 'Meist nur Englisch',
-		cmpContract: 'Vertrag',
-		cmpLibContract: 'Keiner',
-		cmpDiyContract: 'Unterschiedlich',
-
-		faqHeading: 'Alles, was Sie sich gerade fragen.',
-		closeHeading: 'Erklären Sie nie wieder dieselbe Behandlung von vorn.',
-		closeLede: 'Patient fragt. MOLAR durchsuchen. Abspielen. Weiterreden.',
-	},
-	testimonials: {
-		eyebrow: 'In ihren Worten',
-		fromPractice: 'Aus einer Praxis, die MOLAR wirklich einsetzt',
-		watch: '{name} ansehen',
-		heading: 'Was Praxen sagen, sobald sie sie haben.',
-		anonymous: 'Verifizierte MOLAR-Praxis',
-		nameWithheld: 'Name auf Wunsch der Praxis nicht genannt',
-	},
-	tv: {
-		eyebrow: 'MOLAR TV',
-		heading: 'Aufklärung, sichtbar im Wartezimmer.',
-		lede: 'Der Bildschirm hängt bereits an der Wand. Er ist bereits eingeschaltet. Und er zeigt gerade etwas, das nichts mit Ihrer Praxis zu tun hat.',
-		key1: 'In Ihrem Wartezimmer sollte kein beliebiges Tagesprogramm laufen.',
-		key2: 'Machen Sie aus ungenutzter Bildschirmzeit die Gelegenheit, Patienten aufzuklären, bevor sie überhaupt das Behandlungszimmer betreten.',
-		nowPlaying: 'Läuft gerade',
-		screenAlt: 'Ein Wandbildschirm in einem zahnärztlichen Wartezimmer, auf dem MOLAR-TV-Aufklärungsloops laufen.',
-		playTrusted: 'Geprüfte Inhalte',
-		playClinical: 'Fallvideos',
-		playTestimonials: 'Patientenstimmen',
-		playAnimations: 'Animationen',
-		playPractice: 'Praxis-Infos',
-		playOffers: 'Aktionen & Angebote',
-		featLogo: 'Ihr Logo',
-		featLogoSub: 'In jedem Frame, nicht als Wasserzeichen in der Ecke.',
-		featColors: 'Ihre Farben',
-		featColorsSub: 'Die Palette, die Ihre Marke ohnehin schon verwendet.',
-		featBranding: 'Ihr Praxis-Branding',
-		featBrandingSub: 'Typografie, Layout und Tonalität durchgehend im Loop.',
-		featContent: 'MOLAR-Aufklärungsinhalte',
-		featContentSub: 'Dieselbe Bibliothek, die Ihr Team am Stuhl abspielt.',
-		featLoops: 'Individuelle Loops',
-		featLoopsSub: 'Rund um die Behandlungen, über die Sie wirklich sprechen wollen.',
-		featPlayback: 'Wartezimmer-Wiedergabe',
-		featPlaybackSub: 'Stumm, untertitelt und aus zwei Metern Entfernung lesbar.',
-		cta: 'Kostenlose Ressourcen',
-		ctaTrial: '14 Tage gratis testen',
-	},
-	journey: {
-		eyebrow: 'Die Patientenreise',
-		heading: 'Eine Praxis. Ein Content-Ökosystem.',
-		lede: 'MOLAR verbindet Inhalte über die gesamte Patientenreise — vom Scrollen, das Sie findet, bis zum Link, den man zu Hause öffnet.',
-		step: 'Schritt',
-		discoverTitle: 'Der Patient entdeckt Ihre Praxis',
-		discoverWhere: 'Instagram-Reel',
-		discoverBody: 'Man findet Sie beim Scrollen, Monate bevor ein Termin ansteht — und kennt Ihre Arbeit bereits, wenn angerufen wird.',
-		arriveTitle: 'Der Patient betritt Ihre Praxis',
-		arriveWhere: 'Wartezimmer-TV',
-		arriveBody: 'Auf dem Bildschirm am Empfang läuft Aufklärung zu genau der Behandlung, wegen der man gekommen ist.',
-		askTitle: 'Der Patient fragt nach der Behandlung',
-		askWhere: 'MOLAR Aufklärungs-Bibliothek',
-		askBody: 'Ihr Team durchsucht die Bibliothek nach Behandlung und spielt die Antwort in Sekunden ab.',
-		explainTitle: 'Die Zahnärztin erklärt die Behandlung',
-		explainWhere: 'Video am Behandlungsstuhl',
-		explainBody: 'Dasselbe Erklärvideo läuft im Behandlungszimmer — Aufklärungsgespräche werden kürzer und klarer.',
-		continueTitle: 'Der Patient lernt weiter',
-		continueWhere: 'Praxis-Ressourcen',
-		continueBody: 'Man geht mit einem Link und einem Leitfaden nach Hause, und die Erklärung übersteht die Heimfahrt.',
-		close: 'Ein System hat den ganzen Weg getragen.',
-	},
-	customers: {
-		eyebrow: 'Kundengeschichten',
-		heading: 'Was passiert, wenn Patienten mehr verstehen?',
-		lede: 'Drei der Accounts, die MOLAR betreut, und womit die jeweilige Praxis arbeitet. Jedes Raster zeigt neun aufeinanderfolgende Beiträge, so wie sie erschienen sind.',
-		using: 'Im Einsatz',
-		resultLabel: 'Am öffentlichen Profil abgelesen',
-		resultPhysimed: '{from} → {value} Follower',
-		readStory: 'Die ganze Geschichte lesen',
-		allCta: 'Alle Arbeiten ansehen',
-		languageLabel: 'Veröffentlicht auf',
-	},
-	why: {
-		eyebrow: 'Warum MOLAR',
-		heading: 'Ausschließlich für die Zahnmedizin gebaut.',
-		lede: 'Keine Marketingagentur, die zufällig einen Zahnarzt betreut. Jeder Teil davon wurde für eine einzige Branche entwickelt.',
-		dentalTitle: 'Zahnmedizin zuerst',
-		dentalBody: 'Keine generischen Agenturvorlagen. Jedes Asset beginnt bei einer Behandlung, nicht bei einem Redaktionsplan.',
-		educateTitle: 'Zum Aufklären gemacht',
-		educateBody: 'Inhalte rund um die Fragen, die Patienten tatsächlich stellen — in den Worten, in denen sie sie stellen.',
-		screensTitle: 'Für jeden Bildschirm gebaut',
-		screensBody: 'Handy, Behandlungsstuhl, Beratungszimmer, Wartebereich. Dasselbe Asset funktioniert auf allen vieren.',
-		growingTitle: 'Wächst ständig',
-		growingBody: 'Es kommen laufend neue Aufklärungsinhalte dazu — die Bibliothek ist nächsten Monat größer als heute.',
-		globalTitle: 'Weltweit einsetzbar',
-		globalBody: 'Inhalte für mehrere Märkte und Sprachen, auch von rechts nach links.',
-		oneTitle: 'Ein Ökosystem',
-		oneBody: 'Social Media, Aufklärung und Praxisbildschirme aus einem System statt von drei Dienstleistern, die nie miteinander gesprochen haben.',
-	},
-	selector: {
-		eyebrow: 'Produktauswahl',
-		heading: 'Wie wollen Sie MOLAR nutzen?',
-		lede: 'Wählen Sie den Satz, der nach Ihrer Praxis klingt.',
-		socialSay: 'Übernehmen Sie meine Social Media.',
-		educationSay: 'Geben Sie meinem Team die Aufklärungs-Bibliothek.',
-		completeSay: 'Ich will das gesamte Content-Ökosystem.',
-		exploreSocial: 'Social Media ansehen',
-		exploreEducation: 'Aufklärung ansehen',
-		buildSystem: 'Mein MOLAR-System zusammenstellen',
-		notSure: 'Unsicher, was das Richtige für Sie ist?',
-		talk: 'Mit MOLAR sprechen',
-	},
-	final: {
-		heading: 'Ihre Patienten konsumieren bereits Inhalte.',
-		second: 'Sorgen Sie dafür, dass es Ihrer Praxis hilft.',
-		cta: 'Ihr MOLAR-System zusammenstellen',
-		secondary: 'Mit MOLAR sprechen',
-		note: 'Für Social und Aufklärung ist kein Vertriebsgespräch nötig. Jederzeit kündbar.',
-	},
-	notFound: {
-		title: 'Seite nicht gefunden',
-		lede: 'Dieser Link zeigt auf etwas, das hier nicht ist. Vielleicht wurde es verschoben — oder es gab es nie.',
-		home: 'Zurück zur Startseite',
-	},
-};
-
-export const UI: Record<Locale, Dict> = { en, de };
+export const UI: Record<Locale, Dict> = { en };

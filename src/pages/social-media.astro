@@ -2,6 +2,10 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import PageIntro from '~/components/PageIntro.astro';
 import Pricing from '~/components/sections/Pricing.astro';
+import CustomerStories from '~/components/sections/CustomerStories.astro';
+import GrowthStory from '~/components/sections/GrowthStory.astro';
+import CaseStudies from '~/components/sections/CaseStudies.astro';
+import InboundWall from '~/components/sections/InboundWall.astro';
 import WorkGallery from '~/components/sections/WorkGallery.astro';
 import AssetFilm from '~/components/sections/AssetFilm.astro';
 import HowItWorks from '~/components/sections/HowItWorks.astro';
@@ -12,13 +16,33 @@ import { breadcrumbSchema, productSchema } from '~/data/schema';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 /*
-	Managed Social Media — "we create it for you".
+	MOLAR Social — "we create it for you".
 
 	The plans come first because this page is the end of a routed path: a
 	visitor who clicked "View Social Plans" has already been told what the
 	product is and is here for the price. Everything under the grid is the
 	answer to "what does that actually get me" — the real feeds, the asset
 	argument, the four steps, and the agency comparison.
+
+	It also absorbed /customers/, which no longer exists. That page carried four
+	kinds of evidence and every one of them is an argument for THIS product
+	rather than for the company in general:
+
+	  CustomerStories  who we run, what they run with, and the one measured
+	                   result we can stand behind.
+	  GrowthStory      that result at full length, read off two screenshots of
+	                   the same public profile.
+	  CaseStudies      the written case, where one exists.
+	  InboundWall      what OTHER practices said, unprompted, when they saw the
+	                   work in their feed.
+
+	The last of those is not a testimonial and this page never calls it one. See
+	the note at the top of ~/data/customers: the messages are from practices who
+	are not clients.
+
+	No aggregateRating or Review JSON-LD, for the same reason /results/ has
+	none: Google's review-snippet guidelines exclude reviews a business collects
+	about itself.
 
 	`productSchema()` is correct here for the same reason it is on /pricing/:
 	the prices it describes are on the page, in the grid below the intro.
@@ -58,6 +82,15 @@ const t = useTranslations(locale);
 	<AssetFilm />
 	<HowItWorks />
 	<Comparison />
+
+	{/* The evidence, inherited from the retired /customers/ page. Under the
+	    explanation rather than over it: what the product is, then who it worked
+	    for. */}
+	<CustomerStories />
+	<GrowthStory />
+	<CaseStudies />
+	<InboundWall />
+
 	<Faq />
 	<ClosingCta />
 </BaseLayout>

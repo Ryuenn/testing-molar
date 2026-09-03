@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import ResourceCard from '~/components/ResourceCard.astro';
-import ClosingCta from '~/components/sections/ClosingCta.astro';
+import NewsletterSignup from '~/components/NewsletterSignup.astro';
 import { RESOURCE_CATEGORIES } from '~/data/resources';
 import { EDUCATION_CHECKOUT } from '~/data/site';
 import { EDUCATION_PRICE } from '~/data/education';
@@ -70,25 +70,28 @@ const scriptStrings = JSON.stringify({
 				{t('resources.lede')}{' '}
 				{locale !== 'en' && <span class="hero-lite__note">{t('resources.englishNote')}</span>}
 			</p>
-		</div>
-	</section>
-
-	{/* The band's light, carried past its bottom edge — see .band-falloff. */}
-	<div class="band-falloff" aria-hidden="true"></div>
-
-	<section class="library section-rule" aria-labelledby="library-grid-heading">
-		{/* The field the cards and chips blur — without it, translucency is just
-		    a paler grey. */}
-		<div class="library__aurora" aria-hidden="true"></div>
-		<div class="grain" aria-hidden="true"></div>
-		<div class="container-content library__inner">
-			<h2 id="library-grid-heading" class="sr-only">{t('resources.allResources')}</h2>
+			<p class="hero-lite__lede measure-wide">{t('resources.lede2')}</p>
 
 			{/*
-				The library's doorway, above the filter bar rather than inside the grid.
-				The grid is PDFs and every card in it downloads one; the library is a
-				different kind of thing and behaves differently when clicked, so it sits
-				outside rather than pretending to be the thirteenth document.
+				The video library's doorway, above the grid.
+
+				This slot held the Dental AI Brief sign-up for one pass. The 09/01
+				brief's line for this page was "Remove the $97 offer. No selling
+				here", and this panel is the only thing on the page that asks for
+				money — so it came off and the email capture took its place.
+
+				It is back by request. The library IS the page's strongest asset and
+				burying its only entrance at the foot of the grid was the wrong trade;
+				the brief's own list also asks for a lead capture, and that still runs,
+				at the bottom under "Stay Ahead Of What's Changing".
+
+				⚠️ So this page sells again, which contradicts that line of the brief.
+				Deliberate, and worth knowing if the brief is the reference later.
+
+				The grid below is PDFs and every card in it downloads one. The library
+				is a different kind of thing and behaves differently when clicked, so
+				it sits outside the grid rather than pretending to be the thirteenth
+				document.
 			*/}
 			<div class="lib-promo">
 				<div class="lib-promo__head">
@@ -111,8 +114,9 @@ const scriptStrings = JSON.stringify({
 
 					The library is gated, so the obvious button is "subscribe" — but a
 					practice that already pays has a password and was being sent to a
-					pricing page to buy something they own. The second button is for them:
-					it goes to the library, hits the password screen, and they are in.
+					pricing page to buy something they own. The second button is for
+					them: it goes to the library, hits the password screen, and they
+					are in.
 
 					Order is by audience size rather than by preference: most people
 					reading this have not subscribed.
@@ -127,7 +131,44 @@ const scriptStrings = JSON.stringify({
 					</a>
 				</div>
 			</div>
+		</div>
+	</section>
 
+	{/* The band's light, carried past its bottom edge — see .band-falloff. */}
+	<div class="band-falloff" aria-hidden="true"></div>
+
+	<section class="library section-rule" aria-labelledby="library-grid-heading">
+		{/* The field the cards and chips blur — without it, translucency is just
+		    a paler grey. */}
+		<div class="library__aurora" aria-hidden="true"></div>
+		<div class="grain" aria-hidden="true"></div>
+		<div class="container-content library__inner">
+			{/*
+				A real heading, not an sr-only one.
+
+				It was hidden because the page's <h1> already said "the MOLAR resource
+				library" and the grid needed a landmark name rather than a second
+				title. The <h1> is about AI in dentistry now, so the grid is a section
+				of its own and gets to be introduced like one.
+			*/}
+			<header class="library__head">
+				<p class="eyebrow">{t('resources.libraryTitle')}</p>
+				<h2 id="library-grid-heading" class="library__title">{t('resources.libraryHeading')}</h2>
+				<p class="library__lede measure-wide">{t('resources.libraryLede')}</p>
+			</header>
+
+			{/*
+				The $97 card that stood here is gone. It was a "Unlock the library —
+				$97/mo" button plus a "paid access" padlock badge, at the top of a page
+				whose whole promise is that everything on it is free — and the brief is
+				explicit: no selling here.
+
+				The gated video library is still reachable. It is one quiet link at the
+				foot of the grid rather than a merchandised panel at the head of it,
+				and the four places on this site that DO sell — the hero, the MOLAR TV
+				section, the plan grid and the closing CTA — are where that argument
+				belongs.
+			*/}
 			<div class="filters" data-filters data-strings={scriptStrings}>
 				{/*
 					Search and sort sit above the chips because they act on everything;
@@ -224,10 +265,43 @@ const scriptStrings = JSON.stringify({
 				<span data-empty-text>{t('resources.nothingYet')}</span>
 				<button type="button" class="btn btn-quiet" data-reset>{t('resources.clearFilters')}</button>
 			</p>
+
+			{/* No "Access the library" button down here. It stood in for the promo
+			    panel while that was off the page; the panel is back at the top with
+			    the same door in it, and two identical buttons on one page is one
+			    too many. */}
 		</div>
 	</section>
 
-	<ClosingCta />
+	{/* ── Community ───────────────────────────────────────────────────────── */}
+	<section class="section section-rule hub-community" aria-labelledby="community-heading">
+		<div class="container-content hub-community__inner">
+			<h2 id="community-heading" class="hub-community__title">{t('resources.communityHeading')}</h2>
+			<p class="hub-community__body measure-wide">{t('resources.communityBody')}</p>
+			<p class="hub-community__kicker">{t('resources.communityKicker')}</p>
+		</div>
+	</section>
+
+	{/* ── The closing ask ─────────────────────────────────────────────────── */}
+	{/*
+		`ClosingCta` used to run here. It is the site's standard sales close —
+		plans, prices, "talk to MOLAR" — which is exactly what this page is not
+		for. The close is the same free brief the top of the page offers, asking
+		for one field instead of two because by now the reader has seen what is
+		on offer.
+	*/}
+	<section class="section hub-ahead" aria-labelledby="ahead-heading">
+		<div class="container-content hub-ahead__inner">
+			<h2 id="ahead-heading" class="hub-ahead__title">{t('resources.aheadHeading')}</h2>
+			<p class="hub-ahead__lede measure-wide">{t('resources.aheadLede')}</p>
+
+			<NewsletterSignup
+				id="hub-foot"
+				submitLabel={t('resources.aheadCta')}
+				note={t('resources.aheadNote')}
+			/>
+		</div>
+	</section>
 </BaseLayout>
 
 <script>
@@ -503,9 +577,11 @@ const scriptStrings = JSON.stringify({
 		margin: 0.75rem 0 0;
 		font-size: var(--text-4xl);
 		/* Display sizes want their own leading; the inherited body value opens a
-		   hole between the two lines this wraps to. */
+		   hole between the lines this wraps to. */
 		line-height: 1.06;
-		max-width: 18ch;
+		/* 18ch when the headline was "The MOLAR resource library." The line is two
+		   sentences now, and 18ch broke it into five very short ones. */
+		max-width: 26ch;
 	}
 
 	.hero-lite__lede {
@@ -797,11 +873,15 @@ const scriptStrings = JSON.stringify({
 		filter bar, which read as the thirteenth document rather than as the one
 		paid thing on a page of free ones. Given its own lit panel it reads as what
 		it is, and it has room for the two doors below.
+
+		Its `margin` moved from the bottom edge to the top: it used to sit inside
+		`.library__inner`, directly over the filter bar. It is in the page header
+		now, under the lede, so the clearance it needs is above it.
 	*/
 	.lib-promo {
 		display: grid;
 		gap: 0.85rem;
-		margin: 0 0 clamp(1.5rem, 3vw, 2.25rem);
+		margin: clamp(2rem, 4vw, 3rem) 0 0;
 		padding: clamp(1.1rem, 2.4vw, 1.6rem);
 		border: 1px solid color-mix(in oklab, var(--color-arc-400) 34%, transparent);
 		border-radius: 1rem;
@@ -886,6 +966,82 @@ const scriptStrings = JSON.stringify({
 		font-size: var(--text-2xs);
 		letter-spacing: 0.06em;
 		opacity: 0.85;
+	}
+
+	/* ── The grid's own header ───────────────────────────────────────────── */
+	.library__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 0 0 clamp(1.75rem, 3.5vw, 2.5rem);
+	}
+
+	.library__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+	}
+
+	.library__lede {
+		margin: 0;
+		font-size: var(--text-base);
+		line-height: 1.6;
+		color: var(--color-bone-300);
+	}
+
+	/* ── Community ───────────────────────────────────────────────────────── */
+	.hub-community__inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		text-align: center;
+	}
+
+	.hub-community__title {
+		margin: 0;
+		max-width: 24ch;
+		font-size: var(--text-3xl);
+		text-wrap: balance;
+	}
+
+	.hub-community__body {
+		margin: 0;
+		font-size: var(--text-lg);
+		line-height: 1.6;
+		color: var(--color-bone-300);
+	}
+
+	.hub-community__kicker {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--color-arc-300);
+	}
+
+	/* ── The closing ask ─────────────────────────────────────────────────── */
+	.hub-ahead__inner {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		/* The form's own row is a grid that fills its container; centring the
+		   column would stretch a two-control row across the full measure. */
+		max-width: 44rem;
+		margin-inline: auto;
+	}
+
+	.hub-ahead__title {
+		margin: 0;
+		font-size: var(--text-3xl);
+		text-wrap: balance;
+	}
+
+	.hub-ahead__lede {
+		margin: 0 0 0.5rem;
+		font-size: var(--text-lg);
+		line-height: 1.6;
+		color: var(--color-bone-300);
 	}
 
 	/*

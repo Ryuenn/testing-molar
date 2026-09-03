@@ -25,7 +25,18 @@ export const organizationSchema = (): Record<string, unknown> => ({
 	slogan: SITE.tagline,
 	foundingDate: SITE.founded,
 	email: SITE.email,
-	sameAs: [SITE.social.instagram, SITE.social.tiktok, SITE.social.youtube],
+	/*
+		Every account, including the two the pages do not link. `sameAs` is how
+		Google reconciles this organisation with its profiles elsewhere, and an
+		account left out of it is one it has to guess at — which is a different
+		question from which channels the site chooses to advertise.
+	*/
+	sameAs: [
+		SITE.social.instagram,
+		SITE.social.facebook,
+		SITE.social.tiktok,
+		SITE.social.youtube,
+	],
 	contactPoint: [
 		{
 			'@type': 'ContactPoint',

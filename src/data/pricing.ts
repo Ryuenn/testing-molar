@@ -35,6 +35,15 @@ export interface Plan {
 	/** `true` renders the per-month cadence beside the price. */
 	perMonth: boolean;
 	cta: { href: string };
+	/**
+	 * One of the two social-media plans.
+	 *
+	 * Lite and Premium sell the same thing at two volumes, and the brief asks for
+	 * one line across both of them — "No agency meetings. No content calendar
+	 * headaches. No filming days." The grid renders it once, under the pair, off
+	 * this flag rather than off a hardcoded pair of ids.
+	 */
+	social?: boolean;
 	badge?: boolean;
 	featured: boolean;
 	amount: number | null;
@@ -56,7 +65,7 @@ export const PLANS: Plan[] = [
 		id: 'education',
 		key: 'education',
 		featureKey: 'l',
-		featureCount: 8,
+		featureCount: 5,
 		price: EDUCATION_PRICE,
 		perMonth: true,
 		amount: 97,
@@ -67,22 +76,26 @@ export const PLANS: Plan[] = [
 		id: 'starter',
 		key: 'starter',
 		featureKey: 's',
-		featureCount: 8,
+		featureCount: 6,
 		price: '$497',
 		perMonth: true,
 		amount: 497,
 		cta: { href: 'https://buy.stripe.com/cNicN5aUb9le1G470EeAg01' },
+		/* One of the two social cards. See `isSocial` below — the shared line the
+		   brief asks for runs under both of them. */
+		social: true,
 		featured: false,
 	},
 	{
 		id: 'premium',
 		key: 'premium',
 		featureKey: 'p',
-		featureCount: 9,
+		featureCount: 7,
 		price: '$1,497',
 		perMonth: true,
 		amount: 1497,
 		cta: { href: 'https://buy.stripe.com/9B65kD7HZdBuckI5WAeAg02' },
+		social: true,
 		badge: true,
 		featured: true,
 	},
@@ -90,7 +103,7 @@ export const PLANS: Plan[] = [
 		id: 'enterprise',
 		key: 'enterprise',
 		featureKey: 'e',
-		featureCount: 9,
+		featureCount: 5,
 		price: '',
 		perMonth: false,
 		amount: null,

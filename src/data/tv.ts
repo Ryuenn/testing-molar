@@ -15,41 +15,51 @@
 import type { GlyphName } from './glyphs';
 
 /**
- * What plays on the loop.
+ * What is on the channel.
  *
- * Each carries its own glyph now. They used to share one animated bars mark,
- * which made the column read as five instances of the same thing rather than as
- * six kinds of content — and the kinds are the argument.
+ * Six entries, each with its own glyph. They used to share one animated bars
+ * mark, which made the column read as six instances of the same thing rather
+ * than as six things — and what is on it is the argument.
+ *
+ * The list is written from the practice's side of the table: "Your treatments",
+ * not "Case videos". Every one of these is something they recognise as theirs,
+ * which is the difference between a channel and a screensaver.
  *
  * `key` suffixes into `tv.play*` for the label.
  */
 export const TV_PLAYLIST = [
-	{ key: 'trusted', icon: 'shield' },
-	{ key: 'clinical', icon: 'film' },
-	{ key: 'testimonials', icon: 'people' },
-	{ key: 'animations', icon: 'tooth' },
-	{ key: 'practice', icon: 'docs' },
-	{ key: 'offers', icon: 'tag' },
+	{ key: 'treatments', icon: 'tooth' },
+	{ key: 'doctors', icon: 'people' },
+	{ key: 'education', icon: 'book' },
+	{ key: 'branding', icon: 'palette' },
+	{ key: 'videos', icon: 'film' },
+	{ key: 'qr', icon: 'share' },
 ] as const satisfies readonly { key: string; icon: GlyphName }[];
 
 export interface TvFeature {
 	/** Suffix into `tv.feat*`. */
-	key: 'logo' | 'colors' | 'branding' | 'content' | 'loops' | 'playback';
+	key: 'brand' | 'treatments' | 'doctors' | 'channel';
 	icon: GlyphName;
 }
 
 /**
- * The six the strategy lists, in its order. The first three are the practice's
- * own brand and the last three are what MOLAR brings — which is the argument,
- * so the order is not decoration.
+ * Four tiles, and every one of them starts with "Your".
+ *
+ * It was six: logo, colours, branding, MOLAR educational content, custom loops,
+ * waiting-room playback. The first three were one claim written out three
+ * times, and the last three described the mechanism — what MOLAR does — on a
+ * row whose whole job is to say what the practice ends up owning.
+ *
+ * Each of these carries a line under it. The six did not; their `featSub`
+ * strings existed in the dictionary and nothing rendered them, which made a
+ * row of bare nouns. Four tiles leave room for the sentence that makes each
+ * one mean something.
  */
 export const TV_FEATURES: readonly TvFeature[] = [
-	{ key: 'logo', icon: 'tooth' },
-	{ key: 'colors', icon: 'palette' },
-	{ key: 'branding', icon: 'layers' },
-	{ key: 'content', icon: 'book' },
-	{ key: 'loops', icon: 'film' },
-	{ key: 'playback', icon: 'monitor' },
+	{ key: 'brand', icon: 'palette' },
+	{ key: 'treatments', icon: 'tooth' },
+	{ key: 'doctors', icon: 'people' },
+	{ key: 'channel', icon: 'monitor' },
 ] as const;
 
 /**

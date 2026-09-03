@@ -4,58 +4,55 @@ import { getLocale, useTranslations } from '~/i18n/utils';
 
 import Hero from '~/components/sections/Hero.astro';
 import TrustBand from '~/components/sections/TrustBand.astro';
-import Ecosystem from '~/components/sections/Ecosystem.astro';
-import SocialPlans from '~/components/sections/SocialPlans.astro';
-import ContentShowcase from '~/components/sections/ContentShowcase.astro';
-import EducationLibrary from '~/components/sections/EducationLibrary.astro';
 import MolarTv from '~/components/sections/MolarTv.astro';
-import GrowthStory from '~/components/sections/GrowthStory.astro';
+import EducationLibrary from '~/components/sections/EducationLibrary.astro';
+import UnderstandFirst from '~/components/sections/UnderstandFirst.astro';
+import Everywhere from '~/components/sections/Everywhere.astro';
 import Testimonials from '~/components/sections/Testimonials.astro';
+import GrowthStory from '~/components/sections/GrowthStory.astro';
+import SocialPlans from '~/components/sections/SocialPlans.astro';
 import Faq from '~/components/sections/Faq.astro';
 import FinalCta from '~/components/sections/FinalCta.astro';
 
 import { faqSchema, productSchema } from '~/data/schema';
 
 /*
-	The home page leads with MOLAR TV.
+	The home page sells MOLAR TV.
 
-	The order used to follow the master strategy's own list — social media first,
-	the waiting-room screen ten sections later. That is backwards as a sales
-	argument. The screen is already on the wall, already switched on and already
-	playing something worthless; MOLAR TV is the easiest yes on the site, and the
-	library is the second. Social media is the upgrade once a practice is already
-	publishing, not the way in.
+	One product, one price, one button, and the argument runs in a straight line
+	from the fold to the checkout. Everything else on this page is either
+	evidence for that or the upgrade path after it.
 
-	Five sections came off in the same pass, all of them re-telling the ecosystem
-	the diagram already draws:
+	Sections that used to run here and no longer do — none of them deleted, all
+	of them still on their own pages:
 
-	  PatientJourney   the journey in six steps, which `Ecosystem` draws in one
-	  WhyMolar         six blocks of prose making the case a fourth time
-	  ProductSelector  a "pick your product" grid under a page that has already
-	                   shown every product
-	  ResourceHub      a wall of links off the page, at the point a visitor
-	                   should be closer to checking out rather than further
+	  Ecosystem       "the big idea", a five-armed diagram of the whole content
+	                  ecosystem. It is a good drawing of a company; this page
+	                  sells a $97 screen, and a systems diagram three sections in
+	                  answers a question nobody has asked yet.
+	  PatientJourney  the same ecosystem in six steps.
+	  WhyMolar        six blocks of prose making the case a fourth time.
+	  ProductSelector a "pick your product" grid under a page that has already
+	                  shown every product.
+	  ResourceHub     a wall of links off the page, at the point a visitor should
+	                  be closer to checking out.
 	  GlobalReach /
-	  GeoBand          two adjacent bands on the same languages-and-markets fact
-	  ClientProof      grids of published posts, immediately above CustomerStories
-	                   doing the same. Its own header says it exists BECAUSE the
-	                   strategy wanted a logo wall and there was no art for one —
-	                   and there is now, sixteen real marks in `TrustBand`. So the
-	                   breadth argument is made once, in logos, and the depth
-	                   argument once, in `CustomerStories`, which carries the
-	                   measured results this never did.
+	  GeoBand         two adjacent bands on the same markets fact, which the flag
+	                  band under the closing CTA now makes once.
+	  ClientProof     grids of published posts, immediately above the same
+	                  argument told better in the case study.
+	  VideoReel       nine clips scrolling past under the bento wall that is
+	                  already made of stills from the same nine.
 
-	They all still exist and still run on their own pages. Nothing was deleted —
-	the home page just stopped saying everything four times.
+	Two things here the strategy's own section list does not name, both
+	deliberate:
 
-	Two things here the strategy's section list does not name, both deliberate:
-
-	  Faq         it is linked from the Resources menu as /#faq, and netlify.toml
-	              redirects /faq to that fragment. The FAQPage structured data
-	              below is generated from the same array the section renders, so
-	              the two cannot drift.
+	  Faq            it is linked from the Resources menu as /#faq, and
+	                 netlify.toml redirects /faq to that fragment. The FAQPage
+	                 structured data below is generated from the same array the
+	                 section renders, so the two cannot drift.
 	  productSchema  the plans are on this page with their prices visible, so
-	              Product/Offer markup describes something a visitor can see.
+	                 Product/Offer markup describes something a visitor can see.
 */
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -66,7 +63,7 @@ const t = useTranslations(locale);
 	description={t('pages.homeDesc')}
 	ogImage={{
 		src: '/images/og/home.png',
-		alt: 'MOLAR — the content engine for modern dental practices',
+		alt: 'MOLAR TV — patient education for modern dental practices',
 		width: 1200,
 		height: 630,
 	}}
@@ -75,30 +72,56 @@ const t = useTranslations(locale);
 	schema={[productSchema(locale), faqSchema()]}
 >
 	{/*
-		Order is the argument, and the argument changed.
+		Order is the argument.
 
-		It used to open on social media and reach the waiting-room screen ten
-		sections later. That is backwards: the screen is the thing a practice
-		already owns and is already wasting, MOLAR TV is what should be playing on
-		it, and it is the easiest yes on this page. Social is the upgrade once the
-		content is already running.
+		  Hero              the offer, priced, with one button.
+		  TrustBand         who already pays for it.
+		  MolarTv           what it is — the screen, the channel, what is on it.
+		  EducationLibrary  what plays on it, as the real product UI. Directly
+		                    under MOLAR TV per the 09/01 brief: the library IS the
+		                    channel's content, and it used to sit six sections
+		                    away with the plan grid between them.
+		  UnderstandFirst   why any of it matters — see it, understand it, trust
+		                    the recommendation, say yes.
+		  Everywhere        the three moments it runs in.
+		  Testimonials      practices saying so on camera — one highlight, then two
+		                    more. Back on the page and rebuilt around Vimeo embeds.
+		  GrowthStory       the MOLAR Social case study, which is the upgrade this
+		                    page earns rather than the thing it opens with.
+		  SocialPlans       how much of it you want handled, at four prices.
+		  Faq · FinalCta    the questions, then the ask.
 
-		So: the hook, then proof it is real, then the two products you start with,
-		then the ecosystem ONCE, then the price, then who says so.
+		Testimonials before the case study is deliberate and it is a sequence, not
+		a duplication: the films are practices saying the product works, and the
+		case study is one account measured proving it. Voice, then evidence.
 
-		The ecosystem used to be told four times over — the diagram, the journey,
-		the six blocks and the selector. `Ecosystem` is the one that draws it, and
-		it is the one that stays.
+		`ContentShowcase` — "The work", a bento wall of seven category stills — is
+		off this page. It sat at the point a visitor had already seen the product
+		running on a screen, the library UI, and an account measured before and
+		after. /our-work/ is the page for the work, and the case study links there.
+
+		Everything after the plan grid is questions and the ask. By the time a
+		visitor reaches the bottom the page should have left them with one thought
+		— "I understand what MOLAR is, it is $97, I can try it free" — and every
+		extra claim down there costs a fraction of that.
 	*/}
 	<Hero />
-	<MolarTv />
 	<TrustBand />
-	<ContentShowcase />
-	<GrowthStory />
-	<Ecosystem />
-	<SocialPlans />
+	<MolarTv />
 	<EducationLibrary />
-	<Testimonials />
+	<UnderstandFirst />
+	<Everywhere />
+	{/*
+		`filmsOnly`: the two cards under the highlight are films and a name, with
+		no quotation. This section is a video wall here — the highlight carries the
+		one quote worth reading, and a paragraph of prose under each small card
+		made them top-heavy and competed with it. /patient-education/ runs the same
+		component without the flag, because nothing there is filmed and the quotes
+		are all it has.
+	*/}
+	<Testimonials filmsOnly />
+	<GrowthStory />
+	<SocialPlans />
 	<Faq />
 	<FinalCta />
 </BaseLayout>

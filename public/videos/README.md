@@ -1,43 +1,60 @@
 # Videos
 
-Three things live here, and the folder is the source of truth for only one of them.
+What is actually referenced, and by what:
 
-| Path                          | Used for                        | Filenames                                        |
-| ----------------------------- | ------------------------------- | ------------------------------------------------ |
-| `Blue_structure_Hero.mp4`              | The hero background, all widths | **Fixed** — `Hero.astro` references it literally  |
-| `MolarExampleVideos/`         | The reel below the hero         | **Free** — the folder is read at build time       |
-| `molar-testimonial-0721.mp4`  | The film card and its modal     | **Fixed** — `AssetFilm.astro` references it literally |
+| Path                            | Used for                            | Filenames                                             |
+| ------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| `Hero_videoFinal-web.mp4`       | The hero background, all widths     | **Fixed** — `Hero.astro` references it literally       |
+| `watch_tv_molar.mp4`            | The screen inside the MOLAR TV section | **Fixed** — via `TV_LOOP` in `~/data/tv`            |
+| `molar-testimonial-0721.mp4`    | The case study's film, and `AssetFilm` | **Fixed** — referenced literally in both            |
+| `harrosch-testimonial.mp4`      | The highlight card in `Testimonials` | **Fixed** — via `~/data/testimonials`                 |
+| `pricing_animate.mp4`           | The field behind the plan grid      | **Fixed** — `PlansField.astro`                         |
+| `MolarExampleVideos/`           | The reel on /our-work/              | **Free** — the folder is read at build time            |
+
+Anything else in this folder is a master or a retired cut and nothing loads it. They are still
+served — `public/` ships whole — so `Premium_Hero.mp4` alone is 21 MB of dead weight on the CDN.
+Worth clearing out; left in place because deleting somebody's footage is not a build step's call.
 
 `netlify.toml` caches all of `/videos/*` as immutable for a year, so a replacement that keeps its
 name will not reach anyone already carrying the old one. Bust it by renaming the file
-(`Blue_structure_Hero.mp4` → `Blue_structure_Hero-v2.mp4`) rather than by overwriting in place.
+(`Hero_videoFinal-web.mp4` → `Hero_videoFinal-web-v2.mp4`) rather than by overwriting in place.
 
 The hero poster lives at `public/images/hero-poster.jpg` — not in this folder, because Netlify sets
 `Content-Disposition` and range headers differently for `/videos/*`.
 
 ## The hero footage
 
-Crystalline low-poly tooth with glowing blue circuit traces, floating in deep space over a wet
-reflective floor. Deep navy-black with electric blue.
+A patient reclined in the chair on the LEFT, watching MOLAR TV on the wall to the RIGHT. Bright
+clinical whites, shot through a doorway. It is the product in the room it is sold for, which is the
+bar any replacement has to clear — the two abstract "crystalline tooth in space" cuts that held
+this slot before were handsome and meant nothing.
 
-**The subject must sit centred and small in the frame.** The hero cover-crops to portrait on
-phones — anything near the edges gets cut. `object-position: 50% 42%` biases the crop slightly
-above centre so the tooth stays clear of the copy stack. Verify at 375px before replacing this
-file.
+Two things about the current clip constrain the CSS, and both are in the note on `.hero__video`:
 
-The current cut still carries an AAC track. Nothing plays it — the element is `muted`, which is
-also the only reason autoplay is permitted at all — but re-encoding with `-an` would shave a little
-off the download.
+- **Orientation is already correct.** An earlier clip was shot the other way round and the hero
+  mirrored it with `transform: scaleX(-1)`. That rule is gone. Do not bring it back for this
+  footage.
+- **There is legible type in frame** — "HAVE QUESTIONS?", the practice wordmark on the screen,
+  "TREATMENT ROOM 2" on the door. That is what makes a mirror unusable now: every one of them
+  would render backwards.
+
+It is 4:3 (1660×1244) against a fold that is usually much wider, so `cover` scales to the width and
+crops vertically only. `object-position: 50% 38%` takes more off the floor than off the ceiling so
+the screen survives. **Verify at 375px before replacing this file** — the hero cover-crops to
+portrait on phones, where the horizontal half of that value starts mattering.
 
 ### Encoding a replacement
 
 ```bash
-# H.264 — faststart matters, or the video will not begin until fully buffered
-ffmpeg -i master.mov -c:v libx264 -crf 24 -preset slow -pix_fmt yuv420p \
-  -movflags +faststart -an Blue_structure_Hero.mp4
+# H.264 — faststart matters, or playback waits on a range request to the end of the file.
+# -an strips audio: the element is muted, which is also the only reason autoplay is allowed.
+ffmpeg -i Hero_videoFinal.mp4 -an -c:v libx264 -crf 23 -preset slow -pix_fmt yuv420p \
+  -movflags +faststart Hero_videoFinal-web.mp4
 
-# Poster — pull a frame where the tooth is lit
-ffmpeg -i Blue_structure_Hero.mp4 -ss 00:00:02 -frames:v 1 -q:v 3 ../images/hero-poster.jpg
+# Poster — from the SAME cut, or the fold shows one room and then paints another.
+# All three formats: the <video poster> takes the WebP, the CSS fallback negotiates via image-set().
+ffmpeg -ss 2 -i Hero_videoFinal-web.mp4 -frames:v 1 hero-src.png
+node -e "const s=require('sharp');(async()=>{for(const [f,o] of [['jpeg',{quality:78,mozjpeg:true}],['webp',{quality:72}],['avif',{quality:50}]])await s('hero-src.png')[f](o).toFile('public/images/hero-poster.'+(f==='jpeg'?'jpg':f))})()"
 ```
 
 ### If you add more cuts

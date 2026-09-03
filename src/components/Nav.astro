@@ -44,10 +44,20 @@
  * button. One list, restyled — never two copies of the links in the DOM.
  */
 import { Image } from 'astro:assets';
-import logoTooth from '~/assets/brand/logo-molar.png';
+/*
+	The trimmed derivative, not the master.
+
+	`logo-molar.png` is the delivered art and carries ~8% empty margin on every
+	side. At the 30px this renders at, that margin is three pixels of nothing on
+	each edge — enough to make the mark read visibly smaller than the wordmark
+	beside it, and no amount of CSS can see padding baked into a raster.
+	`scripts/generate-icons.mjs` trims the master into `logo-mark.png` for
+	exactly this; re-run `npm run icons` after replacing the master.
+*/
+import logoTooth from '~/assets/brand/logo-mark.png';
 import Glyph from '~/components/ui/Glyph.astro';
 import { CTA, NAV_LINKS } from '~/data/site';
-import { LOCALES, localizePath } from '~/i18n/config';
+import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 export interface Props {
@@ -90,31 +100,6 @@ const links = NAV_LINKS.map((entry) => ({
 				href: localizePath(entry.menuFoot.href, locale),
 			}
 		: undefined,
-}));
-
-/*
-	The switcher, and it is links rather than buttons: switching language is a
-	navigation — it changes the URL, and the result has to be shareable,
-	bookmarkable and reachable by a crawler. That also means it works with JS
-	disabled.
-
-	Each chip points at THIS page in the other locale, not at that locale's home
-	page: someone reading the pricing page in English who taps De expects German
-	pricing, not the German front door.
-*/
-const langLinks = LOCALES.map((lang) => ({
-	...lang,
-	/*
-		The 404 is the exception, and it has to be special-cased: it is served at
-		whatever URL the visitor mistyped, so "this page in the other language" is
-		not a thing that exists. Astro also emits it as `404.html` rather than as a
-		directory, so `/404/` is not even a route. Both locales' 404s send the
-		switcher to that locale's home instead.
-	*/
-	href: /(^|\/)404\/?$/.test(Astro.url.pathname)
-		? localizePath('/', lang.code)
-		: localizePath(Astro.url.pathname, lang.code),
-	current: lang.code === locale,
 }));
 
 /*
@@ -198,10 +183,21 @@ const isCurrent = (link: (typeof links)[number]) =>
 					theme, and IS the link's accessible name — which is why the
 					`.nav__brand` carries no aria-label.
 
-					`.AI` is a span rather than a second element so it stays part of one
-					selectable, copyable string; only its colour differs.
+					MOLARAI — one word, no space and no point.
+
+					It has been three things: `MOLAR.AI` originally, then `MOLAR TV` per
+					the 09/01 brief ("Should say MOLAR TV instead of MOLAR.AI on the top
+					next to the logo"), and now this. The brand is the company again
+					rather than the product; the footer says `MOLAR` and the copyright
+					line says `MOLAR AI`, which is the legal name.
+
+					`AI` is a span rather than a second element so the whole thing stays
+					one selectable, copyable string — `MOLARAI`, not `MOLAR` + `AI` with
+					a break the clipboard can find. Only its colour differs. No `&nbsp;`
+					and no separator of any kind: a space here is what the brief called
+					out the first time round.
 				*/}
-				<span class="nav__wordmark">MOLAR<span class="nav__wordmark-ai">.AI</span></span>
+				<span class="nav__wordmark">MOLAR<span class="nav__wordmark-ai">AI</span></span>
 				<span class="sr-only">{t('nav.toHome')}</span>
 			</a>
 		</slot>
@@ -288,48 +284,16 @@ const isCurrent = (link: (typeof links)[number]) =>
 			</slot>
 
 			{/*
-				The narrow-screen home for the language switcher. Its twin lives in
-				the actions cluster; whichever one the breakpoint hides is
-				display:none, so only ever one of them is in the a11y tree.
+				No language control, in either of the two homes this nav used to give
+				one. The En/De chips went with the German route tree; the Google
+				Translate widget that briefly replaced them is gone too. The site is
+				published in English and says so with `<html lang="en">` — a browser
+				that wants to translate it already offers to.
 			*/}
-			<div class="nav__lang nav__lang--menu" role="group" aria-label={t('nav.language')}>
-				{
-					langLinks.map((lang) => (
-						<a
-							href={lang.href}
-							class="nav__lang-btn"
-							hreflang={lang.htmlLang}
-							lang={lang.htmlLang}
-							aria-current={lang.current ? 'true' : undefined}
-						>
-							<span aria-hidden="true">{lang.label}</span>
-							<span class="sr-only">{lang.name}</span>
-						</a>
-					))
-				}
-			</div>
 		</nav>
 
 		<div class="nav__actions">
 			<slot name="actions">
-				<div class="nav__lang nav__lang--bar" role="group" aria-label={t('nav.language')}>
-					{
-						langLinks.map((lang) => (
-							<a
-								href={lang.href}
-								class="nav__lang-btn"
-								hreflang={lang.htmlLang}
-								lang={lang.htmlLang}
-								aria-current={lang.current ? 'true' : undefined}
-							>
-								{/* The chip shows "En"; a screen reader gets "English". */}
-								<span aria-hidden="true">{lang.label}</span>
-								<span class="sr-only">{lang.name}</span>
-							</a>
-						))
-					}
-				</div>
-
 				{/*
 					Rendered only once there is somewhere for it to go. `PORTAL_LOGIN`
 					is empty in this repo and the client portal's URL is not in it — a
@@ -878,53 +842,9 @@ const isCurrent = (link: (typeof links)[number]) =>
 		gap: 0.5rem;
 	}
 
-	/* ── Language switcher ───────────────────────────────────────────────── */
-	.nav__lang {
-		display: flex;
-		align-items: center;
-		gap: 0.125rem;
-		padding: 0;
-		border: 0;
-		background: none;
-	}
-
-	.nav__lang-btn {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 1.875rem;
-		height: 1.875rem;
-		padding-inline: 0.4375rem;
-		border: 0;
-		border-radius: 0.5rem;
-		background: transparent;
-		color: var(--color-bone-400);
-		font-family: var(--font-display);
-		font-size: var(--text-xs);
-		font-weight: 600;
-		letter-spacing: 0.02em;
-		line-height: 1;
-		cursor: pointer;
-		transition:
-			color 0.24s var(--ease-out-quint),
-			background-color 0.24s var(--ease-out-quint);
-	}
-
-	.nav__lang-btn:hover {
-		color: var(--color-bone-100);
-	}
-
-	/* The lit chip. aria-current is the state, so there is nothing else to
-	   keep in sync — style the ARIA directly. */
-	.nav__lang-btn[aria-current] {
-		background: color-mix(in oklab, var(--color-bone-50) 15%, transparent);
-		color: var(--color-bone-50);
-	}
-
-	/* Its home is the bar; the dropdown copy is revealed at the breakpoint. */
-	.nav__lang--bar {
-		display: none;
-	}
+	/* The En/De chips that lived here are gone with the German routes, and so is
+	   the Google Translate control that replaced them. The actions cluster is the
+	   CTA and the mobile toggle. */
 
 	/* ── CTA ─────────────────────────────────────────────────────────────── */
 	/*
@@ -1084,15 +1004,6 @@ const isCurrent = (link: (typeof links)[number]) =>
 		margin-inline-start: 0;
 	}
 
-	.nav__lang--menu {
-		/* Sits under the links behind its own rule, the way a settings row does. */
-		margin-block-start: 0.5rem;
-		padding-block-start: 0.5rem;
-		border: 0;
-		border-top: 1px solid var(--color-line);
-		border-radius: 0;
-		background: none;
-	}
 
 	/* ── Desktop: the link list becomes the centred pill ─────────────────── */
 	@media (min-width: 1100px) {
@@ -1300,11 +1211,6 @@ const isCurrent = (link: (typeof links)[number]) =>
 			background: none;
 		}
 
-		.nav__lang--bar {
-			display: flex;
-		}
-
-		.nav__lang--menu,
 		.nav__toggle {
 			display: none;
 		}

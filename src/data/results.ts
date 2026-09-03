@@ -65,10 +65,24 @@ export interface GrowthStory {
 
 export const GROWTH: GrowthStory = {
 	handle: '@drpatriciaharrosch',
-	name: 'Dr Patricia Harrosch',
+	/* "Dr." with the point, matching `~/data/testimonials`. The two files carry
+	   the same person and were spelling her two ways. */
+	name: 'Dr. Patricia Harrosch',
 	role: 'Cosmetic dentist',
 	place: 'Physimed Dentaire, Montréal',
 	metrics: [
+		/*
+			⚠️ 10.2K, NOT the 10.7K the 09/01 brief asks for — and this is the one
+			figure on the site that cannot be updated from a document.
+			`src/assets/results/patricia-after.webp` is a screenshot of the live
+			profile and it reads "10.2K followers" in the picture; the string beside
+			it is a transcription of that picture, and the whole section is built on
+			saying so in its own figcaption.
+			Re-capture the profile at the current count, replace the webp, then
+			update `after`, `afterValue`, `growth.afterRead` and `growth.altAfter`
+			together. Changing the number alone puts a figure on the page that the
+			evidence beside it contradicts.
+		*/
 		{
 			label: 'Followers',
 			before: '159',

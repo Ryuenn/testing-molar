@@ -24,33 +24,28 @@
  * back up. No JS, reduced motion, or a scroll past before hydration all leave
  * the real number on screen, which is the only state that has to be correct.
  */
-import { Image, getImage } from 'astro:assets';
-import filmThumb from '~/assets/film/thumbnail-testimonial.png';
+import { Image } from 'astro:assets';
 import beforeShot from '~/assets/results/patricia-before.webp';
 import afterShot from '~/assets/results/patricia-after.webp';
 import { GROWTH } from '~/data/results';
+import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 /*
-	Her testimonial. Nothing is fetched until the play button is pressed — see
-	the note on the block below.
+	Her testimonial. The clip itself is not fetched until somebody presses play —
+	`preload="metadata"` takes the headers and the first frame region and stops.
 
 	The same cut `AssetFilm` runs on /social-media/, so the two surfaces play one
 	file rather than two encodes of the same interview.
 
 	⚠️ 8.4MB, and its `moov` atom sits at the tail — a browser has to range-request
-	the end of the file before it can show a frame, so playback starts slower than
-	it should. `public/videos/README.md` carries the one-line remux that fixes it.
-	Worth doing: this is now on the home page, not just /social-media/.
+	the end of the file before it can show a frame. That was free while this ran
+	behind a poster at `preload="none"`; it now costs one round trip to the end of
+	the file on every load of this page, and delays the frame appearing.
+	`public/videos/README.md` carries the one-line remux that moves the atom to
+	the front and fixes it. Worth doing — this is the home page.
 */
 const FILM_SRC = '/videos/molar-testimonial-0721.mp4';
-
-/*
-	The same still the poster attribute needs as a URL rather than as an
-	`ImageMetadata` record. `getImage` runs Astro's optimiser and hands back the
-	processed src, so the 1.8MB PNG is not what a browser downloads.
-*/
-const filmPoster = await getImage({ src: filmThumb, format: 'webp', width: 1432 });
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -75,15 +70,33 @@ const headline = GROWTH.metrics[0];
 
 	<div class="growth__inner">
 		<header class="growth__head container-content">
-			<p class="eyebrow" data-reveal="fade">{t('growth.eyebrow')} — {GROWTH.handle}</p>
+			{/*
+				The handle is NOT in this line any more. `.eyebrow` uppercases, so
+				"Case 01 — @drpatriciaharrosch" rendered as a real person's name in
+				caps with the spaces removed. It still appears under the exhibit, in
+				the figcaption, where it is provenance rather than a label.
+			*/}
+			<p class="eyebrow" data-reveal="fade">{t('growth.eyebrow')}</p>
 
 			<Heading id="growth-heading" class="growth__title" data-reveal>
-				{t('growth.heading', { after: headline.after })}
+				{t('growth.heading')}
 			</Heading>
 
-			<p class="growth__lede measure-wide" data-reveal>
-				{t('growth.lede', { name: GROWTH.name, place: GROWTH.place })}
+			<p class="growth__lede measure-wide" data-reveal>{t('growth.lede')}</p>
+
+			{/*
+				The figure, as a line of its own between the promise and the evidence.
+				Both halves come off `headline` rather than being typed, so it cannot
+				drift from the count-up under the After screenshot.
+			*/}
+			<p class="growth__delta" data-reveal>
+				{t('growth.delta', { before: headline.before, after: headline.after })}
 			</p>
+
+			<p class="growth__body measure-wide" data-reveal>
+				{t('growth.body', { name: GROWTH.name })}
+			</p>
+			<p class="growth__body measure-wide" data-reveal>{t('growth.bodyTwo')}</p>
 		</header>
 
 		{/*
@@ -96,7 +109,8 @@ const headline = GROWTH.metrics[0];
 			<figure class="exhibit" data-reveal>
 				<div class="exhibit__pair">
 					<p class="shot__tag shot__tag--before">
-						<span class="shot__dot" aria-hidden="true"></span>{t('growth.before')}
+						<span class="shot__dot" aria-hidden="true"></span>
+						{t('growth.before', { n: headline.before })}
 					</p>
 
 					<div class="shot__frame shot__frame--before">
@@ -156,7 +170,8 @@ const headline = GROWTH.metrics[0];
 					</div>
 
 					<p class="shot__tag shot__tag--after">
-						<span class="shot__dot" aria-hidden="true"></span>{t('growth.after')}
+						<span class="shot__dot" aria-hidden="true"></span>
+						{t('growth.after', { n: headline.after })}
 					</p>
 
 					<div class="shot__frame shot__frame--after">
@@ -222,42 +237,36 @@ const headline = GROWTH.metrics[0];
 				own is sound like somebody. The film sits under the figure rather than
 				beside it so the argument still reads numbers-then-voice.
 
-				 and a poster: the clip is 1.8MB and most visitors will
-				scroll past it, so nothing is fetched until the button is pressed. The
-				button is a real <button> over the poster rather than the video's own
-				controls, because a bare play triangle on a designed thumbnail is the
-				only affordance this needs before it starts.
+				── No branded thumbnail ────────────────────────────────────────────
+				`src/assets/film/thumbnail-testimonial.png` used to cover this frame:
+				a designed card with the MOLAR AI lockup, a pull-quote set in display
+				caps and a TESTIMONIAL badge. It is an advertisement for a testimonial
+				sitting on top of the testimonial, and at this size it was the largest
+				thing in the section — louder than the screenshots that carry the
+				actual proof.
+
+				What is here now is the clip's own first frame, which is her. The
+				custom play button and the swap script went with the poster: with a
+				real frame showing, the video's native controls are the affordance,
+				and a hand-built play button over a `hidden` <video> only existed to
+				keep the designed card visible until someone pressed it.
+
+				`preload="metadata"` rather than `none` is what buys that first frame —
+				headers only, not the clip. See the ⚠️ on FILM_SRC: the file's moov
+				atom is at the tail, so this costs a range request to the end of the
+				file on every page load until that is remuxed.
 			*/}
 			<div class="film">
 				<p class="film__label">{t('growth.filmLabel')}</p>
 
-				<div class="film__frame" data-film>
-					<Image
-						class="film__poster"
-						src={filmThumb}
-						alt=""
-						widths={[640, 1000, 1432]}
-						sizes="(min-width: 62rem) 46rem, 92vw"
-						loading="lazy"
-					/>
-
+				<div class="film__frame">
 					<video
 						class="film__video"
 						src={FILM_SRC}
-						poster={filmPoster.src}
-						preload="none"
+						preload="metadata"
 						playsinline
 						controls
-						data-film-video
-						hidden
-					></video>
-
-					<button type="button" class="film__play" data-film-play>
-						<span class="film__play-disc" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 6.5v11l9-5.5-9-5.5Z" /></svg>
-						</span>
-						<span class="sr-only">{t('growth.filmPlay', { name: GROWTH.name })}</span>
-					</button>
+						aria-label={t('growth.filmPlay', { name: GROWTH.name })}></video>
 				</div>
 
 				<p class="film__caption">
@@ -266,36 +275,37 @@ const headline = GROWTH.metrics[0];
 				</p>
 			</div>
 		</div>
+
+		{/*
+			The close. One line, then one button.
+
+			The line is the section's argument stated once, at the point the evidence
+			has just been shown — the followers are the visible result and the
+			authority is what they are evidence OF. Above the button rather than in
+			it, because a CTA that carries an argument is a CTA nobody reads.
+
+			The button is the only one on this section and it goes to /social-media/,
+			which is where the rest of this case lives: the other practices, the
+			written cases, and the unsolicited DMs from other dentists.
+		*/}
+		<div class="growth__close container-content" data-reveal>
+			<p class="growth__punch">{t('growth.punch')}</p>
+			<a class="btn btn-primary" href={localizePath('/social-media/', locale)}>
+				{t('growth.cta')} <span aria-hidden="true">→</span>
+			</a>
+		</div>
 	</div>
 </section>
 
-<script>
-	/*
-		One press: swap the poster for the video and start it.
+{/*
+	The poster-swap script is gone with the poster.
 
-		The <video> ships with `preload="none"` and `hidden`, so until this runs the
-		browser has fetched nothing but the poster image. Revealing it and calling
-		`play()` inside the click is what keeps the gesture — a play started later,
-		from a promise or a timeout, is one browsers are entitled to refuse.
-
-		No JS: the poster and the button render, the button does nothing, and the
-		video stays hidden. That is a still image of a testimonial rather than a
-		broken player.
-	*/
-	for (const frame of document.querySelectorAll<HTMLElement>('[data-film]')) {
-		const video = frame.querySelector<HTMLVideoElement>('[data-film-video]');
-		const button = frame.querySelector<HTMLButtonElement>('[data-film-play]');
-		if (!video || !button) continue;
-
-		button.addEventListener('click', () => {
-			frame.setAttribute('data-playing', '');
-			video.hidden = false;
-			void video.play().catch(() => {
-				/* Refused — the controls are visible now, so it can be started by hand. */
-			});
-		});
-	}
-</script>
+	It existed to reveal a `hidden` <video> and call `play()` inside the click
+	when someone pressed a hand-built button over the designed thumbnail. There
+	is no thumbnail and no button now — the video renders its own first frame and
+	carries native controls, which is one fewer script, one fewer failure mode,
+	and works identically with JS disabled.
+*/}
 
 <script>
 	/*
@@ -431,6 +441,53 @@ const headline = GROWTH.metrics[0];
 		margin: 0;
 		font-size: var(--text-lg);
 		color: var(--color-bone-300);
+	}
+
+	/*
+		The figure, between the promise and the paragraphs that explain it. Set at
+		heading weight in the accent — it is the one number this section is built
+		around, and the arrow in it is doing the same work as the arrow in the
+		exhibit below.
+	*/
+	.growth__delta {
+		margin: clamp(0.5rem, 1.5vw, 1rem) 0 0;
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		color: var(--color-arc-300);
+	}
+
+	.growth__body {
+		margin: 0;
+		font-size: var(--text-base);
+		line-height: 1.65;
+		color: var(--color-bone-300);
+	}
+
+	/* ── The close ───────────────────────────────────────────────────────── */
+	.growth__close {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: clamp(1.25rem, 3vw, 1.75rem);
+		margin-top: clamp(3rem, 6vw, 5rem);
+		text-align: center;
+	}
+
+	/* A pull quote in everything but the markup — it is our line, not a
+	   quotation, so it is a paragraph rather than a <blockquote>. */
+	.growth__punch {
+		margin: 0;
+		max-width: 34ch;
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 600;
+		line-height: 1.35;
+		letter-spacing: -0.01em;
+		text-wrap: balance;
+		color: var(--color-bone-50);
 	}
 
 	/* ── Exhibit ─────────────────────────────────────────────────────────── */
@@ -848,14 +905,25 @@ const headline = GROWTH.metrics[0];
 
 	/* ── Her testimonial ─────────────────────────────────────────────────── */
 	/*
-		Under the figure, at the figure's own measure. It is the same exhibit — the
-		numbers and then the person — so it sits inside the frame rather than
-		starting a section of its own.
+		Under the figure. It is the same exhibit — the numbers and then the person
+		— so it sits inside the frame rather than starting a section of its own.
+
+		Held to 40rem and centred, which is the fix for "why is this so big". It
+		had no measure at all: `.growth__wide` runs to 90rem and this filled it, so
+		on a wide window the clip was over 1400px across — larger than the two
+		screenshots that carry the actual proof, and larger than the widest source
+		the poster ever offered, so it was upscaled as well as oversized.
+
+		A talking head does not need width. It needs to be legible and to sit under
+		the argument it supports.
 	*/
 	.film {
 		display: grid;
 		gap: 0.9rem;
+		width: 100%;
+		max-width: 40rem;
 		margin-block-start: clamp(2rem, 4vw, 3rem);
+		margin-inline: auto;
 	}
 
 	.film__label {
@@ -867,10 +935,12 @@ const headline = GROWTH.metrics[0];
 		color: var(--color-arc-300);
 	}
 
-	/* The poster and the video stack in one cell, so swapping them cannot
-	   reflow the page under the reader. */
+	/*
+		One cell, one video. It used to stack the poster and the video in the same
+		grid area so swapping them could not reflow the page; there is nothing to
+		swap now.
+	*/
 	.film__frame {
-		position: relative;
 		display: grid;
 		overflow: clip;
 		border: 1px solid var(--color-line);
@@ -878,61 +948,20 @@ const headline = GROWTH.metrics[0];
 		background: var(--color-ink-950);
 	}
 
-	.film__poster,
 	.film__video {
-		grid-area: 1 / 1;
+		display: block;
 		width: 100%;
 		height: auto;
-		display: block;
+		/* The clip is 16:9 and this reserves its box before the metadata lands, so
+		   the caption underneath does not jump when the first frame appears. */
+		aspect-ratio: 16 / 9;
 	}
 
-	/* Once it is playing the poster has done its job and the video is the only
-	   thing in the cell. */
-	.film__frame[data-playing] .film__poster,
-	.film__frame[data-playing] .film__play {
-		display: none;
-	}
-
-	.film__play {
-		position: absolute;
-		inset: 0;
-		display: grid;
-		place-items: center;
-		border: 0;
-		background: transparent;
-		cursor: pointer;
-	}
-
-	/* The disc, not the whole overlay — a scrim over a designed thumbnail would
-	   dim the one thing it is there to show. */
-	.film__play-disc {
-		display: grid;
-		place-items: center;
-		width: clamp(3.25rem, 6vw, 4.5rem);
-		height: clamp(3.25rem, 6vw, 4.5rem);
-		border-radius: 50%;
-		background: color-mix(in oklab, var(--color-ink-950) 62%, transparent);
-		border: 1px solid color-mix(in oklab, #dbe8ff 34%, transparent);
-		backdrop-filter: blur(6px);
-		color: var(--color-bone-50);
-		box-shadow: 0 18px 44px -18px #000;
-		transition:
-			transform 0.3s var(--ease-out-quint),
-			background-color 0.3s var(--ease-out-quint);
-	}
-
-	.film__play-disc svg {
-		width: 45%;
-		height: 45%;
-		/* The triangle sits visually left of centre in its own box. */
-		translate: 6% 0;
-	}
-
-	.film__play:hover .film__play-disc,
-	.film__play:focus-visible .film__play-disc {
-		transform: scale(1.06);
-		background: color-mix(in oklab, var(--color-arc-600) 72%, transparent);
-	}
+	/*
+		`.film__play`, `.film__play-disc` and the `[data-playing]` rules are gone
+		with the hand-built play button. The video's native controls are the
+		affordance now — see the note in the markup.
+	*/
 
 	.film__caption {
 		display: flex;

@@ -1,0 +1,309 @@
+---
+/**
+ * The Dental AI Brief sign-up.
+ *
+ *   <NewsletterSignup id="hub-top" name />
+ *
+ * Two fields at the top of /resources/ and one at the foot, which is the shape
+ * the 09/01 brief asks for: a fuller ask where somebody has just arrived and
+ * has not read anything yet, and a single field where they have read the page
+ * and only need to say yes.
+ *
+ * Same three layers of spam protection as `ResourceGate`, and for the same
+ * reasons — a honeypot Netlify strips server-side, a time trap that refuses a
+ * submit faster than a person could type, and Netlify's own filtering on the
+ * named form. None of them makes a real visitor solve a puzzle.
+ *
+ * ⚠️ Netlify Forms only registers a form it can see in the BUILT HTML. This is a
+ * static page and the markup below ships as-is, so it is detected — but if this
+ * component is ever moved behind a client-side render, the form silently stops
+ * collecting and nothing errors. Check the Forms tab in Netlify after any change
+ * to how this page is generated.
+ *
+ * Submission is AJAX-first: the script posts the form and swaps in a
+ * confirmation without leaving the page. With no JS it is an ordinary POST and
+ * Netlify serves its own success page, which is worse but works. `connect-src
+ * 'self'` in the CSP covers the fetch; nothing here talks to a third party.
+ */
+export interface Props {
+	/** Unique per instance — two copies of this run on the hub, and every id,
+	    `for` and `aria-describedby` below is built from it. */
+	id: string;
+	/** Ask for a first name as well as an email. */
+	name?: boolean;
+	submitLabel: string;
+	/** The line under the button. */
+	note: string;
+}
+
+const { id, name = false, submitLabel, note } = Astro.props;
+
+/*
+	One Netlify form name across both instances, so the two sign-ups land in one
+	list rather than in two. `source` is what tells them apart afterwards.
+*/
+const FORM_NAME = 'dental-ai-brief';
+const HONEYPOT = 'practice-website';
+const MIN_FILL_MS = 2000;
+---
+
+<form
+	class="signup"
+	name={FORM_NAME}
+	method="POST"
+	data-netlify="true"
+	netlify-honeypot={HONEYPOT}
+	data-gate
+	data-min-fill={MIN_FILL_MS}
+>
+	{/* Netlify needs the form name echoed in the body of the POST. */}
+	<input type="hidden" name="form-name" value={FORM_NAME} />
+	{/* Which of the two instances this came from. */}
+	<input type="hidden" name="source" value={id} />
+	<input type="hidden" name="submitted-at" value="" data-gate-timestamp />
+
+	{/* Honeypot. Hidden from sight and from assistive tech, but not
+	    `display: none` — some bots skip fields that are. */}
+	<p class="signup__trap" aria-hidden="true">
+		<label>
+			Leave this field empty
+			<input type="text" name={HONEYPOT} tabindex="-1" autocomplete="off" />
+		</label>
+	</p>
+
+	<div class:list={['signup__row', name && 'signup__row--pair']}>
+		{
+			name && (
+				<div class="signup__field">
+					<label class="signup__label" for={`first-name-${id}`}>
+						First name
+					</label>
+					<input
+						class="signup__input"
+						id={`first-name-${id}`}
+						type="text"
+						name="first-name"
+						required
+						autocomplete="given-name"
+						placeholder="Alex"
+					/>
+				</div>
+			)
+		}
+
+		<div class="signup__field">
+			<label class="signup__label" for={`email-${id}`}>Email</label>
+			<input
+				class="signup__input"
+				id={`email-${id}`}
+				type="email"
+				name="email"
+				required
+				autocomplete="email"
+				inputmode="email"
+				spellcheck="false"
+				placeholder="you@yourpractice.com"
+				aria-describedby={`signup-note-${id}`}
+			/>
+		</div>
+
+		<button type="submit" class="btn btn-primary signup__submit">{submitLabel}</button>
+	</div>
+
+	<p class="signup__note" id={`signup-note-${id}`}>{note}</p>
+
+	{/*
+		`role="alert"` on the error and `role="status"` on the confirmation: an
+		error interrupts, a success does not. Both are server-rendered and hidden
+		rather than injected, so the script never builds markup.
+	*/}
+	<p class="signup__error" data-gate-error hidden role="alert"></p>
+	<p class="signup__done" data-signup-done hidden role="status">
+		You’re in. The next brief lands in your inbox.
+	</p>
+</form>
+
+<script>
+	/**
+	 * Time trap, then an AJAX submit.
+	 *
+	 * The trap is the same one `ResourceGate` uses: a form completed faster than
+	 * a person could type was not typed by one. Without JS the honeypot and
+	 * Netlify's own filtering still apply, so nothing is lost by this not running.
+	 *
+	 * The submit is intercepted only when `fetch` is available and only after the
+	 * trap passes. On any failure it falls through to a normal form POST rather
+	 * than swallowing the submission — a sign-up that silently does nothing is
+	 * the one outcome worth engineering against.
+	 */
+	document.querySelectorAll<HTMLFormElement>('form[data-gate][data-min-fill]').forEach((form) => {
+		/* `ResourceGate` also matches [data-gate]; it has no [data-signup-done] and
+		   its own script handles it. Skip anything that is not this component. */
+		const done = form.querySelector<HTMLElement>('[data-signup-done]');
+		if (!done) return;
+
+		const loadedAt = Date.now();
+		const stamp = form.querySelector<HTMLInputElement>('[data-gate-timestamp]');
+		const error = form.querySelector<HTMLElement>('[data-gate-error]');
+		const min = Number(form.dataset.minFill ?? 2000);
+
+		form.addEventListener('submit', (event) => {
+			const elapsed = Date.now() - loadedAt;
+			if (stamp) stamp.value = String(elapsed);
+
+			if (elapsed < min) {
+				event.preventDefault();
+				if (error) {
+					error.textContent = 'That was quick — give it a moment and try again.';
+					error.hidden = false;
+				}
+				window.setTimeout(() => {
+					if (error) error.hidden = true;
+				}, min);
+				return;
+			}
+
+			if (typeof fetch !== 'function') return;
+
+			event.preventDefault();
+			if (error) error.hidden = true;
+
+			/*
+				Netlify accepts a form POST at any path on the site; "/" is the one
+				guaranteed to exist. `URLSearchParams` rather than `FormData` because
+				Netlify's collector expects a urlencoded body, not multipart.
+			*/
+			const body = new URLSearchParams(new FormData(form) as unknown as string[][]).toString();
+
+			fetch('/', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+				body,
+			})
+				.then((response) => {
+					if (!response.ok) throw new Error(String(response.status));
+					/* Swap the fields for the confirmation. `hidden` on the row rather
+					   than removing it, so nothing reflows out from under a pointer. */
+					form.querySelector<HTMLElement>('.signup__row')?.setAttribute('hidden', '');
+					form.querySelector<HTMLElement>('.signup__note')?.setAttribute('hidden', '');
+					done.hidden = false;
+				})
+				.catch(() => {
+					if (error) {
+						error.textContent = 'That did not send. Try again in a moment.';
+						error.hidden = false;
+					}
+				});
+		});
+	});
+</script>
+
+<style>
+	.signup {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	.signup__trap {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+
+	.signup__row {
+		display: grid;
+		gap: 0.65rem;
+	}
+
+	.signup__field {
+		display: grid;
+		gap: 0.4rem;
+	}
+
+	.signup__label {
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--color-bone-400);
+	}
+
+	.signup__input {
+		width: 100%;
+		padding: 0.85rem 1rem;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-md);
+		background: var(--color-ink-950);
+		color: var(--color-bone-50);
+		font-family: var(--font-sans);
+		font-size: var(--text-base);
+		transition:
+			border-color 0.25s var(--ease-out-quint),
+			background-color 0.25s var(--ease-out-quint);
+	}
+
+	.signup__input::placeholder {
+		color: var(--color-bone-500);
+	}
+
+	.signup__input:hover {
+		border-color: color-mix(in oklab, var(--color-arc-400) 40%, transparent);
+	}
+
+	.signup__input:focus-visible {
+		border-color: var(--color-arc-400);
+		outline-offset: 1px;
+	}
+
+	/* `:user-invalid`, not `:invalid` — an empty required field is invalid the
+	   moment it renders, and colouring it red before anyone has typed is a
+	   telling-off for arriving. */
+	.signup__input:user-invalid {
+		border-color: #ff6b6b;
+	}
+
+	.signup__submit {
+		justify-self: start;
+		padding-block: 0.9rem;
+	}
+
+	.signup__note {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--color-bone-500);
+	}
+
+	.signup__error {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: #ff9b9b;
+	}
+
+	.signup__done {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		color: var(--color-arc-300);
+	}
+
+	@media (min-width: 560px) {
+		.signup__row {
+			grid-template-columns: 1fr auto;
+			align-items: end;
+			gap: 0.75rem;
+		}
+
+		/* With a name field there are three controls on the row, and the two
+		   inputs should share the slack rather than the button taking it. */
+		.signup__row--pair {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+		}
+
+		.signup__submit {
+			justify-self: stretch;
+		}
+	}
+</style>

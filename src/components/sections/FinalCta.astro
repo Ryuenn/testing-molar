@@ -1,41 +1,51 @@
 ---
 /**
- * Section 15 — the close.
+ * The close.
  *
- * Two lines, one button, and the trust marks underneath. Dark, minimal, and
- * deliberately the quietest section on the page in everything except type size:
- * by the time a reader gets here they have been asked six times, and a seventh
- * loud ask reads as desperation rather than confidence.
+ * The headline, the offer, the price, one button, and a band of flags. Dark,
+ * minimal, and deliberately the quietest section on the page in everything
+ * except type size: by the time a reader gets here they have been asked five
+ * times, and a sixth loud ask reads as desperation rather than confidence.
  *
- * The second line is a separate paragraph rather than a second sentence in the
- * heading. It is the turn — "your patients are already consuming content" is an
- * observation, "make sure it is helping your practice" is the ask — and the two
- * want the beat between them that only a line break gives.
+ * The bottom of this page is supposed to get SIMPLER, not busier. Three things
+ * came off in the same pass:
  *
- * `ClosingCta` still exists and still runs on the inner pages. This is the home
- * page's own close, because the home page is now selling an ecosystem rather
- * than a subscription and the two need different last words.
+ *   the second button   "Talk to MOLAR", beside the primary. There is one
+ *                       thing to do at the foot of this page and it costs $97.
+ *   the country pills   eighteen named chips, each with an emoji flag, wrapped
+ *                       over four lines. The claim is "18 countries, 6
+ *                       continents"; the list of which eighteen is a detail
+ *                       nobody reads at the end of a sales page.
+ *   the practice names  a marquee of the same practices the logo wall at the
+ *                       top of the page already shows, in type rather than in
+ *                       marks.
+ *
+ * What replaced the pills is the same eighteen as a running flag band — the
+ * picture the claim above it makes, without asking anyone to read it.
  */
-import { CTA } from '~/data/site';
-import { PROOF_HEADLINE } from '~/data/proof';
-import { COUNTRIES, countryName } from '~/data/reach';
-import { flagOf } from '~/data/customers';
-import { productById } from '~/data/products';
-import { WORK } from '~/data/work';
-import { localizePath } from '~/i18n/config';
+import { EDUCATION_CHECKOUT } from '~/data/site';
+import { EDUCATION_PRICE, EDUCATION_TRIAL_DAYS } from '~/data/education';
+import { COUNTRIES, REGIONS, countryName } from '~/data/reach';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
+/*
+	Real flags, not emoji: HatScripts/circle-flags (MIT), vendored into
+	`public/flags/` rather than hotlinked so the CSP stays locked to 'self'.
+	They are `<img>` rather than inlined SVG on purpose — every one of those
+	files carries a `mask id="a"`, and eighteen inlined on one page would be
+	eighteen elements fighting over the same id.
+*/
 const FLAGS = COUNTRIES.map((country) => ({
-	flag: flagOf(country.code),
+	src: `/flags/${country.code}.svg`,
 	name: countryName(country, locale),
 }));
 
-/* The practice names run under the close as a quiet marquee — the same list
-   the trust band at the top of the page carries, so the page opens and shuts
-   on the same names. */
+/* The marquee needs two identical tracks: the first scrolls a full -100% of
+   its own width while the second slides in behind it, so the seam never
+   shows. */
 const TRACKS = [0, 1];
 ---
 
@@ -44,42 +54,50 @@ const TRACKS = [0, 1];
 		<h2 id="fin-heading" class="fin__title" data-reveal>{t('final.heading')}</h2>
 		<p class="fin__second" data-reveal>{t('final.second')}</p>
 
+		{/* The price, between the promise and the button. Same two constants the
+		    hero and the plan card read. */}
+		<p class="fin__offer" data-reveal>
+			{t('final.offer', { n: EDUCATION_TRIAL_DAYS, price: EDUCATION_PRICE })}
+		</p>
+
 		<div class="fin__actions" data-reveal>
-			<a class="btn btn-primary fin__cta" href={localizePath(productById('complete').href, locale)}>
+			<a class="btn btn-primary fin__cta" href={EDUCATION_CHECKOUT} rel="noopener">
 				{t('final.cta')} <span aria-hidden="true">→</span>
-			</a>
-			<a class="btn btn-ghost" href={CTA.sales.href} target="_blank" rel="noopener">
-				{t('final.secondary')}
-				<span class="sr-only">{t('footer.newTab')}</span>
 			</a>
 		</div>
 
-		<p class="fin__note" data-reveal>{t('final.note')}</p>
-
-		<ul class="fin__flags" data-reveal="fade">
-			{
-				FLAGS.map((country) => (
-					<li class="fin__flag">
-						<span aria-hidden="true">{country.flag}</span>
-						{country.name}
-					</li>
-				))
-			}
-			<li class="fin__flag fin__flag--stat">{PROOF_HEADLINE}</li>
-		</ul>
+		<p class="fin__note" data-reveal>
+			{t('final.note', { countries: COUNTRIES.length, regions: REGIONS.length })}
+		</p>
 	</div>
 
-	<div class="marquee fin__marquee" data-reveal="fade">
+	{/*
+		The eighteen, running. Decorative as a whole — it is one list said twice
+		over in two copies — so the band is hidden from assistive tech and the
+		countries are named once, in order, by the sr-only list beside it.
+	*/}
+	<div class="marquee fin__flags" aria-hidden="true" data-reveal="fade">
 		{
 			TRACKS.map(() => (
-				<div class="marquee__track" aria-hidden="true">
-					{WORK.map((account) => (
-						<span class="fin__client">{account.practice}</span>
+				<div class="marquee__track">
+					{FLAGS.map((country) => (
+						<img
+							class="fin__flag"
+							src={country.src}
+							alt=""
+							width="44"
+							height="44"
+							loading="lazy"
+							decoding="async"
+						/>
 					))}
 				</div>
 			))
 		}
 	</div>
+	<ul class="sr-only">
+		{FLAGS.map((country) => <li>{country.name}</li>)}
+	</ul>
 
 	<div class="fin__glow" aria-hidden="true"></div>
 	<div class="grain" aria-hidden="true"></div>
@@ -112,21 +130,28 @@ const TRACKS = [0, 1];
 	}
 
 	/*
-		The turn. Same size as the heading and the accent colour, so the two lines
-		read as one statement in two beats rather than as a headline with a
-		subtitle under it.
+		The offer, under the headline. Smaller than the heading and in the body
+		colour — it is the specification, not the promise, and setting it at
+		display size would make the close read as two headlines.
 	*/
 	.fin__second {
 		margin: 0;
-		max-width: 20ch;
-		font-family: var(--font-display);
-		font-size: var(--text-4xl);
-		font-weight: 600;
-		letter-spacing: -0.03em;
-		line-height: 1.08;
+		max-width: 44ch;
+		font-size: var(--text-lg);
+		line-height: 1.55;
 		text-wrap: balance;
+		color: var(--color-bone-300);
+	}
+
+	/* The price. The one lit thing between the headline and the button. */
+	.fin__offer {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 700;
+		letter-spacing: -0.01em;
 		color: var(--color-arc-300);
-		text-shadow: 0 0 44px color-mix(in oklab, var(--color-arc-500) 40%, transparent);
+		text-shadow: 0 0 40px color-mix(in oklab, var(--color-arc-500) 38%, transparent);
 	}
 
 	.fin__actions {
@@ -144,60 +169,28 @@ const TRACKS = [0, 1];
 	.fin__note {
 		margin: 0;
 		font-size: var(--text-sm);
-		color: var(--color-bone-500);
-	}
-
-	.fin__flags {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		margin: clamp(1.25rem, 3vw, 2rem) 0 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.fin__flag {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4375rem;
-		height: 2rem;
-		padding-inline: 0.6875rem;
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		font-size: var(--text-xs);
-		line-height: 1;
-		white-space: nowrap;
 		color: var(--color-bone-400);
 	}
 
-	.fin__flag--stat {
-		border-color: color-mix(in oklab, var(--color-arc-400) 40%, transparent);
-		font-family: var(--font-display);
-		font-weight: 700;
-		color: var(--color-bone-50);
-	}
-
 	/*
-		Decorative throughout — both tracks are aria-hidden. The names are already
-		carried, as links, by the trust band at the top of the page and by
-		/our-work/; down here they are a texture, and a screen reader being read
-		fourteen practice names on its way out of the document is not an
-		improvement.
+		The eighteen markets, running. `.marquee` and `.marquee__track` are the
+		site's own, from global.css — the loop, the hover pause and the
+		reduced-motion off switch all come with them — and only the measurements
+		are set here.
 	*/
-	.fin__marquee {
-		--marquee-duration: 74s;
+	.fin__flags {
+		--marquee-duration: 64s;
 		margin-block-start: clamp(2.5rem, 6vw, 4.5rem);
-		opacity: 0.5;
 	}
 
-	.fin__client {
-		font-family: var(--font-display);
-		font-size: var(--text-base);
-		font-weight: 500;
-		white-space: nowrap;
-		color: var(--color-bone-500);
+	.fin__flag {
+		flex: none;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 999px;
+		box-shadow:
+			0 0 0 1px color-mix(in oklab, #dbe8ff 20%, transparent),
+			0 8px 20px -10px #000;
 	}
 
 	/* One wide bloom rising from behind the button. */

@@ -23,7 +23,6 @@
 import Glyph from '~/components/ui/Glyph.astro';
 import { TV_FEATURES, TV_PLAYLIST, TV_LOOP } from '~/data/tv';
 import { EDUCATION_CHECKOUT } from '~/data/site';
-import { localizePath } from '~/i18n/config';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 export interface Props {
@@ -41,28 +40,14 @@ const cap = (k: string) => k.charAt(0).toUpperCase() + k.slice(1);
 
 const PLAYLIST = TV_PLAYLIST.map((entry) => ({
 	icon: entry.icon,
-	label: t(`tv.play${cap(entry.key)}` as 'tv.playTrusted'),
+	label: t(`tv.play${cap(entry.key)}` as 'tv.playTreatments'),
 }));
 
 const FEATURES = TV_FEATURES.map((feature) => ({
 	icon: feature.icon,
-	name: t(`tv.feat${cap(feature.key)}` as 'tv.featLogo'),
-	sub: t(`tv.feat${cap(feature.key)}Sub` as 'tv.featLogoSub'),
+	name: t(`tv.feat${cap(feature.key)}` as 'tv.featBrand'),
+	sub: t(`tv.feat${cap(feature.key)}Sub` as 'tv.featBrandSub'),
 }));
-
-/*
-	The free resources hub — not the product page, and not the video library.
-
-	It pointed at /molar-tv/ first, which on /molar-tv/ itself was a button
-	linking to the page you were already on. Then at the video library, which is
-	gated: a visitor who has not subscribed clicked "see what plays" and got a
-	password screen. A dead end is worse than a weak link.
-
-	The hub is the honest secondary. It costs nothing, it is genuinely useful, and
-	someone who downloads a guide from it has given a reason to come back — which
-	is a step toward buying rather than a bounce.
-*/
-const href = localizePath('/resources/', locale);
 ---
 
 <section
@@ -85,11 +70,16 @@ const href = localizePath('/resources/', locale);
 						{t('tv.heading')}
 					</h2>
 					{/*
-						No lede. The heading says what this is and the picture below says
-						the rest — a paragraph explaining that a waiting-room screen exists
-						and is currently playing something else was telling a reader what
-						they can already see.
+						One line under the heading, and it is the one the brief asks for.
+
+						There was no lede here at all, on the reasoning that the picture
+						says the rest. That held while the heading was "Visually educate in
+						your waiting room" — a description of the picture. The heading is a
+						claim about case acceptance now, and a claim needs its mechanism
+						stated once: waiting time becomes education, before the
+						consultation rather than during it.
 					*/}
+					<p class="tv__lede measure-wide" data-reveal>{t('tv.lede')}</p>
 				</header>
 			)
 		}
@@ -170,37 +160,35 @@ const href = localizePath('/resources/', locale);
 				*/}
 				<div class="tv__actions" data-reveal>
 					{/*
-						The offer first, the look second.
+						One ask, and it is the trial.
 
-						This used to be "See MOLAR TV" over "Talk to MOLAR" — a button
-						naming the section it was already in, and a second one asking for a
-						meeting. Neither was a step toward buying anything, and this section
-						is the front of the funnel now.
+						This has been three pairs of buttons — "See MOLAR TV" over "Talk to
+						MOLAR", then the trial over the video library, then the trial over
+						the free resources hub. Every second button was an exit: a meeting,
+						a password screen, or a wall of PDFs, all of them at the point the
+						section has just finished making its case.
 
 						What plays on a MOLAR TV screen IS the library, and the library is
-						the $97 subscription with a free month. So the primary ask is that
-						trial, priced in the label, going straight to the checkout that
-						honours it; the secondary shows the catalogue for anyone who wants
-						to look before they start.
+						the $97 subscription with a free trial. So there is one button, it
+						is that trial, and it goes straight to the checkout that honours it.
 					*/}
 					<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
 						{t('tv.ctaTrial')}
 						<span aria-hidden="true">→</span>
 					</a>
-					<a class="btn btn-ghost" href={href}>{t('tv.cta')}</a>
 				</div>
 			</div>
 		</div>
 
 		{/*
-			Six tiles, icon over label, and no sentence under any of them.
+			Four tiles, each with its line back.
 
-			Each carried an explanatory line — "On every frame, not a corner
-			watermark" — which turned a row of marks into two rows of prose and made
-			this the wordiest part of a section whose whole argument is a picture.
-			The names alone say it: your logo, your colours, your branding. The
-			`featSub` strings are still in the dictionary if a line is ever wanted
-			back on one of them.
+			There were six, bare — the `featSub` strings existed and nothing rendered
+			them, on the reasoning that six explanatory sentences turned a row of
+			marks into two rows of prose. That was true of six. Four names alone read
+			as a shrug ("Your Brand" — what about it?), and at four there is room for
+			the clause that answers it. See the note on `TV_FEATURES` for why the six
+			became these four.
 		*/}
 		<ul class="tv__features" data-reveal-stagger>
 			{
@@ -210,6 +198,7 @@ const href = localizePath('/resources/', locale);
 							<Glyph name={feature.icon} />
 						</span>
 						<span class="tvf__name">{feature.name}</span>
+						<span class="tvf__sub">{feature.sub}</span>
 					</li>
 				))
 			}
@@ -270,6 +259,12 @@ const href = localizePath('/resources/', locale);
 	.tv__title {
 		margin: 0;
 		font-size: var(--text-3xl);
+	}
+
+	.tv__lede {
+		margin: 0;
+		font-size: var(--text-lg);
+		color: var(--color-bone-300);
 	}
 
 	.tv__stage {
@@ -435,20 +430,40 @@ const href = localizePath('/resources/', locale);
 	}
 
 	/* ── Features ────────────────────────────────────────────────────────── */
+	/*
+		Four across, and stated as four rather than left to `auto-fit`.
+
+		`auto-fit` with a 9rem floor was right for six short labels: it wrapped
+		3+3, then 2+2+2, then one per row. These tiles carry a sentence each, so
+		the same rule fits five in a row on a wide window and orphans the fourth
+		on a medium one. Two clean breakpoints instead — one column, two, then
+		four — so the row is always balanced.
+	*/
 	.tv__features {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
+		grid-template-columns: minmax(0, 1fr);
 		gap: clamp(0.75rem, 2vw, 1.25rem);
 		margin: clamp(2.5rem, 5vw, 4rem) 0 0;
 		padding: 0;
 		list-style: none;
 	}
 
+	@media (min-width: 34rem) {
+		.tv__features {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 62rem) {
+		.tv__features {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
 	/*
 		A tile rather than a row: the mark over its label, centred, in a card of its
-		own. With the explanatory line gone there is nothing to align a left-hand
-		icon against, and six short labels in a row read as a set of capabilities
-		where six left-aligned pairs read as an unfinished list.
+		own — which reads as a set of capabilities where left-aligned pairs read as
+		an unfinished list.
 
 		Lit rather than flat: an arc-tinted edge, a bloom bled up from the floor of
 		the tile, and the glyph itself glowing.
@@ -506,10 +521,20 @@ const href = localizePath('/resources/', locale);
 
 	.tvf__name {
 		font-family: var(--font-display);
-		font-size: var(--text-sm);
+		font-size: var(--text-base);
 		font-weight: 600;
 		line-height: 1.3;
 		color: var(--color-bone-50);
+	}
+
+	/* The clause under the name. Tight to it — they are one statement broken over
+	   two lines, not a heading with a paragraph. */
+	.tvf__sub {
+		margin-top: -0.25rem;
+		font-size: var(--text-xs);
+		line-height: 1.45;
+		text-wrap: balance;
+		color: var(--color-bone-300);
 	}
 
 	.tv__actions {

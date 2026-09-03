@@ -40,6 +40,12 @@
     # player.js where the page drives the player from the parent frame, and
     # `img-src` the poster frames served off Vimeo's CDN. Nothing else is needed:
     # the iframe's own requests answer to Vimeo's CSP, not this one.
+    #
+    # Vimeo is the ONLY third party in here. Four `google` origins were added for
+    # a Google Translate control in the nav and removed with it — do not put them
+    # back without the widget, and do not leave them behind if it is dropped
+    # again. A CSP that allows origins nothing requests is a wider hole than the
+    # site needs for no benefit.
     Content-Security-Policy = "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://player.vimeo.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.vimeocdn.com; media-src 'self'; frame-src https://player.vimeo.com; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self' blob:; upgrade-insecure-requests"
 
 # ── Immutable, content-hashed build output ────────────────────────────────────
@@ -136,6 +142,28 @@
 [[redirects]]
   from = "/complete"
   to = "/molar-complete/"
+  status = 301
+
+# /customers/ is gone. Its four evidence sections — the story cards, the growth
+# exhibit, the written cases and the inbound DMs — now run on /social-media/,
+# which is what they were always arguing for. 301 rather than a 404 because the
+# page was in the nav and is linked from the footer of anything already indexed.
+[[redirects]]
+  from = "/customers"
+  to = "/social-media/"
+  status = 301
+
+[[redirects]]
+  from = "/customers/*"
+  to = "/social-media/"
+  status = 301
+
+# The German tree is gone — one set of copy, with Google's translation widget in
+# the nav for everything else. Anything indexed under /de/ lands on the English
+# page it mirrored rather than on the 404.
+[[redirects]]
+  from = "/de/*"
+  to = "/:splat"
   status = 301
 
 # No 404 rule: Astro emits 404.astro as /404.html at the publish root even under

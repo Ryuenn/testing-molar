@@ -1,7 +1,7 @@
 /**
  * Password gate for the video library.
  *
- *   /resources/video-library/    and    /de/resources/video-library/
+ *   /resources/video-library/
  *
  * One shared password for everyone — this is a lock on a page, not a login. It
  * keeps the catalogue off the open web while the real Client Portal is being
@@ -335,6 +335,12 @@ function escape(value: string): string {
 	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/*
+	The `/de/…` twins are gone with the German route tree. The redirect in
+	netlify.toml sends anything still asking for `/de/resources/video-library/`
+	to the English path, which this function does guard — so an old bookmark
+	lands on the gate rather than slipping past it.
+*/
 export const config: Config = {
-	path: ['/resources/video-library', '/resources/video-library/*', '/de/resources/video-library', '/de/resources/video-library/*'],
+	path: ['/resources/video-library', '/resources/video-library/*'],
 };

@@ -3,7 +3,13 @@ import {
 	PLANS,
 	isCheckout,
 } from '~/data/pricing';
-import { PROMO } from '~/data/site';
+import { PROMO, SALES_CALL } from '~/data/site';
+import {
+	EDUCATION_PRICE,
+	EDUCATION_PRICE_ANNUAL,
+	EDUCATION_ANNUAL_MONTHLY,
+	EDUCATION_ANNUAL_SAVING,
+} from '~/data/education';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 const locale = getLocale(Astro);
@@ -21,13 +27,32 @@ export interface Props {
 const { head = true } = Astro.props;
 
 /**
- * The plans. Three panes over a field of arc light, the middle one lit.
+ * The plans. Four panes over a field of arc light, the third one lit.
  *
- * Every button here leaves the site — two into Stripe Checkout, one into a
+ * Every button here leaves the site — two into Stripe Checkout, two into a
  * booking calendar — so each carries `rel="noopener"` and says where it goes.
  * They are `<a>`, not buttons in a form: nothing is submitted from this page,
  * and `form-action 'self'` in the CSP would block it if it were.
+ *
+ * ── The annual toggle ──────────────────────────────────────────────────────
+ * MOLAR TV is sold monthly or annually and the card carries a two-state switch
+ * between them. It is progressive enhancement: the card renders with the
+ * monthly price already chosen, and the script below only swaps which of two
+ * server-rendered states is hidden. No JS leaves a working monthly card.
+ *
+ * ⚠️ THERE IS NO ANNUAL PAYMENT LINK. `EDUCATION_CHECKOUT` in `~/data/site` is
+ * the monthly subscription and nothing in this repo can take $849 for a year.
+ * So the annual state's button books a call rather than opening a checkout that
+ * would charge the wrong amount — the one failure mode worth avoiding here. The
+ * moment an annual Payment Link exists, put it in `~/data/education`, point
+ * `annualHref` at it, and change the annual label back to a purchase.
  */
+const annual = {
+	price: EDUCATION_PRICE_ANNUAL,
+	perMonth: EDUCATION_ANNUAL_MONTHLY,
+	saving: EDUCATION_ANNUAL_SAVING,
+	href: SALES_CALL,
+};
 ---
 
 <section
@@ -65,10 +90,65 @@ const { head = true } = Astro.props;
 
 						<h3 class="plan__name">{t(`pricing.${plan.key}Name` as never)}</h3>
 
-						<p class="plan__price">
-							<span class="plan__amount">{plan.price || t('pricing.custom')}</span>
-							{plan.perMonth && <span class="plan__cadence">{t('pricing.perMonth')}</span>}
-						</p>
+						{plan.id === 'education' ? (
+							/*
+								Two prices, both rendered, one hidden. `[hidden]` rather than a
+								class, so the hidden half is out of the accessibility tree as
+								well as off the screen — a screen reader must never read two
+								prices for one plan.
+							*/
+							<div class="plan__billing" data-billing>
+								<p class="plan__price" data-billing-pane="monthly">
+									<span class="plan__amount">{EDUCATION_PRICE}</span>
+									<span class="plan__cadence">{t('pricing.perMonth')}</span>
+								</p>
+
+								<p class="plan__price" data-billing-pane="annual" hidden>
+									<span class="plan__amount">{annual.price}</span>
+									<span class="plan__cadence">{t('pricing.perYear')}</span>
+								</p>
+
+								{/*
+									A radio group, not two buttons: this is one choice with two
+									options, and a real pair of <input type="radio"> gives the
+									arrow-key behaviour and the "1 of 2" announcement without a
+									keyboard handler of our own.
+								*/}
+								<div class="switch" role="radiogroup" aria-label={t('pricing.billingLabel')}>
+									<label class="switch__opt">
+										<input
+											type="radio"
+											name="molar-tv-billing"
+											value="monthly"
+											checked
+											data-billing-input
+										/>
+										<span>{t('pricing.monthly')}</span>
+									</label>
+									<label class="switch__opt">
+										<input
+											type="radio"
+											name="molar-tv-billing"
+											value="annual"
+											data-billing-input
+										/>
+										<span>{t('pricing.annual')}</span>
+									</label>
+								</div>
+
+								<p class="plan__saving" data-billing-pane="annual" hidden>
+									{t('pricing.annualSaving', {
+										monthly: annual.perMonth,
+										saving: annual.saving,
+									})}
+								</p>
+							</div>
+						) : (
+							<p class="plan__price">
+								<span class="plan__amount">{plan.price || t('pricing.custom')}</span>
+								{plan.perMonth && <span class="plan__cadence">{t('pricing.perMonth')}</span>}
+							</p>
+						)}
 
 						{/*
 							The promo rides the plan it belongs to rather than the section, so
@@ -111,31 +191,129 @@ const { head = true } = Astro.props;
 							))}
 						</ul>
 
-						<a
-							class:list={['plan__cta', plan.featured && 'plan__cta--featured']}
-							href={plan.cta.href}
-							rel="noopener"
-						>
-							{t(`pricing.${plan.key}Cta` as never)}
-							{/* Says where the button goes without putting it in the label
-							    twice for people who can see the button. */}
-							<span class="sr-only">
-								{isCheckout(plan) ? ' — opens Stripe Checkout' : ' — opens a booking calendar'}
-							</span>
-							<span class="plan__cta-arrow" aria-hidden="true">
-								&rarr;
-							</span>
-						</a>
+						{plan.id === 'education' ? (
+							<>
+								<a
+									class="plan__cta"
+									href={plan.cta.href}
+									rel="noopener"
+									data-billing-pane="monthly"
+								>
+									{t('pricing.educationCta')}
+									<span class="sr-only"> — opens Stripe Checkout</span>
+									<span class="plan__cta-arrow" aria-hidden="true">
+										&rarr;
+									</span>
+								</a>
 
-						<p class="plan__note">{t(`pricing.${plan.key}Note` as never)}</p>
+								{/*
+									The annual button books a call rather than opening a
+									checkout — see the ⚠️ in the frontmatter. There is no annual
+									Payment Link in this repo, and pointing this at the monthly
+									one would show $849 a year and charge $97 a month.
+								*/}
+								<a class="plan__cta" href={annual.href} rel="noopener" data-billing-pane="annual" hidden>
+									{t('pricing.annualCta')}
+									<span class="sr-only"> — opens a booking calendar</span>
+									<span class="plan__cta-arrow" aria-hidden="true">
+										&rarr;
+									</span>
+								</a>
+							</>
+						) : (
+							<a
+								class:list={['plan__cta', plan.featured && 'plan__cta--featured']}
+								href={plan.cta.href}
+								rel="noopener"
+							>
+								{t(`pricing.${plan.key}Cta` as never)}
+								{/* Says where the button goes without putting it in the label
+								    twice for people who can see the button. */}
+								<span class="sr-only">
+									{isCheckout(plan) ? ' — opens Stripe Checkout' : ' — opens a booking calendar'}
+								</span>
+								<span class="plan__cta-arrow" aria-hidden="true">
+									&rarr;
+								</span>
+							</a>
+						)}
+
+						{plan.id === 'education' ? (
+							<>
+								<p class="plan__note" data-billing-pane="monthly">
+									{t('pricing.educationNote')}
+								</p>
+								{/*
+									The annual half of the note, and it says the two things that
+									are true and unwelcome: billed in full today, and no free
+									trial. Burying either would be the kind of surprise that
+									produces a chargeback rather than a customer.
+								*/}
+								<p class="plan__note" data-billing-pane="annual" hidden>
+									{t('pricing.annualNote')}
+								</p>
+							</>
+						) : (
+							<p class="plan__note">{t(`pricing.${plan.key}Note` as never)}</p>
+						)}
 					</li>
 				))
 			}
 		</ul>
 
+		{/*
+			One line across both social cards, per the brief. Under the grid rather
+			than repeated inside Lite and Premium: it is the same sentence about the
+			same product sold at two volumes, and printing it twice on adjacent
+			cards reads as filler.
+		*/}
+		<p class="plans__social-note" data-reveal="fade">{t('pricing.socialNote')}</p>
+
 		<p class="plans__foot" data-reveal="fade">{t('pricing.footnote')}</p>
 	</div>
 </section>
+
+<script>
+	/*
+		The MOLAR TV billing switch.
+
+		Both states are server-rendered and one is `hidden`; this only moves which.
+		That is why the card works with no JS at all — it renders showing the
+		monthly price, which is the offer the page advertises everywhere else.
+
+		Scoped to each `[data-billing]` rather than to the document: `Pricing` runs
+		on the home page, /pricing/ and /social-media/, and while only one instance
+		is on any given page, a global querySelectorAll would silently couple two
+		if that ever changed.
+	*/
+	for (const group of document.querySelectorAll<HTMLElement>('[data-billing]')) {
+		const inputs = group.querySelectorAll<HTMLInputElement>('[data-billing-input]');
+		if (!inputs.length) continue;
+
+		/*
+			The panes are not all inside `[data-billing]` — the note pair sits at the
+			foot of the card, past the feature list — so they are collected from the
+			card the switch belongs to.
+		*/
+		const card = group.closest('.plan') ?? group;
+		const panes = card.querySelectorAll<HTMLElement>('[data-billing-pane]');
+
+		const show = (mode: string) => {
+			for (const pane of panes) pane.hidden = pane.dataset.billingPane !== mode;
+		};
+
+		for (const input of inputs) {
+			input.addEventListener('change', () => {
+				if (input.checked) show(input.value);
+			});
+		}
+
+		/* A browser restoring a checked radio on reload (bfcache, or a back
+		   navigation) would otherwise leave the switch and the price disagreeing. */
+		const checked = [...inputs].find((input) => input.checked);
+		if (checked) show(checked.value);
+	}
+</script>
 
 <style>
 	/*
@@ -569,8 +747,95 @@ const { head = true } = Astro.props;
 		color: var(--color-bone-500);
 	}
 
+	/* ── The MOLAR TV billing switch ─────────────────────────────────────── */
+	.plan__billing {
+		display: grid;
+		gap: 0.625rem;
+	}
+
+	/* The card's own price rule already sets the top margin; inside the group it
+	   would double up with the grid gap. */
+	.plan__billing .plan__price {
+		margin-block-start: 0.75rem;
+	}
+
+	/*
+		A segmented control built from two radios. The inputs are visually
+		removed but never `display: none` — a hidden input is unfocusable, which
+		would break the arrow-key behaviour the radio group is here for.
+	*/
+	.switch {
+		display: inline-flex;
+		align-self: start;
+		padding: 0.1875rem;
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-pill);
+		background: color-mix(in oklab, var(--color-ink-950) 55%, transparent);
+	}
+
+	.switch__opt {
+		position: relative;
+		display: inline-flex;
+	}
+
+	.switch__opt input {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	.switch__opt span {
+		padding: 0.3125rem 0.75rem;
+		border-radius: var(--radius-pill);
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		line-height: 1;
+		color: var(--color-bone-400);
+		transition:
+			background-color 0.24s var(--ease-out-quint),
+			color 0.24s var(--ease-out-quint);
+	}
+
+	.switch__opt input:checked + span {
+		background: color-mix(in oklab, var(--color-bone-50) 14%, transparent);
+		color: var(--color-bone-50);
+	}
+
+	/* The ring belongs on the pill the eye sees, not on the invisible input. */
+	.switch__opt input:focus-visible + span {
+		outline: 2px solid var(--color-arc-400);
+		outline-offset: 2px;
+	}
+
+	.plan__saving {
+		margin: 0;
+		font-size: var(--text-2xs);
+		line-height: 1.5;
+		color: var(--color-arc-300);
+	}
+
+	/*
+		The line under both social cards. Centred and held to a reading measure so
+		it reads as a note on the pair rather than as a fifth column.
+	*/
+	.plans__social-note {
+		max-width: 52ch;
+		margin: clamp(1.5rem, 3vw, 2.25rem) auto 0;
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		text-align: center;
+		text-wrap: balance;
+		color: var(--color-bone-300);
+	}
+
 	.plans__foot {
-		margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+		margin: clamp(1rem, 2vw, 1.5rem) 0 0;
 		font-family: var(--font-mono);
 		font-size: var(--text-2xs);
 		letter-spacing: 0.12em;

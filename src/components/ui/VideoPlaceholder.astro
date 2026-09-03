@@ -1,0 +1,90 @@
+---
+/**
+ * The frame a testimonial sits in before its video exists.
+ *
+ *   <VideoPlaceholder name="Dr. Patricia Harrosch" />
+ *
+ * Its whole job is to hold the right box at the right aspect so the section can
+ * be designed, reviewed and signed off before the footage lands. Paste a Vimeo
+ * id into the entry in `~/data/testimonials` and this stops rendering — see the
+ * three-state note in `~/components/sections/Testimonials`.
+ *
+ * ⚠️ IT IS NOT A LAUNCH STATE. A visitor sees a play glyph that does nothing.
+ * It is deliberately quiet rather than loud — no "COMING SOON" banner, which
+ * would be worse on a live sales page than an empty frame — and that quietness
+ * is exactly why it is easy to forget. Nothing in the build fails while one of
+ * these is on the page; the reminder is the ⚠️ on every placeholder entry in
+ * the data file.
+ *
+ * Decorative throughout. The card around it already carries the quote and the
+ * attribution, so a screen reader gets the testimonial either way; announcing
+ * "video placeholder" would only advertise the gap.
+ */
+export interface Props {
+	/** Named where the testimonial is attributed. Absent on anonymous ones. */
+	name?: string;
+}
+
+const { name } = Astro.props;
+---
+
+<div class="ph" aria-hidden="true">
+	<span class="ph__disc">
+		<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 6.5v11l9-5.5-9-5.5Z"></path></svg>
+	</span>
+	{name && <span class="ph__name">{name}</span>}
+</div>
+
+<style>
+	/*
+		Fills whatever frame it is dropped into, at the aspect the players use, so
+		swapping a placeholder for an iframe or a <video> does not reflow the card
+		around it.
+	*/
+	.ph {
+		display: grid;
+		place-items: center;
+		align-content: center;
+		gap: 0.75rem;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		/* A shade off the card behind it — enough to read as a frame with
+		   something pending in it rather than as a hole in the panel. */
+		background:
+			radial-gradient(
+				90% 120% at 50% 0%,
+				color-mix(in oklab, var(--color-arc-500) 10%, transparent),
+				transparent 70%
+			),
+			var(--color-ink-950);
+	}
+
+	.ph__disc {
+		display: grid;
+		place-items: center;
+		width: clamp(2.75rem, 5vw, 3.75rem);
+		height: clamp(2.75rem, 5vw, 3.75rem);
+		border-radius: 50%;
+		border: 1px solid color-mix(in oklab, #dbe8ff 22%, transparent);
+		background: color-mix(in oklab, var(--color-ink-800) 70%, transparent);
+		color: color-mix(in oklab, var(--color-bone-50) 55%, transparent);
+	}
+
+	.ph__disc svg {
+		width: 42%;
+		height: 42%;
+		/* The triangle sits visually left of centre in its own box. */
+		translate: 8% 0;
+	}
+
+	.ph__name {
+		max-width: 22ch;
+		padding-inline: 1rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-2xs);
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		text-align: center;
+		color: var(--color-bone-500);
+	}
+</style>

@@ -20,14 +20,30 @@
  */
 import { TESTIMONIALS } from '~/data/testimonials';
 import { WORK } from '~/data/work';
+import { EDUCATION_CHECKOUT } from '~/data/site';
+import Placeholder from '~/components/ui/VideoPlaceholder.astro';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 export interface Props {
 	/** Heading level. Pages that run this under their own h1 pass 'h3'. */
 	as?: 'h2' | 'h3';
+	/**
+	 * Render the cards under the highlight as films alone — the frame and who is
+	 * in it, with no quotation.
+	 *
+	 * The home page's version of this section is a video wall: one big film and
+	 * two more beneath it, and a paragraph of prose under each of the small ones
+	 * makes those cards top-heavy and competes with the highlight's own quote.
+	 *
+	 * OFF by default, and /patient-education/ relies on that. Nothing there is
+	 * filmed, so films-only would leave it with two placeholder frames and no
+	 * testimonial at all. The quotes stay in `~/data/testimonials` either way —
+	 * this switches whether they are drawn, not whether they exist.
+	 */
+	filmsOnly?: boolean;
 }
 
-const { as: Heading = 'h2' } = Astro.props;
+const { as: Heading = 'h2', filmsOnly = false } = Astro.props;
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
@@ -38,10 +54,57 @@ const t = useTranslations(locale);
 	by slug, so a renamed account in `work.ts` breaks the link visibly rather
 	than silently attaching the quote to nothing.
 */
-const QUOTES = TESTIMONIALS.map((entry) => ({
-	...entry,
-	account: entry.accountSlug ? WORK.find((a) => a.slug === entry.accountSlug) : undefined,
-}));
+const QUOTES = TESTIMONIALS.map((entry) => {
+	/*
+		Three states, in precedence order, and every card is in exactly one:
+
+		  vimeo        a hosted player. Wins wherever an id is set.
+		  self-hosted  a file in public/videos with a poster beside it. A <video>
+		               with no poster is a black rectangle on a marketing page, so
+		               both are required before this counts.
+		  placeholder  neither. A frame at the right size and aspect, so the
+		               layout is finished before the footage is.
+	*/
+	const vimeo = entry.vimeo?.trim() || undefined;
+	const selfHosted = !vimeo && Boolean(entry.video && entry.poster);
+
+	return {
+		...entry,
+		vimeo,
+		selfHosted,
+		placeholder: !vimeo && !selfHosted,
+		account: entry.accountSlug ? WORK.find((a) => a.slug === entry.accountSlug) : undefined,
+	};
+});
+
+/*
+	One card leads and the rest follow it, smaller.
+
+	The lead is whichever entry is marked `featured`; failing that, the first —
+	so the section cannot end up without a highlight however the data is edited.
+
+	⚠️ THE VIMEO IDS ARE NOT IN YET. Every entry carries an empty `vimeo` field
+	waiting for one, and two of the three have no footage at all behind them.
+	Those render as placeholder frames. See the field's note in
+	`~/data/testimonials` for where to paste the id; nothing in this file needs
+	to change when they arrive.
+*/
+const lead = QUOTES.find((entry) => entry.featured) ?? QUOTES[0];
+const rest = QUOTES.filter((entry) => entry !== lead);
+
+/*
+	The player URL.
+
+	`dnt=1` keeps Vimeo from setting tracking cookies on our visitors, which is
+	ours to decide and not something a video needs. No `autoplay`: this is a
+	person talking, in a section a reader is scrolling past.
+
+	An unlisted link's hash arrives glued to the id as `123456?h=abc` — see the
+	note on the field — so the query is appended with the right separator rather
+	than assuming there is none.
+*/
+const playerSrc = (id: string) =>
+	`https://player.vimeo.com/video/${id}${id.includes('?') ? '&' : '?'}dnt=1&title=0&byline=0&portrait=0`;
 ---
 
 <section id="testimonials" class="section section-rule tm" aria-labelledby="tm-heading">
@@ -51,24 +114,123 @@ const QUOTES = TESTIMONIALS.map((entry) => ({
 			<Heading id="tm-heading" class="tm__title" data-reveal>{t('testimonials.heading')}</Heading>
 		</header>
 
+		{/*
+			The highlight, full width, with the film beside the quote.
+
+			Three ways a frame can be filled — see `QUOTES` in the frontmatter. The
+			hosted player is `loading="lazy"`, so an iframe below the fold costs
+			nothing until it is scrolled to; the self-hosted one is `preload="none"`
+			behind a poster and fetches nothing until play; the placeholder is markup
+			only. `controls` rather than a custom button, because this is a person
+			speaking and the viewer needs a scrubber and a volume control — unlike
+			the muted decorative loops elsewhere on the site, which have neither.
+		*/}
+		<article class="quote quote--lead panel" data-reveal>
+			<div class="quote__film">
+				{lead.vimeo ? (
+					<iframe
+						class="quote__embed"
+						src={playerSrc(lead.vimeo)}
+						title={t('testimonials.watch', { name: lead.name ?? t('testimonials.anonymous') })}
+						loading="lazy"
+						allow="fullscreen; picture-in-picture"
+						allowfullscreen
+					/>
+				) : lead.selfHosted ? (
+					<video
+						class="quote__video"
+						src={lead.video}
+						poster={lead.poster}
+						preload="none"
+						playsinline
+						controls
+						disablepictureinpicture
+					/>
+				) : (
+					<Placeholder name={lead.name} />
+				)}
+			</div>
+
+			{/*
+				<blockquote> with the attribution OUTSIDE it, in a <figcaption>. A
+				<cite> inside the blockquote would make the person's name part of the
+				quotation, which is not what they said.
+			*/}
+			<figure class="quote__fig">
+				<span class="quote__mark" aria-hidden="true">&ldquo;</span>
+				<blockquote class="quote__body">
+					<p>{lead.quote}</p>
+				</blockquote>
+
+				<figcaption class="quote__by">
+					{lead.name ? (
+						<>
+							<span class="quote__name">{lead.name}</span>
+							{lead.role && <span class="quote__role">{lead.role}</span>}
+							{lead.account?.place && <span class="quote__place">{lead.account.place}</span>}
+						</>
+					) : (
+						<>
+							<span class="quote__name quote__name--anon">{t('testimonials.anonymous')}</span>
+							<span class="quote__role">{t('testimonials.nameWithheld')}</span>
+						</>
+					)}
+				</figcaption>
+			</figure>
+		</article>
+
 		<ul class="tm__grid" data-reveal-stagger>
 			{
-				QUOTES.map((entry) => (
+				rest.map((entry) => (
 					<li class="quote panel" data-reveal data-reveal-group>
 						{/*
-							<blockquote> with the attribution OUTSIDE it, in a <figcaption>.
-							A <cite> inside the blockquote would make the person's name part
-							of the quotation, which is not what they said.
+							A <figure> either way, and in films-only mode it is the honest
+							markup rather than a compromise: the film is the figure and the
+							name is its caption. With the quotation present the <blockquote>
+							is the figure's content and the caption attributes it — which is
+							why the name has never been inside the <blockquote>. A <cite>
+							there would make the person's name part of what they said.
 						*/}
 						<figure class="quote__fig">
-							<span class="quote__mark" aria-hidden="true">
-								&ldquo;
-							</span>
-							<blockquote class="quote__body">
-								<p>{entry.quote}</p>
-							</blockquote>
+							<div class="quote__film">
+								{entry.vimeo ? (
+									<iframe
+										class="quote__embed"
+										src={playerSrc(entry.vimeo)}
+										title={t('testimonials.watch', {
+											name: entry.name ?? t('testimonials.anonymous'),
+										})}
+										loading="lazy"
+										allow="fullscreen; picture-in-picture"
+										allowfullscreen
+									/>
+								) : entry.selfHosted ? (
+									<video
+										class="quote__video"
+										src={entry.video}
+										poster={entry.poster}
+										preload="none"
+										playsinline
+										controls
+										disablepictureinpicture
+									/>
+								) : (
+									<Placeholder name={entry.name} />
+								)}
+							</div>
 
-							<figcaption class="quote__by">
+							{!filmsOnly && (
+								<>
+									<span class="quote__mark" aria-hidden="true">
+										&ldquo;
+									</span>
+									<blockquote class="quote__body">
+										<p>{entry.quote}</p>
+									</blockquote>
+								</>
+							)}
+
+							<figcaption class:list={['quote__by', filmsOnly && 'quote__by--film']}>
 								{entry.name ? (
 									<>
 										<span class="quote__name">{entry.name}</span>
@@ -91,6 +253,12 @@ const QUOTES = TESTIMONIALS.map((entry) => ({
 				))
 			}
 		</ul>
+
+		<div class="tm__actions" data-reveal>
+			<a class="btn btn-primary" href={EDUCATION_CHECKOUT} rel="noopener">
+				{t('testimonials.cta')} <span aria-hidden="true">→</span>
+			</a>
+		</div>
 	</div>
 </section>
 
@@ -111,20 +279,96 @@ const QUOTES = TESTIMONIALS.map((entry) => ({
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr));
 		gap: clamp(1rem, 2.5vw, 1.5rem);
-		margin: 0;
+		margin: clamp(1rem, 2.5vw, 1.5rem) 0 0;
 		padding: 0;
 		list-style: none;
 	}
 
+	/* A column, so the frame sits over the quote on the two smaller cards. */
 	.quote {
+		display: flex;
+		flex-direction: column;
+		gap: clamp(1rem, 2.5vw, 1.25rem);
 		padding: clamp(1.5rem, 3vw, 2rem);
 	}
 
+	/*
+		The highlight. Wider than the two under it, and above 52rem it runs the
+		film BESIDE the quote rather than over it — a 16:9 frame stacked on a
+		sentence in a full-width card leaves the quote stranded at the bottom of a
+		very tall box.
+
+		The film takes the larger track: it is the thing this section exists to
+		play, and the quote beside it is the caption that decides whether anyone
+		presses it.
+	*/
+	.quote--lead {
+		display: grid;
+		gap: clamp(1.25rem, 3vw, 2rem);
+		padding: clamp(1.5rem, 3vw, 2.25rem);
+	}
+
+	@media (min-width: 52rem) {
+		.quote--lead {
+			grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+			align-items: center;
+		}
+	}
+
+	.quote__film {
+		border-radius: 0.875rem;
+		border: 1px solid var(--color-line);
+		background: var(--color-ink-950);
+		overflow: hidden;
+	}
+
+	/*
+		One box for all three states — hosted player, self-hosted file, placeholder
+		— so swapping between them never changes the card's height. The aspect is
+		declared here rather than on the iframe alone because an <iframe> has no
+		intrinsic size and would otherwise collapse to its default 150px.
+	*/
+	.quote__embed,
+	.quote__video {
+		display: block;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		background: var(--color-ink-950);
+	}
+
+	.quote__embed {
+		border: 0;
+	}
+
+	.quote__video {
+		/* `contain`, not `cover`: this is a person talking to camera and a crop
+		   that takes the top of their head off is worse than a letterbox. */
+		object-fit: contain;
+	}
+
+	/* The lead's quote is the loudest line in the section — it is the one a
+	   visitor reads before deciding whether to press play. */
+	.quote--lead .quote__body p {
+		font-size: var(--text-xl);
+	}
+
+	.tm__actions {
+		display: flex;
+		justify-content: center;
+		margin-top: clamp(2rem, 4vw, 3rem);
+	}
+
+	/*
+		`flex: 1` so the figure takes the card's remaining height under the frame,
+		which is what lets `margin-block-start: auto` on `.quote__by` push the
+		attributions onto one line across cards whose quotes run to different
+		lengths.
+	*/
 	.quote__fig {
 		display: flex;
+		flex: 1;
 		flex-direction: column;
 		gap: 1rem;
-		height: 100%;
 		margin: 0;
 	}
 
@@ -163,6 +407,18 @@ const QUOTES = TESTIMONIALS.map((entry) => ({
 		margin-block-start: auto;
 		padding-block-start: 1rem;
 		border-block-start: 1px solid var(--color-line);
+	}
+
+	/*
+		Films-only: the caption sits directly under its frame, so the rule and the
+		padding above it are separating two things that belong together. The
+		`margin-block-start: auto` also has nothing to push against once the quote
+		is gone — every card is the same height — so it only ever added a gap.
+	*/
+	.quote__by--film {
+		margin-block-start: 0;
+		padding-block-start: 0;
+		border-block-start: 0;
 	}
 
 	.quote__name {

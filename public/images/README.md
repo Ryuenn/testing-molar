@@ -6,7 +6,7 @@ rename it (`hero-poster-v2.jpg`) and update the reference.
 
 | Path                                 | Used by                                                                    | Size      |
 | ------------------------------------ | -------------------------------------------------------------------------- | --------- |
-| `hero-poster.avif` `.webp` `.jpg`    | `Hero.astro`. The `poster` attribute takes the WebP — it accepts one URL only — and the CSS fallback negotiates all three via `image-set()`. | 1920×1080 |
+| `hero-poster.avif` `.webp` `.jpg`    | `Hero.astro`. The `poster` attribute takes the WebP — it accepts one URL only — and the CSS fallback negotiates all three via `image-set()`. Cut from `Hero_videoFinal-web.mp4`; re-cut all three together whenever that clip changes, or the fold shows one room and then paints another. | 1660×1244 |
 | `og/home.png`                        | Home page `og:image`                                                       | 1200×630  |
 | `og/resources.png`                   | `/resources/` `og:image`                                                   | 1200×630  |
 | `og/404.png`                         | 404 `og:image`                                                             | 1200×630  |

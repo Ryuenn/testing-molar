@@ -1,22 +1,28 @@
 ---
 /**
- * The three social marks, drawn.
+ * The social marks, drawn.
  *
  * Brand logos, so unlike `StepIcon` these are not all one stroke weight — each
- * is the shape its owner actually uses. Instagram is a line drawing, YouTube and
- * TikTok are solid. They are matched by optical weight instead: the solid marks
- * sit slightly inside the 24px box so they do not read heavier than the outlined
- * one beside them.
+ * is the shape its owner actually uses. Instagram is a line drawing, YouTube,
+ * Facebook and TikTok are solid. They are matched by optical weight instead: the
+ * solid marks sit slightly inside the 24px box so they do not read heavier than
+ * the outlined one beside them.
  *
  * YouTube's play triangle is a hole punched with `fill-rule: evenodd`, not a
- * second path filled with the page colour. A knockout painted in the background
- * colour is a bug waiting for the day something else sits behind it.
+ * second path filled with the page colour. Facebook's `f` is cut the same way,
+ * for the same reason: a knockout painted in the background colour is a bug
+ * waiting for the day something else sits behind it.
+ *
+ * `tiktok` is still here and nothing renders it. The rail in the hero and the
+ * row in the footer both publish Instagram, Facebook and YouTube — the three
+ * channels the plans actually post to. Keeping the path costs a few bytes that
+ * never ship and means the mark is there the day an account is.
  *
  * Everything is `currentColor`, so the row is tinted by the link that holds it.
  * Decorative: each of these is wrapped by a link that carries its own name.
  */
 export interface Props {
-	name: 'instagram' | 'tiktok' | 'youtube';
+	name: 'instagram' | 'facebook' | 'tiktok' | 'youtube';
 	class?: string;
 }
 
@@ -48,6 +54,15 @@ const { name, class: className } = Astro.props;
 			<path
 				fill-rule="evenodd"
 				d="M21.6 7.2a2.6 2.6 0 0 0-1.83-1.84C18.15 4.92 12 4.92 12 4.92s-6.15 0-7.77.44A2.6 2.6 0 0 0 2.4 7.2 27.2 27.2 0 0 0 1.97 12a27.2 27.2 0 0 0 .43 4.8 2.6 2.6 0 0 0 1.83 1.84c1.62.44 7.77.44 7.77.44s6.15 0 7.77-.44a2.6 2.6 0 0 0 1.83-1.84A27.2 27.2 0 0 0 22.03 12a27.2 27.2 0 0 0-.43-4.8ZM10.15 15.02V8.98L15.28 12l-5.13 3.02Z"
+			/>
+		)
+	}
+
+	{
+		name === 'facebook' && (
+			<path
+				fill-rule="evenodd"
+				d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.52 1.49-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.45 2.91h-2.33V22c4.78-.76 8.44-4.92 8.44-9.94Z"
 			/>
 		)
 	}

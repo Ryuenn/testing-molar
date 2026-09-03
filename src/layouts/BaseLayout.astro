@@ -63,10 +63,15 @@ const graph = [organizationSchema(), websiteSchema(), ...schema];
 
 /**
  * Cache-buster on the favicon links below. Bump it when the icons change —
- * their filenames are stable, and a browser that has one will not go looking
- * for another.
+ * their filenames are stable, `public/*` is served `immutable, max-age=1y` by
+ * netlify.toml, and a browser that has a favicon will not go looking for
+ * another for a very long time.
+ *
+ * 4: the brand master became the delivered `MolarTooth_FinalReal.png`. Every
+ * derivative in `public/` was rewritten by `npm run icons`, so every one of
+ * them needs a new URL.
  */
-const ICON_VERSION = 3;
+const ICON_VERSION = 4;
 ---
 
 <!doctype html>

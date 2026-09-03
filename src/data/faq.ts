@@ -4,53 +4,55 @@ export interface FaqItem {
 	a: string;
 }
 
+/**
+ * The questions practices actually ask, rewritten to the 09/01 brief.
+ *
+ * Twelve became eight, and the subject changed. Every one of the twelve was
+ * about social media management — what gets posted, whether you approve it,
+ * whether you can upload photos — which was right when the home page led with
+ * an agency replacement. The site sells a $97 waiting-room channel now, so the
+ * first six answer questions about that: what it is, whether it is branded,
+ * how many devices, what happens when a video is missing, what hardware it
+ * needs, how fast it goes live. Social is one question near the end, where it
+ * sits in the funnel.
+ *
+ * ⚠️ These strings are rendered TWICE — once by `~/components/sections/Faq` and
+ * once, verbatim, inside the FAQPage JSON-LD built in `~/data/schema`. Google
+ * treats a mismatch between the markup and the visible page as a reason to drop
+ * the rich result, so answers must stay plain text: no markup, no links, and
+ * nothing that reads as a placeholder.
+ */
 export const FAQ: FaqItem[] = [
 	{
 		q: 'What exactly is MOLAR?',
-		a: 'A subscription that creates, customizes, schedules and publishes social media content for dental practices. No filming, no editing, no caption writing, no posting.',
+		a: 'MOLAR is a patient education platform for dental practices. You get a custom MOLAR TV channel plus access to 300+ treatment videos your team can use across unlimited devices.',
 	},
 	{
-		q: 'Is the content customized to my practice?',
-		a: 'Yes — branding, treatments, location and goals. Reels, carousels, stories, review posts, before & after content, and patient education. The more content the practice provides, the more personalized the account becomes.',
+		q: 'Is MOLAR TV customized to my practice?',
+		a: 'Yes. We customize it with your branding, doctors, treatments, and practice identity.',
 	},
 	{
-		q: 'Do I need to create content myself?',
-		a: 'No. MOLAR runs completely hands-off. Practices that provide patient photos, reviews, before & afters and team content typically see the strongest results.',
+		q: 'Can we use MOLAR on multiple TVs, iPads, and computers?',
+		a: 'Yes. Your membership includes unlimited devices at your location.',
 	},
 	{
-		q: 'What kind of content do you post?',
-		a: 'Reels, carousels, stories, before & after cases, patient reviews and testimonials, team and office content, treatment explanations, patient education, and treatment-specific calls to action. New content every month, expanding the largest dental content library in the industry.',
+		q: 'What if MOLAR doesn’t have the treatment video we need?',
+		a: 'Request it. We’ll create it and add it to the library.',
+	},
+	{
+		q: 'Do we need special hardware or complicated integrations?',
+		a: 'No. MOLAR works on the devices you already use. No PMS or CRM migration required.',
 	},
 	{
 		q: 'How quickly can we get started?',
-		a: 'Most practices are live within 24 hours.',
+		a: 'You can access the library immediately. We then customize your MOLAR TV for your practice.',
 	},
 	{
-		q: 'How is MOLAR different from hiring an agency?',
-		a: 'Agencies require constant meetings, content requests, approvals and team involvement. MOLAR is hands-off — subscribe, connect accounts, done.',
-	},
-	{
-		q: 'How is MOLAR different from paid ads?',
-		a: "Ads target patients ready to book today. MOLAR keeps the practice visible to patients who aren't ready yet — building trust and educating until they are.",
-	},
-	{
-		q: 'Why should patients follow our social media?',
-		a: 'The best dental marketing happens between appointments. Followers keep seeing educational content, treatment information and patient transformations long after they leave. Many successful clients use QR codes throughout the practice to drive follows.',
-	},
-	{
-		q: 'We have multiple locations. Is MOLAR a fit?',
-		a: 'Yes. Content distributes across locations with brand consistency and location-specific customization, from 3 locations to 300.',
-	},
-	{
-		q: 'Can I upload my own photos, videos and reviews?',
-		a: 'Yes. Premium subscribers get Client Portal access for patient cases, reviews, before & afters, team photos and videos.',
-	},
-	{
-		q: 'Do I have to approve posts?',
-		a: 'No. Most clients prefer fully automated publishing.',
+		q: 'Does MOLAR also handle social media?',
+		a: 'Yes. MOLAR Social can handle your content creation, copy, scheduling, and posting so your practice stays visible without managing social internally.',
 	},
 	{
 		q: 'Is there a contract?',
-		a: 'No long-term contracts. Cancel anytime.',
+		a: 'No. Cancel anytime. Payments are non-refundable.',
 	},
 ];

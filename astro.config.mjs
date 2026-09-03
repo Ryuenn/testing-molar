@@ -31,14 +31,16 @@ export default defineConfig({
 
 	/*
 		English keeps the bare routes it already has — "/", "/pricing/" — because
-		everything already linked, indexed and sitemapped points at them. German is
-		served from "/de/…", mirrored by hand under "src/pages/de/": Astro does not
-		generate translated routes, it only makes the locale readable from the URL
-		via "Astro.currentLocale".
+		everything already linked, indexed and sitemapped points at them.
+
+		One locale now. The hand-mirrored German tree under "src/pages/de/" is
+		gone and the nav offers Google's translation widget instead, so there are
+		no prefixed routes left to declare. The block stays because
+		"Astro.currentLocale" is what every component reads its locale from.
 	*/
 	i18n: {
 		defaultLocale: 'en',
-		locales: ['en', 'de'],
+		locales: ['en'],
 		routing: { prefixDefaultLocale: false, redirectToDefaultLocale: false },
 	},
 
@@ -74,15 +76,10 @@ export default defineConfig({
 	integrations: [
 		sitemap({
 			/*
-				Tells the sitemap which URLs are translations of each other, so each
-				<url> carries xhtml:link alternates. The <head> hreflang tags say the
-				same thing; search engines accept either, and having both is the
-				belt-and-braces Google's own i18n guidance recommends.
+				No `i18n` block. It existed to emit xhtml:link alternates pairing each
+				English URL with its German twin, and there are no twins any more —
+				a one-locale alternate set says nothing a canonical does not.
 			*/
-			i18n: {
-				defaultLocale: 'en',
-				locales: { en: 'en', de: 'de' },
-			},
 			// Neither the 404 nor the post-gate download pages are canonical URLs;
 			// both are noindex, so they must not appear here either. Same for the
 			// scaffolded routes above, until they have something to say.

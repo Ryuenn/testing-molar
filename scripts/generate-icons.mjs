@@ -3,16 +3,14 @@
  *
  *   node scripts/generate-icons.mjs
  *
- * Master: `src/assets/brand/logo-icon.png` — the MOLAR tile: the wordmark's
- * chevron, white over blue on a dark rounded square. Delivered art, square, and
- * already carrying its own padding and ground, which is why every derivative
- * below takes it whole. Replace that file and re-run; nothing else needs
- * editing.
+ * Master: `src/assets/brand/logo-molar.png` — the crystalline tooth on
+ * transparency. Replace that file and re-run; nothing else needs editing. Every
+ * derivative below takes it whole, trimmed of its margin.
  *
  * `BRAND_ICON_MASTER=<path>` overrides it for a one-off run. The in-page mark
- * is only rewritten when the run is against the icon master itself — a wordmark
- * written into `logo-mark.png` would replace the square mark the hero's CTA
- * badge renders.
+ * is only rewritten when the run is against the master itself — writing some
+ * other artwork into `logo-mark.png` would silently replace the mark the Nav,
+ * the Footer and the hero's CTA tile all render.
  *
  * Uses the `sharp` that Astro already depends on, so there is no extra
  * devDependency for a script that runs a handful of times a year.
@@ -22,11 +20,13 @@ import { mkdir, stat } from 'node:fs/promises';
 
 const ICON_MASTER = 'src/assets/brand/logo-molar.png';
 /*
-	The tooth, back where it was.
+	The tooth — the one mark the brand runs on.
 
-	`logo-icon.png` — the rounded tile with the chevron — held this for a while and
-	is now unused. The tooth is the mark the brand is known by; the wordmark still
-	carries the chevron in its own A, which is where that shape belongs.
+	`logo-icon.png`, the rounded tile with the chevron, held this for a while and
+	is unused now. The current file is the delivered `MolarTooth_FinalReal.png`:
+	the same crystalline tooth as before, cleaner, and without the heavy outer
+	glow the previous export baked in — which matters at 16px, where that glow
+	was most of the pixels.
 */
 const MASTER = process.env.BRAND_ICON_MASTER || ICON_MASTER;
 const PUBLIC = 'public';

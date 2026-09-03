@@ -24,17 +24,29 @@
 	--color-ink-700: #141f36;
 	--color-ink-600: #1c2b4b;
 
-	/* Type */
+	/*
+		Type.
+
+		The two quiet greys were lifted in the 09/01 pass. Both cleared WCAG AA
+		before — 500 measured 4.9:1 on ink-950 and 400 measured 6.9:1 — and both
+		were still hard to read in practice, which is a different test and the one
+		that matters. AA is a floor for 16px body copy; almost every use of these
+		two is an 11–13px mono label or a caption, where 4.9:1 on a near-black
+		ground reads as disabled text rather than as quiet text.
+
+		Measured against ink-950:
+		  bone-300  10.0:1   body copy in a panel
+		  bone-400   8.7:1   secondary lines, notes  (was 6.9:1)
+		  bone-500   7.0:1   small labels, captions  (was 4.9:1)
+
+		They are still three distinct steps, so nothing that relied on the
+		hierarchy has flattened; the whole scale just moved up off the floor.
+	*/
 	--color-bone-50: #eef3fb;
 	--color-bone-100: #dbe4f2;
 	--color-bone-300: #a8b7cf;
-	--color-bone-400: #8494b0;
-	/*
-		The quietest text on the site, and it still has to clear WCAG AA. Most of
-		its uses are 11–12px mono labels, so it is held at 4.9:1 on ink-950 —
-		#64748f looked right but measured 4.25:1 and failed the audit.
-	*/
-	--color-bone-500: #6f7e99;
+	--color-bone-400: #9dabc4;
+	--color-bone-500: #8b99b3;
 
 	/* The single accent. */
 	--color-arc-200: #b3d3ff;

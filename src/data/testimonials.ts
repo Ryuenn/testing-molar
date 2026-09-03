@@ -21,15 +21,38 @@
 export interface Testimonial {
 	quote: string;
 	/**
-	 * A filmed version of this testimonial, root-relative.
+	 * Vimeo id for the filmed version — digits only, not a URL.
 	 *
-	 * Only Dr Harrosch has one. It is a person speaking on camera, so it never
-	 * autoplays and never plays muted: it carries `controls` and `preload="none"`
-	 * behind a poster, and downloads nothing until somebody asks for it.
+	 * Takes precedence over `video`. The section renders it as a `player.vimeo.com`
+	 * iframe; `frame-src https://player.vimeo.com` is already in the CSP in
+	 * netlify.toml, so nothing needs opening up to add one.
+	 *
+	 * ⚠️ EMPTY ON EVERY ENTRY, ON PURPOSE. The links are coming. Until an id is
+	 * pasted in, the card renders a placeholder frame at the right size and
+	 * aspect — the layout is real, the video is the only thing missing. Paste the
+	 * id between the quotes and it goes live with no other change.
+	 *
+	 * From a share URL — https://vimeo.com/1222921798 — the id is the last path
+	 * segment. Private/unlisted links carry a hash after it (`/1222921798/ab12cd`);
+	 * that hash is part of the embed and belongs here too, as `1222921798?h=ab12cd`.
+	 */
+	vimeo?: string;
+	/**
+	 * A self-hosted version, root-relative. The fallback where there is no `vimeo`.
+	 *
+	 * It is a person speaking on camera, so it never autoplays and never plays
+	 * muted: it carries `controls` and downloads nothing until asked.
 	 */
 	video?: string;
-	/** Still for `video`. Required wherever `video` is set — see above. */
+	/** Still for `video`. Ignored when `vimeo` is set — Vimeo brings its own. */
 	poster?: string;
+	/**
+	 * The one that leads the section, rendered large above the others.
+	 *
+	 * Exactly one entry should carry it. If none does the section falls back to
+	 * the first entry, so the layout cannot end up headless.
+	 */
+	featured?: boolean;
 	/** Attributed on the live page. Absent where it is not. */
 	name?: string;
 	/** The descriptor the live page uses, verbatim. */
@@ -44,6 +67,16 @@ export interface Testimonial {
 
 export const TESTIMONIALS: readonly Testimonial[] = [
 	{
+		/*
+			The highlight. Rendered large, above the other two.
+
+			⚠️ `vimeo` is the slot for the Vimeo id — see the field's note. Until it
+			is filled this card plays the self-hosted cut below, which is a real
+			video, so this one is not a placeholder. Pasting an id here switches it
+			to the hosted player and `video`/`poster` become the fallback.
+		*/
+		featured: true,
+		vimeo: '',
 		quote:
 			"Sometimes my 10-minute speech didn't give the impact your one-minute video gave them.",
 		name: 'Dr. Patricia Harrosch',
@@ -60,10 +93,15 @@ export const TESTIMONIALS: readonly Testimonial[] = [
 		accountSlug: 'physimed-dentaire',
 	},
 	{
+		/* ⚠️ PLACEHOLDER — no video of any kind behind this one yet. Paste the
+		   Vimeo id and the frame becomes a player. */
+		vimeo: '',
 		quote:
 			"We were repeating the same treatment explanations all day. Now we pull up MOLAR, show the patient the video, and continue the conversation from there. It's made patient education much easier for the entire team.",
 	},
 	{
+		/* ⚠️ PLACEHOLDER — as above. */
+		vimeo: '',
 		quote:
 			"The biggest difference is the quality of the conversation afterward. Patients ask better questions, understand why we're recommending treatment, and feel much more confident about their options.",
 	},

@@ -24,11 +24,28 @@ export const SITE = {
 		These are consumed twice — by the footer, and by `sameAs` on the
 		Organization JSON-LD in `~/data/schema` — so a handle that is wrong here is
 		wrong in the structured data Google reads as well as in the link a visitor
-		clicks. Verify against the real profile before editing; the handles are not
-		guessable (Instagram and TikTok both carry a dot, YouTube does not).
+		clicks. Verify against the real profile before editing; not one of these is
+		guessable (Instagram and TikTok both carry a dot, YouTube does not, and
+		Facebook is a numeric profile id rather than a vanity name).
+
+		`facebook` is the supplied profile URL, verbatim. It is the `profile.php?
+		id=…` form because the page has no vanity username yet — that is a real,
+		permanent URL and it will keep working after one is set, so it does not
+		need revisiting. If a vanity name is ever claimed, swapping this for
+		`facebook.com/<name>` is the tidier link but not a fix.
+
+		⚠️ Do not "clean up" the query string. The id IS the address; strip it and
+		the link goes to a login wall.
+
+		TikTok is still here and nothing renders it any more. The plans advertise
+		Instagram and Facebook, so the marks on the page are the channels the
+		product posts to. `sameAs` in `~/data/schema` reads this object rather than
+		the rail, and a real account is worth declaring to Google whether or not
+		the page links it.
 	*/
 	social: {
 		instagram: 'https://www.instagram.com/molar.ai/',
+		facebook: 'https://www.facebook.com/profile.php?id=61575745104908',
 		tiktok: 'https://www.tiktok.com/@molar.ai?lang=en',
 		youtube: 'https://www.youtube.com/@Molarai.studio',
 	},
@@ -117,15 +134,27 @@ export const NAV_LINKS: readonly NavEntry[] = [
 			same page, and clicking the word that opens a menu took you off the page
 			instead. The panel is the whole of what Products means.
 		*/
+		/*
+			Two products, in the order the site sells them.
+
+			It listed four. Patient Education is not a product a practice can buy —
+			it is what a MOLAR TV subscription contains, and the footer said so while
+			the nav sold it separately. MOLAR Complete was a name with no page worth
+			pointing at behind it. Both are gone, and MOLAR TV leads because it is
+			the $97 entry point the whole home page now argues for.
+		*/
 		menu: [
-			{ key: 'menuSocial', href: '/social-media/', icon: 'share' },
-			{ key: 'menuEducation', href: '/patient-education/', icon: 'book' },
 			{ key: 'menuTv', href: '/molar-tv/', icon: 'monitor' },
-			{ key: 'menuComplete', href: '/molar-complete/', icon: 'layers' },
+			{ key: 'menuSocial', href: '/social-media/', icon: 'share' },
 		],
 		menuFoot: { key: 'menuHow', href: '/how-it-works/' },
 	},
-	{ key: 'customers', href: '/customers/' },
+	/*
+		No Customers stop. The page it opened is a wall of practice profiles that
+		says the same thing the case study and the testimonials say, in more
+		words — its content belongs on /social-media/, which is where MOLAR Social
+		now points.
+	*/
 	{
 		key: 'resources',
 		href: '/resources/',
@@ -177,19 +206,10 @@ export const PORTAL_LOGIN = '';
  */
 export const EDUCATION_CHECKOUT = 'https://buy.stripe.com/28E14ne6ngNGfwU0CgeAg0a';
 
-/**
- * The nav's language switcher.
- *
- * DISPLAY ONLY. Nothing is translated and nothing routes off `code` — the
- * control changes which chip is lit and stops there. Wiring it up means adding
- * real locale routing; until then adding an entry here adds a chip that does
- * nothing, so don't.
- *
- * `code` is the ISO 639-1 tag (German is `de`, from *Deutsch* — there is no
- * "ge"), `label` the two-letter form in the chip, `name` what a screen reader
- * announces instead of a two-letter fragment.
- */
-export const LANGUAGES = [
-	{ code: 'en', label: 'En', name: 'English' },
-	{ code: 'de', label: 'De', name: 'Deutsch' },
-] as const;
+/*
+	`LANGUAGES` was here — a display-only En/De pair for a nav switcher that was
+	later replaced by real locale routing in `~/i18n/config`, and is now replaced
+	again by Google's translation widget. Nothing read it by the end. The site's
+	one locale lives in `LOCALES`; the widget is
+	`~/components/ui/GoogleTranslate`.
+*/

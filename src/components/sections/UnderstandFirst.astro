@@ -1,0 +1,169 @@
+---
+/**
+ * The reason MOLAR TV exists, in four beats.
+ *
+ * One line — patients do not say yes to what they do not understand — and then
+ * the chain that follows from it: see it, understand it, trust the
+ * recommendation, feel confident going ahead.
+ *
+ * It sits between MOLAR TV and the surfaces section on purpose. MOLAR TV says
+ * what the product is and the section after it says where it runs; this is the
+ * WHY between them, and without it the page goes straight from a screen on a
+ * wall to a price without ever stating what the screen is for.
+ *
+ * The four beats are an ordered list because they are a sequence and the order
+ * is the whole argument. The arrows between them are decoration — a screen
+ * reader gets the numbers from the list itself — so they are drawn with
+ * `aria-hidden` and never as text content.
+ *
+ * No CTA. The next section carries one, and the beat this makes is worth
+ * leaving to land.
+ */
+import { getLocale, useTranslations } from '~/i18n/utils';
+
+const locale = getLocale(Astro);
+const t = useTranslations(locale);
+
+/*
+	The chain. Keys rather than sentences, so the copy stays in the dictionary
+	with every other string on the site and this file stays a layout.
+*/
+const STEPS = ['see', 'understand', 'trust', 'confident'] as const;
+
+const CHAIN = STEPS.map((key) => ({
+	key,
+	label: t(`understand.${key}` as 'understand.see'),
+}));
+---
+
+<section class="section section-rule why" aria-labelledby="why-heading">
+	<div class="why__glow" aria-hidden="true"></div>
+	<div class="grain" aria-hidden="true"></div>
+
+	<div class="container-content why__inner">
+		<h2 id="why-heading" class="why__title" data-reveal>{t('understand.heading')}</h2>
+
+		<ol class="why__chain" data-reveal-stagger>
+			{
+				CHAIN.map((step, i) => (
+					<li class="why__step" data-reveal data-reveal-group>
+						<span class="why__label">{step.label}</span>
+						{/*
+							The join, drawn on every item but the last. Decorative: the list
+							is already ordered, and "arrow" read out four times is noise.
+						*/}
+						{i < CHAIN.length - 1 && (
+							<span class="why__arrow" aria-hidden="true">
+								<svg
+									viewBox="0 0 16 16"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.6"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" />
+								</svg>
+							</span>
+						)}
+					</li>
+				))
+			}
+		</ol>
+	</div>
+</section>
+
+<style>
+	.why {
+		position: relative;
+		isolation: isolate;
+		overflow: clip;
+		text-align: center;
+	}
+
+	/* One soft light behind the headline, so the section reads as a beat rather
+	   than as another band of ground. */
+	.why__glow {
+		position: absolute;
+		z-index: -1;
+		inset-block-start: 0;
+		inset-inline-start: 50%;
+		width: min(56rem, 92%);
+		height: 22rem;
+		transform: translate(-50%, -35%);
+		border-radius: 50%;
+		pointer-events: none;
+		background: radial-gradient(
+			50% 50% at 50% 50%,
+			color-mix(in oklab, var(--color-arc-500) 20%, transparent),
+			transparent 72%
+		);
+		filter: blur(80px);
+	}
+
+	.why__inner {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: clamp(2rem, 4vw, 3rem);
+	}
+
+	.why__title {
+		margin: 0;
+		max-width: 26ch;
+		font-size: var(--text-3xl);
+		text-wrap: balance;
+	}
+
+	/*
+		A wrapping row, not a grid. The four beats are different lengths and a
+		four-track grid would set them all to the width of "Trust the
+		recommendation" — which puts two of them in the middle of an empty cell
+		and breaks the chain the arrows are drawing.
+	*/
+	.why__chain {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem clamp(0.75rem, 2vw, 1.25rem);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.why__step {
+		display: flex;
+		align-items: center;
+		gap: clamp(0.75rem, 2vw, 1.25rem);
+	}
+
+	.why__label {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.625rem 1rem;
+		border-radius: var(--radius-pill);
+		border: 1px solid color-mix(in oklab, var(--color-arc-400) 26%, transparent);
+		background: color-mix(in oklab, var(--color-ink-900) 68%, transparent);
+		box-shadow: inset 0 1px 0 color-mix(in oklab, #cfe4ff 12%, transparent);
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		line-height: 1.2;
+		color: var(--color-bone-50);
+	}
+
+	.why__arrow {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 1rem;
+		height: 1rem;
+		color: var(--color-arc-400);
+	}
+
+	.why__arrow svg {
+		width: 100%;
+		height: 100%;
+	}
+</style>
