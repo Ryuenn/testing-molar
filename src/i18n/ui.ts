@@ -681,7 +681,7 @@ const en = {
 			much of the job to hand over, from a $97 screen to a full presence.
 		*/
 		eyebrow: 'Choose how much you want MOLAR to handle',
-		heading: 'Your social media. Without becoming a content creator.',
+		heading: 'Choose How Much You Want MOLAR To Handle.',
 		lede: 'Four plans, one engine. Every one of them publishes branded patient education to your practice on schedule.',
 		notSure: 'Not sure which plan fits your practice?',
 		findPlan: 'Find My Plan',

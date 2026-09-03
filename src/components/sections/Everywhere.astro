@@ -15,31 +15,93 @@
  * sells the $97 screen, and social is what that turns into once it is running.
  *
  * ⚠️ The artwork this section wants — the real TV design, the library
- * interface, an iPad and a monitor — is not in this repo. There is one asset
- * that fits (`public/videos/Drpatricia_updated_video-web.mp4`, already running inside the
- * screen in `MolarTv`) and no library-interface shot, no iPad and no monitor.
- * Rather than pad the section with a stock device mockup, each row carries its
- * mark and its copy and the layout leaves the picture column free. Drop the
- * stills into `src/assets/showcase/` and give each row an `art` and this
- * becomes a three-row bento without touching the copy.
+ * interface, an iPad and a monitor — is mostly not in this repo. The first row
+ * carries `public/videos/Premium_Hero-web.mp4` as its `art`, the second a shelf
+ * of the video library's own clips, and the third the same feed-grid images
+ * `WorkGallery` runs on /social-media/ — real carousels, not a mockup, since
+ * that is exactly what "after they leave" turns into. Drop stills or clips into
+ * `src/assets/showcase/` or `public/videos/` for anything still copy-only and
+ * give the row an `art`/`library`/`grids` entry — see `MOMENTS` below.
  */
+import { Image } from 'astro:assets';
 import Glyph from '~/components/ui/Glyph.astro';
 import type { GlyphName } from '~/data/glyphs';
 import { EDUCATION_CHECKOUT } from '~/data/site';
+import { LIBRARY_ITEMS } from '~/data/library';
+import { REST as WORK_REST, type WorkAccount } from '~/data/work';
 import { getLocale, useTranslations } from '~/i18n/utils';
 
 const locale = getLocale(Astro);
 const t = useTranslations(locale);
 
-/* Key into `everywhere.*` for the moment and the sentence under it. */
+/*
+	The library's self-hosted clips — real files in `public/videos/library/`,
+	so they can autoplay muted the same as `art` below rather than needing a
+	Vimeo iframe, which cannot. Four is enough to read as a shelf of the
+	catalogue without turning the row into a second library grid.
+*/
+const LIBRARY_CLIPS = LIBRARY_ITEMS.filter(
+	(item): item is typeof item & { video: string } => Boolean(item.video),
+)
+	.slice(0, 4)
+	.map((item) => item.video);
+
+/*
+	The same feed-grid images `WorkGallery` and `ClientProof` render — see the
+	note on `gridFor` in either. Duplicated rather than imported as a component
+	because both of those render a whole different layout (a feature plus a
+	two-column grid, or a wall with palette chips) around the same images; this
+	row needs only the pictures, at thumbnail size.
+
+	`WORK_REST` rather than the full list — four accounts, the same count as
+	`LIBRARY_CLIPS`, so the two shelves read as siblings rather than one being
+	visibly deeper than the other.
+*/
+const workFiles = import.meta.glob<{ default: ImageMetadata }>('../../assets/work/*.png', {
+	eager: true,
+});
+
+const WORK_GRIDS = WORK_REST.map((account: WorkAccount) => {
+	const file = workFiles[`../../assets/work/${account.slug}.png`];
+	if (!file) {
+		throw new Error(`work.ts lists "${account.slug}" but src/assets/work/${account.slug}.png does not exist.`);
+	}
+	return {
+		image: file.default,
+		alt: t('work.alt', {
+			practice: account.practice,
+			specialty: account.specialty.toLowerCase(),
+			language: account.language,
+			a: account.palette[0].name.toLowerCase(),
+			b: account.palette[1].name.toLowerCase(),
+		}),
+	};
+});
+
+/*
+	Key into `everywhere.*` for the moment and the sentence under it.
+
+	`art` (one clip), `library` (a few clips, as a grid) and `grids` (a few
+	stills, as a grid) are where a row has footage that fits it — see the note
+	above. All three rows carry one now.
+*/
 const MOMENTS = [
-	{ key: 'practice', icon: 'screens' },
-	{ key: 'consult', icon: 'search' },
-	{ key: 'after', icon: 'share' },
-] as const satisfies readonly { key: string; icon: GlyphName }[];
+	{ key: 'practice', icon: 'screens', art: '/videos/Premium_Hero-web.mp4' },
+	{ key: 'consult', icon: 'search', library: LIBRARY_CLIPS },
+	{ key: 'after', icon: 'share', grids: WORK_GRIDS },
+] as const satisfies readonly {
+	key: string;
+	icon: GlyphName;
+	art?: string;
+	library?: readonly string[];
+	grids?: readonly { image: ImageMetadata; alt: string }[];
+}[];
 
 const ROWS = MOMENTS.map((moment) => ({
 	icon: moment.icon,
+	art: 'art' in moment ? moment.art : undefined,
+	library: 'library' in moment ? moment.library : undefined,
+	grids: 'grids' in moment ? moment.grids : undefined,
 	when: t(`everywhere.${moment.key}When` as 'everywhere.practiceWhen'),
 	what: t(`everywhere.${moment.key}What` as 'everywhere.practiceWhat'),
 }));
@@ -57,7 +119,15 @@ const ROWS = MOMENTS.map((moment) => ({
 		<ul class="ev__list" data-reveal-stagger>
 			{
 				ROWS.map((row) => (
-					<li class="ev__row panel" data-reveal data-reveal-group>
+					<li
+						class:list={[
+							'ev__row panel',
+							row.art && 'ev__row--media',
+							(row.library || row.grids) && 'ev__row--library',
+						]}
+						data-reveal
+						data-reveal-group
+					>
 						<span class="ev__icon" aria-hidden="true">
 							<Glyph name={row.icon} />
 						</span>
@@ -71,6 +141,69 @@ const ROWS = MOMENTS.map((moment) => ({
 							<p class="ev__when">{row.when}</p>
 							<p class="ev__what">{row.what}</p>
 						</div>
+
+						{/*
+							Decorative and muted, the same as the plans-field footage — no
+							controls and no play button, because nothing here is a video a
+							visitor is meant to press. Autoplay only fires because it is
+							muted; browsers block it otherwise.
+						*/}
+						{row.art && (
+							<video
+								class="ev__art"
+								src={row.art}
+								autoplay
+								muted
+								loop
+								playsinline
+								preload="metadata"
+								aria-hidden="true"
+								tabindex="-1"
+								disablepictureinpicture
+								disableRemotePlayback
+							/>
+						)}
+
+						{/* Same idea, a shelf of clips rather than one — see the note on
+						    `LIBRARY_CLIPS`. */}
+						{row.library && (
+							<div class="ev__minigrid ev__minigrid--video" aria-hidden="true">
+								{row.library.map((src) => (
+									<video
+										class="ev__minigrid-clip"
+										src={src}
+										autoplay
+										muted
+										loop
+										playsinline
+										preload="metadata"
+										tabindex="-1"
+										disablepictureinpicture
+										disableRemotePlayback
+									/>
+								))}
+							</div>
+						)}
+
+						{/*
+							The carousels — real feed grids, not decorative loops, so unlike
+							the two shelves above these keep their own alt text rather than
+							being hidden from assistive tech.
+						*/}
+						{row.grids && (
+							<div class="ev__minigrid">
+								{row.grids.map((grid) => (
+									<Image
+										class="ev__minigrid-clip"
+										src={grid.image}
+										alt={grid.alt}
+										widths={[160, 240, 320]}
+										sizes="(min-width: 30rem) 8rem, 45vw"
+										loading="lazy"
+									/>
+								))}
+							</div>
+						)}
 					</li>
 				))
 			}
@@ -140,6 +273,79 @@ const ROWS = MOMENTS.map((moment) => ({
 	.ev__body {
 		display: grid;
 		gap: 0.375rem;
+	}
+
+	/*
+		The one row with footage. Full width under the text at narrow widths —
+		there is no third column to put it in yet — and a compact clip beside the
+		text once the row has room for one, rather than a full write-up-sized
+		frame inside what is still a compact list row.
+	*/
+	.ev__art {
+		grid-column: 1 / -1;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		object-fit: cover;
+		border-radius: 0.625rem;
+		border: 1px solid var(--color-line);
+		background: var(--color-ink-950);
+	}
+
+	/*
+		The library row's shelf of clips. Same footprint as `.ev__art` at rest —
+		full width under the text — but a 2x2 block of its own thumbnails rather
+		than one frame, so it reads as "the catalogue" rather than as a second
+		hero clip.
+	*/
+	.ev__minigrid {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.375rem;
+	}
+
+	.ev__minigrid-clip {
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: 0.5rem;
+		border: 1px solid var(--color-line);
+		background: var(--color-ink-950);
+	}
+
+	@media (min-width: 30rem) {
+		.ev__row--media,
+		.ev__row--library {
+			grid-template-columns: auto minmax(0, 1fr) auto;
+			/* Taller than the copy-only row — the frame needs the extra height
+			   more than the text beside it does. */
+			padding-block: clamp(1.75rem, 4vw, 2.75rem);
+		}
+
+		.ev__art {
+			grid-column: auto;
+			align-self: center;
+			width: clamp(11rem, 26vw, 18rem);
+		}
+
+		.ev__minigrid {
+			grid-column: auto;
+			align-self: center;
+			width: clamp(9rem, 20vw, 13rem);
+		}
+	}
+
+	/*
+		Decoration first to drop — the row still carries its whole meaning in the
+		text beside it. Only the two shelves that MOVE: the carousel stills below
+		are static pictures, not motion, and hiding them would just be removing
+		content from a visitor who asked for less animation, not less of it.
+	*/
+	@media (prefers-reduced-motion: reduce) {
+		.ev__art,
+		.ev__minigrid--video {
+			display: none;
+		}
 	}
 
 	.ev__when {

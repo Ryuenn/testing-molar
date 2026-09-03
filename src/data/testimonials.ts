@@ -57,6 +57,17 @@ export interface Testimonial {
 	 */
 	aspect?: string;
 	/**
+	 * Overrides the wall's `--film-shift` for this card alone, in the films-only
+	 * mode.
+	 *
+	 * That variable is one number shared by every card, tuned for a phone
+	 * selfie with the face above centre — right for most of these clips, wrong
+	 * for one whose framing differs enough that the shared value crops the
+	 * wrong end of the face. Set only where the shared value is visibly wrong
+	 * for this specific clip.
+	 */
+	filmShift?: string;
+	/**
 	 * The one that leads the section, rendered large above the others.
 	 *
 	 * Exactly one entry should carry it. If none does the section falls back to
@@ -106,6 +117,13 @@ export const TESTIMONIALS: readonly Testimonial[] = [
 		featured: true,
 		vimeo: '1223345869',
 		aspect: '9 / 16',
+		/*
+			Framed lower than the other two clips — the shared 16% shift leaves a
+			band of empty backdrop above her head and crops her chin. 7% keeps
+			enough lift to clear the top-of-head crop the shared value exists to
+			avoid, without pushing the mouth out of frame.
+		*/
+		filmShift: '7%',
 		quote:
 			"Sometimes my 10-minute speech didn't give the impact your one-minute video gave them.",
 		name: 'Dr. Patricia Harrosch',
@@ -168,6 +186,13 @@ export const TESTIMONIALS: readonly Testimonial[] = [
 		*/
 		vimeo: '1223345861',
 		aspect: '9 / 16',
+		/*
+			Framed much higher in this clip than the shared 16% assumes — the
+			side card's crop window is narrow enough (see `--wall-side-ar`) that
+			the shared value leaves nothing but hair and backdrop visible. 32%
+			pulls the window up far enough to bring her face into it.
+		*/
+		filmShift: '32%',
 		quote:
 			"The biggest difference is the quality of the conversation afterward. Patients ask better questions, understand why we're recommending treatment, and feel much more confident about their options.",
 	},

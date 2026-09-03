@@ -9,11 +9,13 @@ What is actually referenced, and by what:
 | `molar-testimonial-0721.mp4`    | The case study's film, and `AssetFilm` | **Fixed** — referenced literally in both            |
 | `harrosch-testimonial.mp4`      | Nothing, since the films went to Vimeo | **Retired** — was the highlight's fallback         |
 | `pricing_animate.mp4`           | The field behind the plan grid      | **Fixed** — `PlansField.astro`                         |
+| `Premium_Hero-web.mp4`          | The "Throughout the practice" row on the home page | **Fixed** — via `MOMENTS` in `Everywhere.astro` |
 | `MolarExampleVideos/`           | The reel on /our-work/              | **Free** — the folder is read at build time            |
 
 Anything else in this folder is a master or a retired cut and nothing loads it. They are still
-served — `public/` ships whole — so `Premium_Hero.mp4` alone is 21 MB of dead weight on the CDN.
-Worth clearing out; left in place because deleting somebody's footage is not a build step's call.
+served — `public/` ships whole — so `Premium_Hero.mp4` (the un-encoded master behind the row above,
+21 MB) is dead weight on the CDN. Worth clearing out; left in place because deleting somebody's
+footage is not a build step's call.
 
 `netlify.toml` caches all of `/videos/*` as immutable for a year, so a replacement that keeps its
 name will not reach anyone already carrying the old one. Bust it by renaming the file

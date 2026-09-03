@@ -195,7 +195,7 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 		>
 			<div
 				class:list={['quote__film', lead.portrait && 'quote__film--portrait']}
-				style={`--quote-aspect:${lead.aspect}`}
+				style={`--quote-aspect:${lead.aspect};${lead.filmShift ? `--film-shift:${lead.filmShift};` : ''}`}
 			>
 				{/*
 					The tile's control, in films-only only.
@@ -324,7 +324,7 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 						<figure class="quote__fig">
 							<div
 								class:list={['quote__film', entry.portrait && 'quote__film--portrait']}
-								style={`--quote-aspect:${entry.aspect}`}
+								style={`--quote-aspect:${entry.aspect};${entry.filmShift ? `--film-shift:${entry.filmShift};` : ''}`}
 							>
 								{/* Same control as the highlight — see the note there. */}
 								{filmsOnly && entry.vimeo && (
@@ -719,7 +719,7 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 		--wall-side: calc(var(--wall-lead) / 1.7);
 		--wall-gap: calc(var(--wall-lead) * 0.03);
 		/* How far up the source the visible band sits. See the crop, below. */
-		--film-shift: 8%;
+		--film-shift: 16%;
 		display: grid;
 		grid-template-columns: min(100%, 34rem);
 		gap: var(--wall-gap);
@@ -776,9 +776,9 @@ const openAttrs = (entry: (typeof QUOTES)[number], label: string) =>
 			Centred in the frame, then nudged down by a slice of its OWN height —
 			`translate` resolves percentages against the element, so this is a shift
 			through the source and means the same thing to a 9:16 clip as to a 20:43
-			one. Down by 8% shows a band 8% further up the film: a face sits above the
-			middle of a phone video, and a straight centre crop puts it at the frame's
-			top edge.
+			one. Down by 16% shows a band 16% further up the film: a face sits above
+			the middle of a phone video, and a straight centre crop puts it at the
+			frame's top edge.
 		*/
 		translate: 0 calc(-50% + var(--film-shift, 0%));
 		width: 100%;
